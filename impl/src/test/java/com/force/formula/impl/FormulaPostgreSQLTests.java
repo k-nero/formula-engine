@@ -6,6 +6,7 @@ package com.force.formula.impl;
 import com.force.formula.DbTester;
 import com.force.formula.FormulaEngine;
 import com.force.formula.impl.BaseCustomizableParserTest.FieldTestFormulaValidationHooks;
+import com.force.formula.sql.DedicatedPostgresTester;
 import com.force.formula.sql.EmbeddedPostgresTester;
 import com.force.formula.sql.PostgreSQLContainerTester;
 import org.xml.sax.SAXException;
@@ -25,6 +26,7 @@ public abstract class FormulaPostgreSQLTests extends FormulaGenericTests {
 	// The embedded one is quicker and easier to manage.  Only difference as of Nov 2021 is an error message
 	// change in testIfNullNullIf
 	public static final boolean USE_DOCKER_FOR_DB = false;
+	public static final boolean USE_DEDICATED_DB = true;
 	
     public FormulaPostgreSQLTests(String name) throws FileNotFoundException, ParserConfigurationException, SAXException, IOException {
         super(name);
@@ -46,7 +48,12 @@ public abstract class FormulaPostgreSQLTests extends FormulaGenericTests {
 	protected DbTester constructDbTester() throws IOException {
 		if (USE_DOCKER_FOR_DB) {
 			return new PostgreSQLContainerTester();
-		} else {	
+		}
+		else if (USE_DEDICATED_DB)
+		{
+			return new DedicatedPostgresTester();
+		}
+		else {
 			return new EmbeddedPostgresTester();
 		}
 	}

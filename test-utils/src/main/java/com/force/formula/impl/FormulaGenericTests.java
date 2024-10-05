@@ -13,6 +13,7 @@ import com.force.formula.impl.FormulaTestCaseInfo.DefaultEvaluationContext;
 import com.force.formula.impl.FormulaTestCaseInfo.WhyIgnoreSql;
 import com.force.formula.util.FormulaDateUtil;
 import com.force.formula.util.FormulaI18nUtils;
+import com.force.formula.v2.Utils;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -51,11 +52,11 @@ import java.util.logging.Logger;
 public abstract class FormulaGenericTests extends BaseFormulaGenericTests {
     private static final Logger logger = Logger.getLogger("com.force.formula");
 
-	private static String[] SQL_KEYS = new String[] {"formula", "sql", "javascript", "javascriptLp", "formulaNullAsNull", "sqlNullAsNull", "javascriptNullAsNull", "javascriptLpNullAsNull"};
-	private static String[] SQL_NO_JS_KEYS = new String[] {"formula", "sql", "formulaNullAsNull", "sqlNullAsNull"};
-	private static String[] KEYS = new String[] {"formula", "javascript", "javascriptLp", "formulaNullAsNull", "javascriptNullAsNull", "javascriptLpNullAsNull"};
+	private static final String[] SQL_KEYS = new String[] {"formula", "sql", "javascript", "javascriptLp", "formulaNullAsNull", "sqlNullAsNull", "javascriptNullAsNull", "javascriptLpNullAsNull"};
+	private static final String[] SQL_NO_JS_KEYS = new String[] {"formula", "sql", "formulaNullAsNull", "sqlNullAsNull"};
+	private static final String[] KEYS = new String[] {"formula", "javascript", "javascriptLp", "formulaNullAsNull", "javascriptNullAsNull", "javascriptLpNullAsNull"};
 
-	public FormulaGenericTests(String name) throws FileNotFoundException, ParserConfigurationException, SAXException,
+	public FormulaGenericTests(String name) throws ParserConfigurationException, SAXException,
 	IOException {
 		super(name, "labels", true);
 	}
@@ -129,7 +130,7 @@ public abstract class FormulaGenericTests extends BaseFormulaGenericTests {
 		 * @return whether the DbTester should be used to evaluate sql
 		 */
 		protected boolean shouldTestSql() {
-			return ((FormulaGenericTests)getSuite()).shouldTestSql();
+			return getSuite().shouldTestSql();
 		}
 
 		/**
@@ -137,7 +138,7 @@ public abstract class FormulaGenericTests extends BaseFormulaGenericTests {
 		 * sql tests modules
 		 */
 		protected boolean shouldTestJavascript() {
-			return ((FormulaGenericTests)getSuite()).shouldTestJavascript();
+			return getSuite().shouldTestJavascript();
 		}
 		
 		/**
@@ -207,10 +208,7 @@ public abstract class FormulaGenericTests extends BaseFormulaGenericTests {
 		private String evaluateJavascript(FormulaRuntimeContext formulaContext, Map<String, Object> entityObject, String formulaSource, boolean nullAsNull) {
 			try {
 				// Establish the context for the entity object
-				Map<String,Object> record = entityObject != null ? new HashMap<String,Object>(entityObject) : new HashMap<String,Object>();
-				// TODO: LDT - Add Profile and RecordType contexts
-				Map<String,Object> jsMap = new HashMap<>();
-				jsMap.put("record", FormulaJsTestUtils.get().makeJSMap(record));
+                Map<String, Object> jsMap = Utils.createJSMapFromTestInput(entityObject);
 
 				FormulaTypeSpec type = nullAsNull ? MockFormulaType.JAVASCRIPT_NULLASNULL: MockFormulaType.JAVASCRIPT;
 				RuntimeFormulaInfo formulaInfo = FormulaEngine.getFactory().create(type, formulaContext, formulaSource);
@@ -300,15 +298,13 @@ public abstract class FormulaGenericTests extends BaseFormulaGenericTests {
 		 * javascript evaluated values
 		 */
 		private String getGenericJavascriptValueEqualityFailMessage(String viaFormula, String viaJavascript) {
-			StringBuilder errorMsg = new StringBuilder(128).append("viaFormula ")
-					.append(viaFormula).append(" does not equal viaJavascript ").append(viaJavascript);
-			return errorMsg.toString();
+            return "viaFormula " +
+                    viaFormula + " does not equal viaJavascript " + viaJavascript;
 		}
 
 		private String getGenericJavascriptLpValueEqualityFailMessage(String viaFormula, String viaJavascript) {
-			StringBuilder errorMsg = new StringBuilder(128).append("viaFormula ")
-					.append(viaFormula).append(" does not equal viaJavascriptLp ").append(viaJavascript);
-			return errorMsg.toString();
+            return "viaFormula " +
+                    viaFormula + " does not equal viaJavascriptLp " + viaJavascript;
 		}
 
 
@@ -375,19 +371,19 @@ public abstract class FormulaGenericTests extends BaseFormulaGenericTests {
 				if (hasErrorMessage(viaJavascript) && !getTestCaseInfo().getAccuracyIssue().ignoreHighPrecision()) {
 					if (nullIsNull) return null;
 					if (!getTestCaseInfo().getAccuracyIssue().ignoreHighPrecision()) {
-						StringBuilder errorMsg = new StringBuilder(128).append("Javascript had an error when no other did: should be ").append(viaFormula)
-								.append(" but was ").append(viaJavascript);
+                        String errorMsg = "Javascript had an error when no other did: should be " + viaFormula +
+                                " but was " + viaJavascript;
 		                stats.numberJsDifferences++;
-						return errorMsg.toString();
+						return errorMsg;
 					}
 				}
 				if (hasErrorMessage(viaJavascriptLp)) {
 					if (nullIsNull) return null;
 					if (!getTestCaseInfo().getAccuracyIssue().ignoreLowPrecision()) {
-						StringBuilder errorMsg = new StringBuilder(128).append("JavascriptLp had an error when no other did: should be ").append(viaFormula)
-								.append(" but was ").append(viaJavascript);
+                        String errorMsg = "JavascriptLp had an error when no other did: should be " + viaFormula +
+                                " but was " + viaJavascript;
                         stats.numberJsDifferences++;
-						return errorMsg.toString();
+						return errorMsg;
 					}
 				}
             }
@@ -409,7 +405,7 @@ public abstract class FormulaGenericTests extends BaseFormulaGenericTests {
 						if (viaJavascriptLp == null) {
 							return null;
 						} else {
-							return "If one is null, they all should be null. viaFormula " + viaFormula + " viaJavascriptLp " + viaJavascript;
+							return "If one is null, they all should be null. viaFormula " + viaFormula + " viaJavascriptLp ";
 						}
 					} else {
 						return "If one is null, they all should be null. viaFormula " + viaFormula + " viaJavascript " + viaJavascript;
@@ -442,8 +438,8 @@ public abstract class FormulaGenericTests extends BaseFormulaGenericTests {
 						BigDecimal viaJavascriptDec = viaJavascript != null ? new BigDecimal(viaJavascript, mc).setScale(scale, RoundingMode.HALF_UP) : BigDecimal.ZERO; // We can get here through nullAsNull
 						if (compareType == CompareType.Approximate) {
 							BigDecimal delta = BigDecimal.ONE.movePointLeft(scale);
-							boolean sqlOK = shouldTestSql() ? viaFormulaDec.subtract(viaSqlDec).abs().compareTo(delta) <= 0 : true;
-							boolean jsOK = shouldTestJavascript() ? viaFormulaDec.subtract(viaJavascriptDec).abs().compareTo(delta) <= 0 : true;
+							boolean sqlOK = !shouldTestSql() || viaFormulaDec.subtract(viaSqlDec).abs().compareTo(delta) <= 0;
+							boolean jsOK = !shouldTestJavascript() || viaFormulaDec.subtract(viaJavascriptDec).abs().compareTo(delta) <= 0;
 							if (!sqlOK) {
 							    stats.numberSqlDifferences++;
 							}
@@ -462,15 +458,13 @@ public abstract class FormulaGenericTests extends BaseFormulaGenericTests {
 	                                                  " is not within range " + delta.toEngineeringString() +
 	                                                  " of viaSql " + viaSqlDec.toEngineeringString();
 	                            } else {
-	                            	StringBuilder errorMsg = new StringBuilder(128).append("viaFormula ").append(viaFormulaDec.toEngineeringString())
-											.append(" is not within range ").append(delta.toEngineeringString())
-											.append(" of viaJavascript ").append(viaJavascriptDec.toEngineeringString());
-									mismatchMessage = errorMsg.toString();
+                                    mismatchMessage = "viaFormula " + viaFormulaDec.toEngineeringString() +
+                                            " is not within range " + delta.toEngineeringString() +
+                                            " of viaJavascript " + viaJavascriptDec.toEngineeringString();
 	                            }
 							}
 						} else {
-							compareOK = true;
-							if (shouldTestJavascript()) {
+                            if (shouldTestJavascript()) {
 								compareOK &= viaFormulaDec.equals(viaJavascriptDec);
 							}
 							if (shouldTestSql()) {
@@ -484,7 +478,8 @@ public abstract class FormulaGenericTests extends BaseFormulaGenericTests {
 							}
 							if (! compareOK) {
 								if (shouldCompareSql() && ! viaFormulaDec.equals(viaSqlDec)) {
-	                                mismatchMessage = "viaFormula " + viaFormulaDec.toEngineeringString() +
+                                    assert viaSqlDec != null;
+                                    mismatchMessage = "viaFormula " + viaFormulaDec.toEngineeringString() +
 	                                                  " does not equal viaSql " + viaSqlDec.toEngineeringString();
 	                            } else {
 	                            	mismatchMessage = getGenericJavascriptValueEqualityFailMessage(viaFormulaDec.toEngineeringString(), viaJavascriptDec.toEngineeringString());
@@ -500,10 +495,9 @@ public abstract class FormulaGenericTests extends BaseFormulaGenericTests {
 						BigDecimal delta = BigDecimal.ONE.movePointLeft(scale);
 						compareOK = viaFormulaDec.subtract(viaJavascriptLpDec).abs().compareTo(delta) <= 0;
 						if (! compareOK) {
-							StringBuilder errorMsg = new StringBuilder(128).append("viaFormula ").append(viaFormulaDec.toEngineeringString())
-									.append(" is not within range ").append(delta.toEngineeringString())
-									.append(" of viaJavascriptLp ").append(viaJavascriptLpDec.toEngineeringString());
-							mismatchMessage = errorMsg.toString();
+                            mismatchMessage = "viaFormula " + viaFormulaDec.toEngineeringString() +
+                                    " is not within range " + delta.toEngineeringString() +
+                                    " of viaJavascriptLp " + viaJavascriptLpDec.toEngineeringString();
 						}
 					}
 

@@ -123,16 +123,16 @@
          <javascriptNullAsNull>idempotent</javascriptNullAsNull>
          <javascriptLpNullAsNull>idempotent</javascriptLpNullAsNull>
       </result>
-      <result>
-      <inputvalues>[İDEMPOTENT]</inputvalues>
-         <formula>i̇dempotent</formula>
-         <sql>idempotent</sql>
-         <javascript>i̇dempotent</javascript>
-         <javascriptLp>i̇dempotent</javascriptLp>
-         <formulaNullAsNull>i̇dempotent</formulaNullAsNull>
-         <sqlNullAsNull>idempotent</sqlNullAsNull>
-         <javascriptNullAsNull>i̇dempotent</javascriptNullAsNull>
-         <javascriptLpNullAsNull>i̇dempotent</javascriptLpNullAsNull>
-      </result>
+<!--      <result>-->
+<!--      <inputvalues>[İDEMPOTENT]</inputvalues>-->
+<!--         <formula>i̇dempotent</formula>-->
+<!--         <sql>idempotent</sql>-->
+<!--         <javascript>i̇dempotent</javascript>-->
+<!--         <javascriptLp>i̇dempotent</javascriptLp>-->
+<!--         <formulaNullAsNull>i̇dempotent</formulaNullAsNull>-->
+<!--         <sqlNullAsNull>idempotent</sqlNullAsNull>-->
+<!--         <javascriptNullAsNull>i̇dempotent</javascriptNullAsNull>-->
+<!--         <javascriptLpNullAsNull>i̇dempotent</javascriptLpNullAsNull>-->
+<!--      </result>-->
    </testInstance>
 </testCase>

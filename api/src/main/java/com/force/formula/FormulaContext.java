@@ -168,7 +168,7 @@ public interface FormulaContext extends Tokenizer {
      */
     default boolean isCheckingSqlLengthLimit() {
         Boolean isSqlLimitCheck = getProperty(FormulaContext.CHECK_SQL_LENGTH_LIMIT);
-        return isSqlLimitCheck == null ? false : isSqlLimitCheck;
+        return isSqlLimitCheck != null && isSqlLimitCheck;
     }
 
     /**
@@ -177,7 +177,7 @@ public interface FormulaContext extends Tokenizer {
      */
     default boolean useHighPrecisionJs() {
         Boolean isHPJs = getProperty(FormulaContext.HIGHPRECISION_JS);
-        return isHPJs == null ? false : isHPJs;
+        return isHPJs != null && isHPJs;
     }
 
     /**
@@ -186,7 +186,7 @@ public interface FormulaContext extends Tokenizer {
      */
     default boolean jsDatesAreStrings() {
         Boolean val = getProperty(JS_DATES_ARE_STRINGS);
-        return val == null ? true : val;
+        return val == null || val;
     }
     
     /**

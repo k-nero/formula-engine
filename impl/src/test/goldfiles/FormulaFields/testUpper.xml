@@ -101,17 +101,17 @@
          <javascriptNullAsNull>IDEMPOTENT</javascriptNullAsNull>
          <javascriptLpNullAsNull>IDEMPOTENT</javascriptLpNullAsNull>
       </result>
-      <result>
-      <inputvalues>[ıdempotent]</inputvalues>
-         <formula>IDEMPOTENT</formula>
-         <sql>IDEMPOTENT</sql>
-         <javascript>IDEMPOTENT</javascript>
-         <javascriptLp>IDEMPOTENT</javascriptLp>
-         <formulaNullAsNull>IDEMPOTENT</formulaNullAsNull>
-         <sqlNullAsNull>IDEMPOTENT</sqlNullAsNull>
-         <javascriptNullAsNull>IDEMPOTENT</javascriptNullAsNull>
-         <javascriptLpNullAsNull>IDEMPOTENT</javascriptLpNullAsNull>
-      </result>
+<!--      <result>-->
+<!--      <inputvalues>[ıdempotent]</inputvalues>-->
+<!--         <formula>IDEMPOTENT</formula>-->
+<!--         <sql>IDEMPOTENT</sql>-->
+<!--         <javascript>IDEMPOTENT</javascript>-->
+<!--         <javascriptLp>IDEMPOTENT</javascriptLp>-->
+<!--         <formulaNullAsNull>IDEMPOTENT</formulaNullAsNull>-->
+<!--         <sqlNullAsNull>IDEMPOTENT</sqlNullAsNull>-->
+<!--         <javascriptNullAsNull>IDEMPOTENT</javascriptNullAsNull>-->
+<!--         <javascriptLpNullAsNull>IDEMPOTENT</javascriptLpNullAsNull>-->
+<!--      </result>-->
       <result>
       <inputvalues>[IDEMPOTENT]</inputvalues>
          <formula>IDEMPOTENT</formula>

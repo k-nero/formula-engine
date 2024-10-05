@@ -25,7 +25,8 @@ public class PostgreSQLContainerTester extends DbContainerTester<PostgreSQLConta
 	}
 	
 	@Override
-	protected PostgreSQLContainer<?> constructDb() throws IOException {
+	protected PostgreSQLContainer<?> constructDb()
+    {
 		return new PostgreSQLContainer<>("postgres");
 	}
 	

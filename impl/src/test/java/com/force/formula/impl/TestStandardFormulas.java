@@ -41,7 +41,7 @@ public class TestStandardFormulas extends FormulaPostgreSQLTests {
     @Override
     protected boolean filterTests(FormulaTestCaseInfo testCase) {
         if (testCase.getTestLabels().contains("ignore")) return false;
-        return testCase.getTestLabels().size() == 0 || testCase.getTestLabels().contains("basic");
+        return testCase.getTestLabels().isEmpty() || testCase.getTestLabels().contains("basic");
     }
 
 	@Override
@@ -50,12 +50,9 @@ public class TestStandardFormulas extends FormulaPostgreSQLTests {
 			// The javascript isNumber for ", " returns true, because javascript
 			return true;
 		}
-		if ("testVALUE".equals(testName)) {
-			// The javascript value for "+1" returns error,  because javascript
-			return true;
-		}
-		return false;
-	}
+        // The javascript value for "+1" returns error,  because javascript
+        return "testVALUE".equals(testName);
+    }
 
     
 }

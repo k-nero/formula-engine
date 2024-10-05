@@ -12,9 +12,9 @@
   </description>
   <url>https://github.com/salesforce/formula-engine</url>
   <properties>
-    <guava.version>31.1-jre</guava.version>
+    <guava.version>33.3.1-jre</guava.version>
     <graalvm.version>22.3.0</graalvm.version>
-    <embedded-postgres.version>2.0.1</embedded-postgres.version>
+    <embedded-postgres.version>2.0.7</embedded-postgres.version>
     <testcontainers.version>1.17.3</testcontainers.version>
     <jakarta.annotation.version>2.1.1</jakarta.annotation.version>
     <!-- If the coverage threshold for a project is not met, the build will
@@ -88,7 +88,7 @@
       <dependency>
         <groupId>com.salesforce.grammaticus</groupId>
         <artifactId>grammaticus</artifactId>
-        <version>1.2.2</version>
+        <version>1.2.3</version>
         <optional>true</optional>
       </dependency>
       <dependency>
@@ -130,7 +130,13 @@
         <artifactId>embedded-postgres</artifactId>
         <version>${embedded-postgres.version}</version>
       </dependency>
-
+      <dependency>
+        <groupId>io.zonky.test.postgres</groupId>
+        <artifactId>embedded-postgres-binaries-bom</artifactId>
+        <version>16.2.0</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
       <!-- GraalJS impl -->
       <dependency>
         <groupId>org.graalvm.sdk</groupId>

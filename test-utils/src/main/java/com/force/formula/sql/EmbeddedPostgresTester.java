@@ -8,6 +8,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 
 import io.zonky.test.db.postgres.embedded.EmbeddedPostgres;
+import org.postgresql.jdbc.PgConnection;
 
 /**
  * a DbTester of formulas that uses embedded postgres for validation.  Use this

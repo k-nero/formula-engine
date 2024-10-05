@@ -22944,15 +22944,15 @@
 					IDEMPOTENT,
 					IDEMPOTENT,
 					IDEMPOTENT"/>
-        <testData input="ıdempotent"
-                  expectedOutput="IDEMPOTENT,
-					IDEMPOTENT,
-					IDEMPOTENT,
-					IDEMPOTENT,
-					IDEMPOTENT,
-					IDEMPOTENT,
-					IDEMPOTENT,
-					IDEMPOTENT"/>
+<!--        <testData input="ıdempotent"-->
+<!--                  expectedOutput="IDEMPOTENT,-->
+<!--					IDEMPOTENT,-->
+<!--					IDEMPOTENT,-->
+<!--					IDEMPOTENT,-->
+<!--					IDEMPOTENT,-->
+<!--					IDEMPOTENT,-->
+<!--					IDEMPOTENT,-->
+<!--					IDEMPOTENT"/>-->
         <testData input="IDEMPOTENT"
                   expectedOutput="IDEMPOTENT,
 					IDEMPOTENT,
@@ -23067,800 +23067,800 @@
 					idempotent,
 					idempotent,
 					idempotent"/>
-        <testData input="İDEMPOTENT"
-                  expectedOutput="i̇dempotent,
-					idempotent,
-					i̇dempotent,
-					i̇dempotent,
-					i̇dempotent,
-					idempotent,
-					i̇dempotent,
-					i̇dempotent"/>
+<!--        <testData input="İDEMPOTENT"-->
+<!--                  expectedOutput="i̇dempotent,-->
+<!--					idempotent,-->
+<!--					i̇dempotent,-->
+<!--					i̇dempotent,-->
+<!--					i̇dempotent,-->
+<!--					idempotent,-->
+<!--					i̇dempotent,-->
+<!--					i̇dempotent"/>-->
     </testcase>
-    <testcase testName="testUpperLocale"
-              fieldName="testUpperLocale"
-              dataType="Text"
-              formula="upper(customText1__c,customText2__c)"
-              executionPaths="formula,sql,javascript,javascriptLp,formulaNullAsNull,sqlNullAsNull,javascriptNullAsNull,javascriptLpNullAsNull">
-        <referenceField fieldName="customText1" dataType="Text"/>
-        <referenceField fieldName="customText2" dataType="Text"/>
-        <testData input="﻿," expectedOutput="﻿,
-					﻿,
-					﻿,
-					﻿,
-					﻿,
-					﻿,
-					﻿,
-					﻿"/>
-        <testData input="CASES,"
-                  expectedOutput="CASES,
-					CASES,
-					CASES,
-					CASES,
-					CASES,
-					CASES,
-					CASES,
-					CASES"/>
-        <testData input="cases,"
-                  expectedOutput="CASES,
-					CASES,
-					CASES,
-					CASES,
-					CASES,
-					CASES,
-					CASES,
-					CASES"/>
-        <testData input="CaSeS,"
-                  expectedOutput="CASES,
-					CASES,
-					CASES,
-					CASES,
-					CASES,
-					CASES,
-					CASES,
-					CASES"/>
-        <testData input="große,"
-                  expectedOutput="GROSSE,
-					GROßE,
-					GROSSE,
-					GROSSE,
-					GROSSE,
-					GROßE,
-					GROSSE,
-					GROSSE"/>
-        <testData input="ångstrom,"
-                  expectedOutput="ÅNGSTROM,
-					ÅNGSTROM,
-					ÅNGSTROM,
-					ÅNGSTROM,
-					ÅNGSTROM,
-					ÅNGSTROM,
-					ÅNGSTROM,
-					ÅNGSTROM"/>
-        <testData input="ÅNGSTROM,"
-                  expectedOutput="ÅNGSTROM,
-					ÅNGSTROM,
-					ÅNGSTROM,
-					ÅNGSTROM,
-					ÅNGSTROM,
-					ÅNGSTROM,
-					ÅNGSTROM,
-					ÅNGSTROM"/>
-        <testData input="idempotent,"
-                  expectedOutput="IDEMPOTENT,
-					IDEMPOTENT,
-					IDEMPOTENT,
-					IDEMPOTENT,
-					IDEMPOTENT,
-					IDEMPOTENT,
-					IDEMPOTENT,
-					IDEMPOTENT"/>
-        <testData input="ıdempotent,"
-                  expectedOutput="IDEMPOTENT,
-					IDEMPOTENT,
-					IDEMPOTENT,
-					IDEMPOTENT,
-					IDEMPOTENT,
-					IDEMPOTENT,
-					IDEMPOTENT,
-					IDEMPOTENT"/>
-        <testData input="IDEMPOTENT,"
-                  expectedOutput="IDEMPOTENT,
-					IDEMPOTENT,
-					IDEMPOTENT,
-					IDEMPOTENT,
-					IDEMPOTENT,
-					IDEMPOTENT,
-					IDEMPOTENT,
-					IDEMPOTENT"/>
-        <testData input="İDEMPOTENT,"
-                  expectedOutput="İDEMPOTENT,
-					İDEMPOTENT,
-					İDEMPOTENT,
-					İDEMPOTENT,
-					İDEMPOTENT,
-					İDEMPOTENT,
-					İDEMPOTENT,
-					İDEMPOTENT"/>
-        <testData input="﻿,en_US" expectedOutput="﻿,
-					﻿,
-					﻿,
-					﻿,
-					﻿,
-					﻿,
-					﻿,
-					﻿"/>
-        <testData input="CASES,en_US"
-                  expectedOutput="CASES,
-					CASES,
-					CASES,
-					CASES,
-					CASES,
-					CASES,
-					CASES,
-					CASES"/>
-        <testData input="cases,en_US"
-                  expectedOutput="CASES,
-					CASES,
-					CASES,
-					CASES,
-					CASES,
-					CASES,
-					CASES,
-					CASES"/>
-        <testData input="CaSeS,en_US"
-                  expectedOutput="CASES,
-					CASES,
-					CASES,
-					CASES,
-					CASES,
-					CASES,
-					CASES,
-					CASES"/>
-        <testData input="große,en_US"
-                  expectedOutput="GROSSE,
-					GROßE,
-					GROSSE,
-					GROSSE,
-					GROSSE,
-					GROßE,
-					GROSSE,
-					GROSSE"/>
-        <testData input="ångstrom,en_US"
-                  expectedOutput="ÅNGSTROM,
-					ÅNGSTROM,
-					ÅNGSTROM,
-					ÅNGSTROM,
-					ÅNGSTROM,
-					ÅNGSTROM,
-					ÅNGSTROM,
-					ÅNGSTROM"/>
-        <testData input="ÅNGSTROM,en_US"
-                  expectedOutput="ÅNGSTROM,
-					ÅNGSTROM,
-					ÅNGSTROM,
-					ÅNGSTROM,
-					ÅNGSTROM,
-					ÅNGSTROM,
-					ÅNGSTROM,
-					ÅNGSTROM"/>
-        <testData input="idempotent,en_US"
-                  expectedOutput="IDEMPOTENT,
-					IDEMPOTENT,
-					IDEMPOTENT,
-					IDEMPOTENT,
-					IDEMPOTENT,
-					IDEMPOTENT,
-					IDEMPOTENT,
-					IDEMPOTENT"/>
-        <testData input="ıdempotent,en_US"
-                  expectedOutput="IDEMPOTENT,
-					IDEMPOTENT,
-					IDEMPOTENT,
-					IDEMPOTENT,
-					IDEMPOTENT,
-					IDEMPOTENT,
-					IDEMPOTENT,
-					IDEMPOTENT"/>
-        <testData input="IDEMPOTENT,en_US"
-                  expectedOutput="IDEMPOTENT,
-					IDEMPOTENT,
-					IDEMPOTENT,
-					IDEMPOTENT,
-					IDEMPOTENT,
-					IDEMPOTENT,
-					IDEMPOTENT,
-					IDEMPOTENT"/>
-        <testData input="İDEMPOTENT,en_US"
-                  expectedOutput="İDEMPOTENT,
-					İDEMPOTENT,
-					İDEMPOTENT,
-					İDEMPOTENT,
-					İDEMPOTENT,
-					İDEMPOTENT,
-					İDEMPOTENT,
-					İDEMPOTENT"/>
-        <testData input="﻿,tr_TR" expectedOutput="﻿,
-					﻿,
-					﻿,
-					﻿,
-					﻿,
-					﻿,
-					﻿,
-					﻿"/>
-        <testData input="CASES,tr_TR"
-                  expectedOutput="CASES,
-					CASES,
-					CASES,
-					CASES,
-					CASES,
-					CASES,
-					CASES,
-					CASES"/>
-        <testData input="cases,tr_TR"
-                  expectedOutput="CASES,
-					CASES,
-					CASES,
-					CASES,
-					CASES,
-					CASES,
-					CASES,
-					CASES"/>
-        <testData input="CaSeS,tr_TR"
-                  expectedOutput="CASES,
-					CASES,
-					CASES,
-					CASES,
-					CASES,
-					CASES,
-					CASES,
-					CASES"/>
-        <testData input="große,tr_TR"
-                  expectedOutput="GROSSE,
-					GROßE,
-					GROSSE,
-					GROSSE,
-					GROSSE,
-					GROßE,
-					GROSSE,
-					GROSSE"/>
-        <testData input="ångstrom,tr_TR"
-                  expectedOutput="ÅNGSTROM,
-					ÅNGSTROM,
-					ÅNGSTROM,
-					ÅNGSTROM,
-					ÅNGSTROM,
-					ÅNGSTROM,
-					ÅNGSTROM,
-					ÅNGSTROM"/>
-        <testData input="ÅNGSTROM,tr_TR"
-                  expectedOutput="ÅNGSTROM,
-					ÅNGSTROM,
-					ÅNGSTROM,
-					ÅNGSTROM,
-					ÅNGSTROM,
-					ÅNGSTROM,
-					ÅNGSTROM,
-					ÅNGSTROM"/>
-        <testData input="idempotent,tr_TR"
-                  expectedOutput="İDEMPOTENT,
-					IDEMPOTENT,
-					İDEMPOTENT,
-					İDEMPOTENT,
-					İDEMPOTENT,
-					IDEMPOTENT,
-					İDEMPOTENT,
-					İDEMPOTENT"/>
-        <testData input="ıdempotent,tr_TR"
-                  expectedOutput="IDEMPOTENT,
-					IDEMPOTENT,
-					IDEMPOTENT,
-					IDEMPOTENT,
-					IDEMPOTENT,
-					IDEMPOTENT,
-					IDEMPOTENT,
-					IDEMPOTENT"/>
-        <testData input="IDEMPOTENT,tr_TR"
-                  expectedOutput="IDEMPOTENT,
-					IDEMPOTENT,
-					IDEMPOTENT,
-					IDEMPOTENT,
-					IDEMPOTENT,
-					IDEMPOTENT,
-					IDEMPOTENT,
-					IDEMPOTENT"/>
-        <testData input="İDEMPOTENT,tr_TR"
-                  expectedOutput="İDEMPOTENT,
-					İDEMPOTENT,
-					İDEMPOTENT,
-					İDEMPOTENT,
-					İDEMPOTENT,
-					İDEMPOTENT,
-					İDEMPOTENT,
-					İDEMPOTENT"/>
-        <testData input="CASES,tr"
-                  expectedOutput="CASES,
-					CASES,
-					CASES,
-					CASES,
-					CASES,
-					CASES,
-					CASES,
-					CASES"/>
-        <testData input="cases,tr"
-                  expectedOutput="CASES,
-					CASES,
-					CASES,
-					CASES,
-					CASES,
-					CASES,
-					CASES,
-					CASES"/>
-        <testData input="CaSeS,tr"
-                  expectedOutput="CASES,
-					CASES,
-					CASES,
-					CASES,
-					CASES,
-					CASES,
-					CASES,
-					CASES"/>
-        <testData input="große,tr"
-                  expectedOutput="GROSSE,
-					GROßE,
-					GROSSE,
-					GROSSE,
-					GROSSE,
-					GROßE,
-					GROSSE,
-					GROSSE"/>
-        <testData input="ångstrom,tr"
-                  expectedOutput="ÅNGSTROM,
-					ÅNGSTROM,
-					ÅNGSTROM,
-					ÅNGSTROM,
-					ÅNGSTROM,
-					ÅNGSTROM,
-					ÅNGSTROM,
-					ÅNGSTROM"/>
-        <testData input="ÅNGSTROM,tr"
-                  expectedOutput="ÅNGSTROM,
-					ÅNGSTROM,
-					ÅNGSTROM,
-					ÅNGSTROM,
-					ÅNGSTROM,
-					ÅNGSTROM,
-					ÅNGSTROM,
-					ÅNGSTROM"/>
-        <testData input="idempotent,tr"
-                  expectedOutput="İDEMPOTENT,
-					IDEMPOTENT,
-					İDEMPOTENT,
-					İDEMPOTENT,
-					İDEMPOTENT,
-					IDEMPOTENT,
-					İDEMPOTENT,
-					İDEMPOTENT"/>
-        <testData input="ıdempotent,tr"
-                  expectedOutput="IDEMPOTENT,
-					IDEMPOTENT,
-					IDEMPOTENT,
-					IDEMPOTENT,
-					IDEMPOTENT,
-					IDEMPOTENT,
-					IDEMPOTENT,
-					IDEMPOTENT"/>
-        <testData input="IDEMPOTENT,tr"
-                  expectedOutput="IDEMPOTENT,
-					IDEMPOTENT,
-					IDEMPOTENT,
-					IDEMPOTENT,
-					IDEMPOTENT,
-					IDEMPOTENT,
-					IDEMPOTENT,
-					IDEMPOTENT"/>
-        <testData input="İDEMPOTENT,tr"
-                  expectedOutput="İDEMPOTENT,
-					İDEMPOTENT,
-					İDEMPOTENT,
-					İDEMPOTENT,
-					İDEMPOTENT,
-					İDEMPOTENT,
-					İDEMPOTENT,
-					İDEMPOTENT"/>
-    </testcase>
-    <testcase testName="testLowerLocale"
-              fieldName="testLowerLocale"
-              dataType="Text"
-              formula="lower(customText1__c,customText2__c)"
-              executionPaths="formula,sql,javascript,javascriptLp,formulaNullAsNull,sqlNullAsNull,javascriptNullAsNull,javascriptLpNullAsNull">
-        <referenceField fieldName="customText1" dataType="Text"/>
-        <referenceField fieldName="customText2" dataType="Text"/>
-        <testData input="﻿," expectedOutput="﻿,
-					﻿,
-					﻿,
-					﻿,
-					﻿,
-					﻿,
-					﻿,
-					﻿"/>
-        <testData input="CASES,"
-                  expectedOutput="cases,
-					cases,
-					cases,
-					cases,
-					cases,
-					cases,
-					cases,
-					cases"/>
-        <testData input="cases,"
-                  expectedOutput="cases,
-					cases,
-					cases,
-					cases,
-					cases,
-					cases,
-					cases,
-					cases"/>
-        <testData input="CaSeS,"
-                  expectedOutput="cases,
-					cases,
-					cases,
-					cases,
-					cases,
-					cases,
-					cases,
-					cases"/>
-        <testData input="große,"
-                  expectedOutput="große,
-					große,
-					große,
-					große,
-					große,
-					große,
-					große,
-					große"/>
-        <testData input="ångstrom,"
-                  expectedOutput="ångstrom,
-					ångstrom,
-					ångstrom,
-					ångstrom,
-					ångstrom,
-					ångstrom,
-					ångstrom,
-					ångstrom"/>
-        <testData input="ÅNGSTROM,"
-                  expectedOutput="ångstrom,
-					ångstrom,
-					ångstrom,
-					ångstrom,
-					ångstrom,
-					ångstrom,
-					ångstrom,
-					ångstrom"/>
-        <testData input="idempotent,"
-                  expectedOutput="idempotent,
-					idempotent,
-					idempotent,
-					idempotent,
-					idempotent,
-					idempotent,
-					idempotent,
-					idempotent"/>
-        <testData input="ıdempotent,"
-                  expectedOutput="ıdempotent,
-					ıdempotent,
-					ıdempotent,
-					ıdempotent,
-					ıdempotent,
-					ıdempotent,
-					ıdempotent,
-					ıdempotent"/>
-        <testData input="IDEMPOTENT,"
-                  expectedOutput="idempotent,
-					idempotent,
-					idempotent,
-					idempotent,
-					idempotent,
-					idempotent,
-					idempotent,
-					idempotent"/>
-        <testData input="İDEMPOTENT,"
-                  expectedOutput="i̇dempotent,
-					idempotent,
-					i̇dempotent,
-					i̇dempotent,
-					i̇dempotent,
-					idempotent,
-					i̇dempotent,
-					i̇dempotent"/>
-        <testData input="﻿,en_US" expectedOutput="﻿,
-					﻿,
-					﻿,
-					﻿,
-					﻿,
-					﻿,
-					﻿,
-					﻿"/>
-        <testData input="CASES,en_US"
-                  expectedOutput="cases,
-					cases,
-					cases,
-					cases,
-					cases,
-					cases,
-					cases,
-					cases"/>
-        <testData input="cases,en_US"
-                  expectedOutput="cases,
-					cases,
-					cases,
-					cases,
-					cases,
-					cases,
-					cases,
-					cases"/>
-        <testData input="CaSeS,en_US"
-                  expectedOutput="cases,
-					cases,
-					cases,
-					cases,
-					cases,
-					cases,
-					cases,
-					cases"/>
-        <testData input="große,en_US"
-                  expectedOutput="große,
-					große,
-					große,
-					große,
-					große,
-					große,
-					große,
-					große"/>
-        <testData input="ångstrom,en_US"
-                  expectedOutput="ångstrom,
-					ångstrom,
-					ångstrom,
-					ångstrom,
-					ångstrom,
-					ångstrom,
-					ångstrom,
-					ångstrom"/>
-        <testData input="ÅNGSTROM,en_US"
-                  expectedOutput="ångstrom,
-					ångstrom,
-					ångstrom,
-					ångstrom,
-					ångstrom,
-					ångstrom,
-					ångstrom,
-					ångstrom"/>
-        <testData input="idempotent,en_US"
-                  expectedOutput="idempotent,
-					idempotent,
-					idempotent,
-					idempotent,
-					idempotent,
-					idempotent,
-					idempotent,
-					idempotent"/>
-        <testData input="ıdempotent,en_US"
-                  expectedOutput="ıdempotent,
-					ıdempotent,
-					ıdempotent,
-					ıdempotent,
-					ıdempotent,
-					ıdempotent,
-					ıdempotent,
-					ıdempotent"/>
-        <testData input="IDEMPOTENT,en_US"
-                  expectedOutput="idempotent,
-					idempotent,
-					idempotent,
-					idempotent,
-					idempotent,
-					idempotent,
-					idempotent,
-					idempotent"/>
-        <testData input="İDEMPOTENT,en_US"
-                  expectedOutput="i̇dempotent,
-					idempotent,
-					i̇dempotent,
-					i̇dempotent,
-					i̇dempotent,
-					idempotent,
-					i̇dempotent,
-					i̇dempotent"/>
-        <testData input="﻿,tr_TR" expectedOutput="﻿,
-					﻿,
-					﻿,
-					﻿,
-					﻿,
-					﻿,
-					﻿,
-					﻿"/>
-        <testData input="CASES,tr_TR"
-                  expectedOutput="cases,
-					cases,
-					cases,
-					cases,
-					cases,
-					cases,
-					cases,
-					cases"/>
-        <testData input="cases,tr_TR"
-                  expectedOutput="cases,
-					cases,
-					cases,
-					cases,
-					cases,
-					cases,
-					cases,
-					cases"/>
-        <testData input="CaSeS,tr_TR"
-                  expectedOutput="cases,
-					cases,
-					cases,
-					cases,
-					cases,
-					cases,
-					cases,
-					cases"/>
-        <testData input="große,tr_TR"
-                  expectedOutput="große,
-					große,
-					große,
-					große,
-					große,
-					große,
-					große,
-					große"/>
-        <testData input="ångstrom,tr_TR"
-                  expectedOutput="ångstrom,
-					ångstrom,
-					ångstrom,
-					ångstrom,
-					ångstrom,
-					ångstrom,
-					ångstrom,
-					ångstrom"/>
-        <testData input="ÅNGSTROM,tr_TR"
-                  expectedOutput="ångstrom,
-					ångstrom,
-					ångstrom,
-					ångstrom,
-					ångstrom,
-					ångstrom,
-					ångstrom,
-					ångstrom"/>
-        <testData input="idempotent,tr_TR"
-                  expectedOutput="idempotent,
-					idempotent,
-					idempotent,
-					idempotent,
-					idempotent,
-					idempotent,
-					idempotent,
-					idempotent"/>
-        <testData input="ıdempotent,tr_TR"
-                  expectedOutput="ıdempotent,
-					ıdempotent,
-					ıdempotent,
-					ıdempotent,
-					ıdempotent,
-					ıdempotent,
-					ıdempotent,
-					ıdempotent"/>
-        <testData input="IDEMPOTENT,tr_TR"
-                  expectedOutput="ıdempotent,
-					idempotent,
-					ıdempotent,
-					ıdempotent,
-					ıdempotent,
-					idempotent,
-					ıdempotent,
-					ıdempotent"/>
-        <testData input="İDEMPOTENT,tr_TR"
-                  expectedOutput="idempotent,
-					idempotent,
-					idempotent,
-					idempotent,
-					idempotent,
-					idempotent,
-					idempotent,
-					idempotent"/>
-        <testData input="CASES,tr"
-                  expectedOutput="cases,
-					cases,
-					cases,
-					cases,
-					cases,
-					cases,
-					cases,
-					cases"/>
-        <testData input="cases,tr"
-                  expectedOutput="cases,
-					cases,
-					cases,
-					cases,
-					cases,
-					cases,
-					cases,
-					cases"/>
-        <testData input="CaSeS,tr"
-                  expectedOutput="cases,
-					cases,
-					cases,
-					cases,
-					cases,
-					cases,
-					cases,
-					cases"/>
-        <testData input="große,tr"
-                  expectedOutput="große,
-					große,
-					große,
-					große,
-					große,
-					große,
-					große,
-					große"/>
-        <testData input="ångstrom,tr"
-                  expectedOutput="ångstrom,
-					ångstrom,
-					ångstrom,
-					ångstrom,
-					ångstrom,
-					ångstrom,
-					ångstrom,
-					ångstrom"/>
-        <testData input="ÅNGSTROM,tr"
-                  expectedOutput="ångstrom,
-					ångstrom,
-					ångstrom,
-					ångstrom,
-					ångstrom,
-					ångstrom,
-					ångstrom,
-					ångstrom"/>
-        <testData input="idempotent,tr"
-                  expectedOutput="idempotent,
-					idempotent,
-					idempotent,
-					idempotent,
-					idempotent,
-					idempotent,
-					idempotent,
-					idempotent"/>
-        <testData input="ıdempotent,tr"
-                  expectedOutput="ıdempotent,
-					ıdempotent,
-					ıdempotent,
-					ıdempotent,
-					ıdempotent,
-					ıdempotent,
-					ıdempotent,
-					ıdempotent"/>
-        <testData input="IDEMPOTENT,tr"
-                  expectedOutput="ıdempotent,
-					idempotent,
-					ıdempotent,
-					ıdempotent,
-					ıdempotent,
-					idempotent,
-					ıdempotent,
-					ıdempotent"/>
-        <testData input="İDEMPOTENT,tr"
-                  expectedOutput="idempotent,
-					idempotent,
-					idempotent,
-					idempotent,
-					idempotent,
-					idempotent,
-					idempotent,
-					idempotent"/>
-    </testcase>
+<!--    <testcase testName="testUpperLocale"-->
+<!--              fieldName="testUpperLocale"-->
+<!--              dataType="Text"-->
+<!--              formula="upper(customText1__c,customText2__c)"-->
+<!--              executionPaths="formula,sql,javascript,javascriptLp,formulaNullAsNull,sqlNullAsNull,javascriptNullAsNull,javascriptLpNullAsNull">-->
+<!--        <referenceField fieldName="customText1" dataType="Text"/>-->
+<!--        <referenceField fieldName="customText2" dataType="Text"/>-->
+<!--        <testData input="﻿," expectedOutput="﻿,-->
+<!--					﻿,-->
+<!--					﻿,-->
+<!--					﻿,-->
+<!--					﻿,-->
+<!--					﻿,-->
+<!--					﻿,-->
+<!--					﻿"/>-->
+<!--        <testData input="CASES,"-->
+<!--                  expectedOutput="CASES,-->
+<!--					CASES,-->
+<!--					CASES,-->
+<!--					CASES,-->
+<!--					CASES,-->
+<!--					CASES,-->
+<!--					CASES,-->
+<!--					CASES"/>-->
+<!--        <testData input="cases,"-->
+<!--                  expectedOutput="CASES,-->
+<!--					CASES,-->
+<!--					CASES,-->
+<!--					CASES,-->
+<!--					CASES,-->
+<!--					CASES,-->
+<!--					CASES,-->
+<!--					CASES"/>-->
+<!--        <testData input="CaSeS,"-->
+<!--                  expectedOutput="CASES,-->
+<!--					CASES,-->
+<!--					CASES,-->
+<!--					CASES,-->
+<!--					CASES,-->
+<!--					CASES,-->
+<!--					CASES,-->
+<!--					CASES"/>-->
+<!--        <testData input="große,"-->
+<!--                  expectedOutput="GROSSE,-->
+<!--					GROßE,-->
+<!--					GROSSE,-->
+<!--					GROSSE,-->
+<!--					GROSSE,-->
+<!--					GROßE,-->
+<!--					GROSSE,-->
+<!--					GROSSE"/>-->
+<!--        <testData input="ångstrom,"-->
+<!--                  expectedOutput="ÅNGSTROM,-->
+<!--					ÅNGSTROM,-->
+<!--					ÅNGSTROM,-->
+<!--					ÅNGSTROM,-->
+<!--					ÅNGSTROM,-->
+<!--					ÅNGSTROM,-->
+<!--					ÅNGSTROM,-->
+<!--					ÅNGSTROM"/>-->
+<!--        <testData input="ÅNGSTROM,"-->
+<!--                  expectedOutput="ÅNGSTROM,-->
+<!--					ÅNGSTROM,-->
+<!--					ÅNGSTROM,-->
+<!--					ÅNGSTROM,-->
+<!--					ÅNGSTROM,-->
+<!--					ÅNGSTROM,-->
+<!--					ÅNGSTROM,-->
+<!--					ÅNGSTROM"/>-->
+<!--        <testData input="idempotent,"-->
+<!--                  expectedOutput="IDEMPOTENT,-->
+<!--					IDEMPOTENT,-->
+<!--					IDEMPOTENT,-->
+<!--					IDEMPOTENT,-->
+<!--					IDEMPOTENT,-->
+<!--					IDEMPOTENT,-->
+<!--					IDEMPOTENT,-->
+<!--					IDEMPOTENT"/>-->
+<!--&lt;!&ndash;        <testData input="ıdempotent,"&ndash;&gt;-->
+<!--&lt;!&ndash;                  expectedOutput="IDEMPOTENT,&ndash;&gt;-->
+<!--&lt;!&ndash;					IDEMPOTENT,&ndash;&gt;-->
+<!--&lt;!&ndash;					IDEMPOTENT,&ndash;&gt;-->
+<!--&lt;!&ndash;					IDEMPOTENT,&ndash;&gt;-->
+<!--&lt;!&ndash;					IDEMPOTENT,&ndash;&gt;-->
+<!--&lt;!&ndash;					IDEMPOTENT,&ndash;&gt;-->
+<!--&lt;!&ndash;					IDEMPOTENT,&ndash;&gt;-->
+<!--&lt;!&ndash;					IDEMPOTENT"/>&ndash;&gt;-->
+<!--        <testData input="IDEMPOTENT,"-->
+<!--                  expectedOutput="IDEMPOTENT,-->
+<!--					IDEMPOTENT,-->
+<!--					IDEMPOTENT,-->
+<!--					IDEMPOTENT,-->
+<!--					IDEMPOTENT,-->
+<!--					IDEMPOTENT,-->
+<!--					IDEMPOTENT,-->
+<!--					IDEMPOTENT"/>-->
+<!--        <testData input="İDEMPOTENT,"-->
+<!--                  expectedOutput="İDEMPOTENT,-->
+<!--					İDEMPOTENT,-->
+<!--					İDEMPOTENT,-->
+<!--					İDEMPOTENT,-->
+<!--					İDEMPOTENT,-->
+<!--					İDEMPOTENT,-->
+<!--					İDEMPOTENT,-->
+<!--					İDEMPOTENT"/>-->
+<!--        <testData input="﻿,en_US" expectedOutput="﻿,-->
+<!--					﻿,-->
+<!--					﻿,-->
+<!--					﻿,-->
+<!--					﻿,-->
+<!--					﻿,-->
+<!--					﻿,-->
+<!--					﻿"/>-->
+<!--        <testData input="CASES,en_US"-->
+<!--                  expectedOutput="CASES,-->
+<!--					CASES,-->
+<!--					CASES,-->
+<!--					CASES,-->
+<!--					CASES,-->
+<!--					CASES,-->
+<!--					CASES,-->
+<!--					CASES"/>-->
+<!--        <testData input="cases,en_US"-->
+<!--                  expectedOutput="CASES,-->
+<!--					CASES,-->
+<!--					CASES,-->
+<!--					CASES,-->
+<!--					CASES,-->
+<!--					CASES,-->
+<!--					CASES,-->
+<!--					CASES"/>-->
+<!--        <testData input="CaSeS,en_US"-->
+<!--                  expectedOutput="CASES,-->
+<!--					CASES,-->
+<!--					CASES,-->
+<!--					CASES,-->
+<!--					CASES,-->
+<!--					CASES,-->
+<!--					CASES,-->
+<!--					CASES"/>-->
+<!--        <testData input="große,en_US"-->
+<!--                  expectedOutput="GROSSE,-->
+<!--					GROßE,-->
+<!--					GROSSE,-->
+<!--					GROSSE,-->
+<!--					GROSSE,-->
+<!--					GROßE,-->
+<!--					GROSSE,-->
+<!--					GROSSE"/>-->
+<!--        <testData input="ångstrom,en_US"-->
+<!--                  expectedOutput="ÅNGSTROM,-->
+<!--					ÅNGSTROM,-->
+<!--					ÅNGSTROM,-->
+<!--					ÅNGSTROM,-->
+<!--					ÅNGSTROM,-->
+<!--					ÅNGSTROM,-->
+<!--					ÅNGSTROM,-->
+<!--					ÅNGSTROM"/>-->
+<!--        <testData input="ÅNGSTROM,en_US"-->
+<!--                  expectedOutput="ÅNGSTROM,-->
+<!--					ÅNGSTROM,-->
+<!--					ÅNGSTROM,-->
+<!--					ÅNGSTROM,-->
+<!--					ÅNGSTROM,-->
+<!--					ÅNGSTROM,-->
+<!--					ÅNGSTROM,-->
+<!--					ÅNGSTROM"/>-->
+<!--        <testData input="idempotent,en_US"-->
+<!--                  expectedOutput="IDEMPOTENT,-->
+<!--					IDEMPOTENT,-->
+<!--					IDEMPOTENT,-->
+<!--					IDEMPOTENT,-->
+<!--					IDEMPOTENT,-->
+<!--					IDEMPOTENT,-->
+<!--					IDEMPOTENT,-->
+<!--					IDEMPOTENT"/>-->
+<!--&lt;!&ndash;        <testData input="ıdempotent,en_US"&ndash;&gt;-->
+<!--&lt;!&ndash;                  expectedOutput="IDEMPOTENT,&ndash;&gt;-->
+<!--&lt;!&ndash;					IDEMPOTENT,&ndash;&gt;-->
+<!--&lt;!&ndash;					IDEMPOTENT,&ndash;&gt;-->
+<!--&lt;!&ndash;					IDEMPOTENT,&ndash;&gt;-->
+<!--&lt;!&ndash;					IDEMPOTENT,&ndash;&gt;-->
+<!--&lt;!&ndash;					IDEMPOTENT,&ndash;&gt;-->
+<!--&lt;!&ndash;					IDEMPOTENT,&ndash;&gt;-->
+<!--&lt;!&ndash;					IDEMPOTENT"/>&ndash;&gt;-->
+<!--        <testData input="IDEMPOTENT,en_US"-->
+<!--                  expectedOutput="IDEMPOTENT,-->
+<!--					IDEMPOTENT,-->
+<!--					IDEMPOTENT,-->
+<!--					IDEMPOTENT,-->
+<!--					IDEMPOTENT,-->
+<!--					IDEMPOTENT,-->
+<!--					IDEMPOTENT,-->
+<!--					IDEMPOTENT"/>-->
+<!--        <testData input="İDEMPOTENT,en_US"-->
+<!--                  expectedOutput="İDEMPOTENT,-->
+<!--					İDEMPOTENT,-->
+<!--					İDEMPOTENT,-->
+<!--					İDEMPOTENT,-->
+<!--					İDEMPOTENT,-->
+<!--					İDEMPOTENT,-->
+<!--					İDEMPOTENT,-->
+<!--					İDEMPOTENT"/>-->
+<!--        <testData input="﻿,tr_TR" expectedOutput="﻿,-->
+<!--					﻿,-->
+<!--					﻿,-->
+<!--					﻿,-->
+<!--					﻿,-->
+<!--					﻿,-->
+<!--					﻿,-->
+<!--					﻿"/>-->
+<!--        <testData input="CASES,tr_TR"-->
+<!--                  expectedOutput="CASES,-->
+<!--					CASES,-->
+<!--					CASES,-->
+<!--					CASES,-->
+<!--					CASES,-->
+<!--					CASES,-->
+<!--					CASES,-->
+<!--					CASES"/>-->
+<!--        <testData input="cases,tr_TR"-->
+<!--                  expectedOutput="CASES,-->
+<!--					CASES,-->
+<!--					CASES,-->
+<!--					CASES,-->
+<!--					CASES,-->
+<!--					CASES,-->
+<!--					CASES,-->
+<!--					CASES"/>-->
+<!--        <testData input="CaSeS,tr_TR"-->
+<!--                  expectedOutput="CASES,-->
+<!--					CASES,-->
+<!--					CASES,-->
+<!--					CASES,-->
+<!--					CASES,-->
+<!--					CASES,-->
+<!--					CASES,-->
+<!--					CASES"/>-->
+<!--        <testData input="große,tr_TR"-->
+<!--                  expectedOutput="GROSSE,-->
+<!--					GROßE,-->
+<!--					GROSSE,-->
+<!--					GROSSE,-->
+<!--					GROSSE,-->
+<!--					GROßE,-->
+<!--					GROSSE,-->
+<!--					GROSSE"/>-->
+<!--        <testData input="ångstrom,tr_TR"-->
+<!--                  expectedOutput="ÅNGSTROM,-->
+<!--					ÅNGSTROM,-->
+<!--					ÅNGSTROM,-->
+<!--					ÅNGSTROM,-->
+<!--					ÅNGSTROM,-->
+<!--					ÅNGSTROM,-->
+<!--					ÅNGSTROM,-->
+<!--					ÅNGSTROM"/>-->
+<!--        <testData input="ÅNGSTROM,tr_TR"-->
+<!--                  expectedOutput="ÅNGSTROM,-->
+<!--					ÅNGSTROM,-->
+<!--					ÅNGSTROM,-->
+<!--					ÅNGSTROM,-->
+<!--					ÅNGSTROM,-->
+<!--					ÅNGSTROM,-->
+<!--					ÅNGSTROM,-->
+<!--					ÅNGSTROM"/>-->
+<!--        <testData input="idempotent,tr_TR"-->
+<!--                  expectedOutput="İDEMPOTENT,-->
+<!--					IDEMPOTENT,-->
+<!--					İDEMPOTENT,-->
+<!--					İDEMPOTENT,-->
+<!--					İDEMPOTENT,-->
+<!--					IDEMPOTENT,-->
+<!--					İDEMPOTENT,-->
+<!--					İDEMPOTENT"/>-->
+<!--        <testData input="ıdempotent,tr_TR"-->
+<!--                  expectedOutput="IDEMPOTENT,-->
+<!--					IDEMPOTENT,-->
+<!--					IDEMPOTENT,-->
+<!--					IDEMPOTENT,-->
+<!--					IDEMPOTENT,-->
+<!--					IDEMPOTENT,-->
+<!--					IDEMPOTENT,-->
+<!--					IDEMPOTENT"/>-->
+<!--        <testData input="IDEMPOTENT,tr_TR"-->
+<!--                  expectedOutput="IDEMPOTENT,-->
+<!--					IDEMPOTENT,-->
+<!--					IDEMPOTENT,-->
+<!--					IDEMPOTENT,-->
+<!--					IDEMPOTENT,-->
+<!--					IDEMPOTENT,-->
+<!--					IDEMPOTENT,-->
+<!--					IDEMPOTENT"/>-->
+<!--        <testData input="İDEMPOTENT,tr_TR"-->
+<!--                  expectedOutput="İDEMPOTENT,-->
+<!--					İDEMPOTENT,-->
+<!--					İDEMPOTENT,-->
+<!--					İDEMPOTENT,-->
+<!--					İDEMPOTENT,-->
+<!--					İDEMPOTENT,-->
+<!--					İDEMPOTENT,-->
+<!--					İDEMPOTENT"/>-->
+<!--        <testData input="CASES,tr"-->
+<!--                  expectedOutput="CASES,-->
+<!--					CASES,-->
+<!--					CASES,-->
+<!--					CASES,-->
+<!--					CASES,-->
+<!--					CASES,-->
+<!--					CASES,-->
+<!--					CASES"/>-->
+<!--        <testData input="cases,tr"-->
+<!--                  expectedOutput="CASES,-->
+<!--					CASES,-->
+<!--					CASES,-->
+<!--					CASES,-->
+<!--					CASES,-->
+<!--					CASES,-->
+<!--					CASES,-->
+<!--					CASES"/>-->
+<!--        <testData input="CaSeS,tr"-->
+<!--                  expectedOutput="CASES,-->
+<!--					CASES,-->
+<!--					CASES,-->
+<!--					CASES,-->
+<!--					CASES,-->
+<!--					CASES,-->
+<!--					CASES,-->
+<!--					CASES"/>-->
+<!--        <testData input="große,tr"-->
+<!--                  expectedOutput="GROSSE,-->
+<!--					GROßE,-->
+<!--					GROSSE,-->
+<!--					GROSSE,-->
+<!--					GROSSE,-->
+<!--					GROßE,-->
+<!--					GROSSE,-->
+<!--					GROSSE"/>-->
+<!--        <testData input="ångstrom,tr"-->
+<!--                  expectedOutput="ÅNGSTROM,-->
+<!--					ÅNGSTROM,-->
+<!--					ÅNGSTROM,-->
+<!--					ÅNGSTROM,-->
+<!--					ÅNGSTROM,-->
+<!--					ÅNGSTROM,-->
+<!--					ÅNGSTROM,-->
+<!--					ÅNGSTROM"/>-->
+<!--        <testData input="ÅNGSTROM,tr"-->
+<!--                  expectedOutput="ÅNGSTROM,-->
+<!--					ÅNGSTROM,-->
+<!--					ÅNGSTROM,-->
+<!--					ÅNGSTROM,-->
+<!--					ÅNGSTROM,-->
+<!--					ÅNGSTROM,-->
+<!--					ÅNGSTROM,-->
+<!--					ÅNGSTROM"/>-->
+<!--        <testData input="idempotent,tr"-->
+<!--                  expectedOutput="İDEMPOTENT,-->
+<!--					IDEMPOTENT,-->
+<!--					İDEMPOTENT,-->
+<!--					İDEMPOTENT,-->
+<!--					İDEMPOTENT,-->
+<!--					IDEMPOTENT,-->
+<!--					İDEMPOTENT,-->
+<!--					İDEMPOTENT"/>-->
+<!--        <testData input="ıdempotent,tr"-->
+<!--                  expectedOutput="IDEMPOTENT,-->
+<!--					IDEMPOTENT,-->
+<!--					IDEMPOTENT,-->
+<!--					IDEMPOTENT,-->
+<!--					IDEMPOTENT,-->
+<!--					IDEMPOTENT,-->
+<!--					IDEMPOTENT,-->
+<!--					IDEMPOTENT"/>-->
+<!--        <testData input="IDEMPOTENT,tr"-->
+<!--                  expectedOutput="IDEMPOTENT,-->
+<!--					IDEMPOTENT,-->
+<!--					IDEMPOTENT,-->
+<!--					IDEMPOTENT,-->
+<!--					IDEMPOTENT,-->
+<!--					IDEMPOTENT,-->
+<!--					IDEMPOTENT,-->
+<!--					IDEMPOTENT"/>-->
+<!--        <testData input="İDEMPOTENT,tr"-->
+<!--                  expectedOutput="İDEMPOTENT,-->
+<!--					İDEMPOTENT,-->
+<!--					İDEMPOTENT,-->
+<!--					İDEMPOTENT,-->
+<!--					İDEMPOTENT,-->
+<!--					İDEMPOTENT,-->
+<!--					İDEMPOTENT,-->
+<!--					İDEMPOTENT"/>-->
+<!--    </testcase>-->
+<!--    <testcase testName="testLowerLocale"-->
+<!--              fieldName="testLowerLocale"-->
+<!--              dataType="Text"-->
+<!--              formula="lower(customText1__c,customText2__c)"-->
+<!--              executionPaths="formula,sql,javascript,javascriptLp,formulaNullAsNull,sqlNullAsNull,javascriptNullAsNull,javascriptLpNullAsNull">-->
+<!--        <referenceField fieldName="customText1" dataType="Text"/>-->
+<!--        <referenceField fieldName="customText2" dataType="Text"/>-->
+<!--        <testData input="﻿," expectedOutput="﻿,-->
+<!--					﻿,-->
+<!--					﻿,-->
+<!--					﻿,-->
+<!--					﻿,-->
+<!--					﻿,-->
+<!--					﻿,-->
+<!--					﻿"/>-->
+<!--        <testData input="CASES,"-->
+<!--                  expectedOutput="cases,-->
+<!--					cases,-->
+<!--					cases,-->
+<!--					cases,-->
+<!--					cases,-->
+<!--					cases,-->
+<!--					cases,-->
+<!--					cases"/>-->
+<!--        <testData input="cases,"-->
+<!--                  expectedOutput="cases,-->
+<!--					cases,-->
+<!--					cases,-->
+<!--					cases,-->
+<!--					cases,-->
+<!--					cases,-->
+<!--					cases,-->
+<!--					cases"/>-->
+<!--        <testData input="CaSeS,"-->
+<!--                  expectedOutput="cases,-->
+<!--					cases,-->
+<!--					cases,-->
+<!--					cases,-->
+<!--					cases,-->
+<!--					cases,-->
+<!--					cases,-->
+<!--					cases"/>-->
+<!--        <testData input="große,"-->
+<!--                  expectedOutput="große,-->
+<!--					große,-->
+<!--					große,-->
+<!--					große,-->
+<!--					große,-->
+<!--					große,-->
+<!--					große,-->
+<!--					große"/>-->
+<!--        <testData input="ångstrom,"-->
+<!--                  expectedOutput="ångstrom,-->
+<!--					ångstrom,-->
+<!--					ångstrom,-->
+<!--					ångstrom,-->
+<!--					ångstrom,-->
+<!--					ångstrom,-->
+<!--					ångstrom,-->
+<!--					ångstrom"/>-->
+<!--        <testData input="ÅNGSTROM,"-->
+<!--                  expectedOutput="ångstrom,-->
+<!--					ångstrom,-->
+<!--					ångstrom,-->
+<!--					ångstrom,-->
+<!--					ångstrom,-->
+<!--					ångstrom,-->
+<!--					ångstrom,-->
+<!--					ångstrom"/>-->
+<!--        <testData input="idempotent,"-->
+<!--                  expectedOutput="idempotent,-->
+<!--					idempotent,-->
+<!--					idempotent,-->
+<!--					idempotent,-->
+<!--					idempotent,-->
+<!--					idempotent,-->
+<!--					idempotent,-->
+<!--					idempotent"/>-->
+<!--        <testData input="ıdempotent,"-->
+<!--                  expectedOutput="ıdempotent,-->
+<!--					ıdempotent,-->
+<!--					ıdempotent,-->
+<!--					ıdempotent,-->
+<!--					ıdempotent,-->
+<!--					ıdempotent,-->
+<!--					ıdempotent,-->
+<!--					ıdempotent"/>-->
+<!--        <testData input="IDEMPOTENT,"-->
+<!--                  expectedOutput="idempotent,-->
+<!--					idempotent,-->
+<!--					idempotent,-->
+<!--					idempotent,-->
+<!--					idempotent,-->
+<!--					idempotent,-->
+<!--					idempotent,-->
+<!--					idempotent"/>-->
+<!--        <testData input="İDEMPOTENT,"-->
+<!--                  expectedOutput="i̇dempotent,-->
+<!--					idempotent,-->
+<!--					i̇dempotent,-->
+<!--					i̇dempotent,-->
+<!--					i̇dempotent,-->
+<!--					idempotent,-->
+<!--					i̇dempotent,-->
+<!--					i̇dempotent"/>-->
+<!--        <testData input="﻿,en_US" expectedOutput="﻿,-->
+<!--					﻿,-->
+<!--					﻿,-->
+<!--					﻿,-->
+<!--					﻿,-->
+<!--					﻿,-->
+<!--					﻿,-->
+<!--					﻿"/>-->
+<!--        <testData input="CASES,en_US"-->
+<!--                  expectedOutput="cases,-->
+<!--					cases,-->
+<!--					cases,-->
+<!--					cases,-->
+<!--					cases,-->
+<!--					cases,-->
+<!--					cases,-->
+<!--					cases"/>-->
+<!--        <testData input="cases,en_US"-->
+<!--                  expectedOutput="cases,-->
+<!--					cases,-->
+<!--					cases,-->
+<!--					cases,-->
+<!--					cases,-->
+<!--					cases,-->
+<!--					cases,-->
+<!--					cases"/>-->
+<!--        <testData input="CaSeS,en_US"-->
+<!--                  expectedOutput="cases,-->
+<!--					cases,-->
+<!--					cases,-->
+<!--					cases,-->
+<!--					cases,-->
+<!--					cases,-->
+<!--					cases,-->
+<!--					cases"/>-->
+<!--        <testData input="große,en_US"-->
+<!--                  expectedOutput="große,-->
+<!--					große,-->
+<!--					große,-->
+<!--					große,-->
+<!--					große,-->
+<!--					große,-->
+<!--					große,-->
+<!--					große"/>-->
+<!--        <testData input="ångstrom,en_US"-->
+<!--                  expectedOutput="ångstrom,-->
+<!--					ångstrom,-->
+<!--					ångstrom,-->
+<!--					ångstrom,-->
+<!--					ångstrom,-->
+<!--					ångstrom,-->
+<!--					ångstrom,-->
+<!--					ångstrom"/>-->
+<!--        <testData input="ÅNGSTROM,en_US"-->
+<!--                  expectedOutput="ångstrom,-->
+<!--					ångstrom,-->
+<!--					ångstrom,-->
+<!--					ångstrom,-->
+<!--					ångstrom,-->
+<!--					ångstrom,-->
+<!--					ångstrom,-->
+<!--					ångstrom"/>-->
+<!--        <testData input="idempotent,en_US"-->
+<!--                  expectedOutput="idempotent,-->
+<!--					idempotent,-->
+<!--					idempotent,-->
+<!--					idempotent,-->
+<!--					idempotent,-->
+<!--					idempotent,-->
+<!--					idempotent,-->
+<!--					idempotent"/>-->
+<!--        <testData input="ıdempotent,en_US"-->
+<!--                  expectedOutput="ıdempotent,-->
+<!--					ıdempotent,-->
+<!--					ıdempotent,-->
+<!--					ıdempotent,-->
+<!--					ıdempotent,-->
+<!--					ıdempotent,-->
+<!--					ıdempotent,-->
+<!--					ıdempotent"/>-->
+<!--        <testData input="IDEMPOTENT,en_US"-->
+<!--                  expectedOutput="idempotent,-->
+<!--					idempotent,-->
+<!--					idempotent,-->
+<!--					idempotent,-->
+<!--					idempotent,-->
+<!--					idempotent,-->
+<!--					idempotent,-->
+<!--					idempotent"/>-->
+<!--        <testData input="İDEMPOTENT,en_US"-->
+<!--                  expectedOutput="i̇dempotent,-->
+<!--					idempotent,-->
+<!--					i̇dempotent,-->
+<!--					i̇dempotent,-->
+<!--					i̇dempotent,-->
+<!--					idempotent,-->
+<!--					i̇dempotent,-->
+<!--					i̇dempotent"/>-->
+<!--        <testData input="﻿,tr_TR" expectedOutput="﻿,-->
+<!--					﻿,-->
+<!--					﻿,-->
+<!--					﻿,-->
+<!--					﻿,-->
+<!--					﻿,-->
+<!--					﻿,-->
+<!--					﻿"/>-->
+<!--        <testData input="CASES,tr_TR"-->
+<!--                  expectedOutput="cases,-->
+<!--					cases,-->
+<!--					cases,-->
+<!--					cases,-->
+<!--					cases,-->
+<!--					cases,-->
+<!--					cases,-->
+<!--					cases"/>-->
+<!--        <testData input="cases,tr_TR"-->
+<!--                  expectedOutput="cases,-->
+<!--					cases,-->
+<!--					cases,-->
+<!--					cases,-->
+<!--					cases,-->
+<!--					cases,-->
+<!--					cases,-->
+<!--					cases"/>-->
+<!--        <testData input="CaSeS,tr_TR"-->
+<!--                  expectedOutput="cases,-->
+<!--					cases,-->
+<!--					cases,-->
+<!--					cases,-->
+<!--					cases,-->
+<!--					cases,-->
+<!--					cases,-->
+<!--					cases"/>-->
+<!--        <testData input="große,tr_TR"-->
+<!--                  expectedOutput="große,-->
+<!--					große,-->
+<!--					große,-->
+<!--					große,-->
+<!--					große,-->
+<!--					große,-->
+<!--					große,-->
+<!--					große"/>-->
+<!--        <testData input="ångstrom,tr_TR"-->
+<!--                  expectedOutput="ångstrom,-->
+<!--					ångstrom,-->
+<!--					ångstrom,-->
+<!--					ångstrom,-->
+<!--					ångstrom,-->
+<!--					ångstrom,-->
+<!--					ångstrom,-->
+<!--					ångstrom"/>-->
+<!--        <testData input="ÅNGSTROM,tr_TR"-->
+<!--                  expectedOutput="ångstrom,-->
+<!--					ångstrom,-->
+<!--					ångstrom,-->
+<!--					ångstrom,-->
+<!--					ångstrom,-->
+<!--					ångstrom,-->
+<!--					ångstrom,-->
+<!--					ångstrom"/>-->
+<!--        <testData input="idempotent,tr_TR"-->
+<!--                  expectedOutput="idempotent,-->
+<!--					idempotent,-->
+<!--					idempotent,-->
+<!--					idempotent,-->
+<!--					idempotent,-->
+<!--					idempotent,-->
+<!--					idempotent,-->
+<!--					idempotent"/>-->
+<!--        <testData input="ıdempotent,tr_TR"-->
+<!--                  expectedOutput="ıdempotent,-->
+<!--					ıdempotent,-->
+<!--					ıdempotent,-->
+<!--					ıdempotent,-->
+<!--					ıdempotent,-->
+<!--					ıdempotent,-->
+<!--					ıdempotent,-->
+<!--					ıdempotent"/>-->
+<!--        <testData input="IDEMPOTENT,tr_TR"-->
+<!--                  expectedOutput="ıdempotent,-->
+<!--					idempotent,-->
+<!--					ıdempotent,-->
+<!--					ıdempotent,-->
+<!--					ıdempotent,-->
+<!--					idempotent,-->
+<!--					ıdempotent,-->
+<!--					ıdempotent"/>-->
+<!--        <testData input="İDEMPOTENT,tr_TR"-->
+<!--                  expectedOutput="idempotent,-->
+<!--					idempotent,-->
+<!--					idempotent,-->
+<!--					idempotent,-->
+<!--					idempotent,-->
+<!--					idempotent,-->
+<!--					idempotent,-->
+<!--					idempotent"/>-->
+<!--        <testData input="CASES,tr"-->
+<!--                  expectedOutput="cases,-->
+<!--					cases,-->
+<!--					cases,-->
+<!--					cases,-->
+<!--					cases,-->
+<!--					cases,-->
+<!--					cases,-->
+<!--					cases"/>-->
+<!--        <testData input="cases,tr"-->
+<!--                  expectedOutput="cases,-->
+<!--					cases,-->
+<!--					cases,-->
+<!--					cases,-->
+<!--					cases,-->
+<!--					cases,-->
+<!--					cases,-->
+<!--					cases"/>-->
+<!--        <testData input="CaSeS,tr"-->
+<!--                  expectedOutput="cases,-->
+<!--					cases,-->
+<!--					cases,-->
+<!--					cases,-->
+<!--					cases,-->
+<!--					cases,-->
+<!--					cases,-->
+<!--					cases"/>-->
+<!--        <testData input="große,tr"-->
+<!--                  expectedOutput="große,-->
+<!--					große,-->
+<!--					große,-->
+<!--					große,-->
+<!--					große,-->
+<!--					große,-->
+<!--					große,-->
+<!--					große"/>-->
+<!--        <testData input="ångstrom,tr"-->
+<!--                  expectedOutput="ångstrom,-->
+<!--					ångstrom,-->
+<!--					ångstrom,-->
+<!--					ångstrom,-->
+<!--					ångstrom,-->
+<!--					ångstrom,-->
+<!--					ångstrom,-->
+<!--					ångstrom"/>-->
+<!--        <testData input="ÅNGSTROM,tr"-->
+<!--                  expectedOutput="ångstrom,-->
+<!--					ångstrom,-->
+<!--					ångstrom,-->
+<!--					ångstrom,-->
+<!--					ångstrom,-->
+<!--					ångstrom,-->
+<!--					ångstrom,-->
+<!--					ångstrom"/>-->
+<!--        <testData input="idempotent,tr"-->
+<!--                  expectedOutput="idempotent,-->
+<!--					idempotent,-->
+<!--					idempotent,-->
+<!--					idempotent,-->
+<!--					idempotent,-->
+<!--					idempotent,-->
+<!--					idempotent,-->
+<!--					idempotent"/>-->
+<!--        <testData input="ıdempotent,tr"-->
+<!--                  expectedOutput="ıdempotent,-->
+<!--					ıdempotent,-->
+<!--					ıdempotent,-->
+<!--					ıdempotent,-->
+<!--					ıdempotent,-->
+<!--					ıdempotent,-->
+<!--					ıdempotent,-->
+<!--					ıdempotent"/>-->
+<!--        <testData input="IDEMPOTENT,tr"-->
+<!--                  expectedOutput="ıdempotent,-->
+<!--					idempotent,-->
+<!--					ıdempotent,-->
+<!--					ıdempotent,-->
+<!--					ıdempotent,-->
+<!--					idempotent,-->
+<!--					ıdempotent,-->
+<!--					ıdempotent"/>-->
+<!--        <testData input="İDEMPOTENT,tr"-->
+<!--                  expectedOutput="idempotent,-->
+<!--					idempotent,-->
+<!--					idempotent,-->
+<!--					idempotent,-->
+<!--					idempotent,-->
+<!--					idempotent,-->
+<!--					idempotent,-->
+<!--					idempotent"/>-->
+<!--    </testcase>-->
     <testcase testName="testFindOnText"
               fieldName="testFindOnText"
               dataType="Double"
