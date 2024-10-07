@@ -1,14 +1,6 @@
 package com.force.formula.commands;
 
-import java.util.Locale;
-import java.util.TimeZone;
-
-import com.force.formula.Formula;
-import com.force.formula.FormulaEngine;
-import com.force.formula.FormulaEngineHooks;
-import com.force.formula.FormulaEvaluationException;
-import com.force.formula.FormulaRuntimeContext;
-import com.force.formula.MockFormulaDataType;
+import com.force.formula.*;
 import com.force.formula.MockLocalizerContext.MockLocalizer;
 import com.force.formula.impl.BaseCustomizableParserTest;
 import com.force.formula.impl.FormulaInfoFactory;
@@ -18,44 +10,53 @@ import com.force.i18n.BaseLocalizer;
 import com.force.i18n.HumanLanguage;
 import com.force.i18n.LanguageProviderFactory;
 
+import java.util.Locale;
+import java.util.TimeZone;
+
 /**
  * Test of the sfdc only format functions.  Also template parsing.
+ *
  * @author stamm
  * @since 0.2.9
  */
-public class FunctionFormatTest extends BaseCustomizableParserTest {
-    public FunctionFormatTest(String name) throws Exception {
+public class FunctionFormatTest extends BaseCustomizableParserTest
+{
+    private FormulaEngineHooks oldHooks = null;
+
+    public FunctionFormatTest(String name) throws Exception
+    {
         super(name);
     }
-    
-    public void assertFormula(String expectedResult, String expression) throws Exception {
-        FormulaRuntimeContext context  = setupMockContext(MockFormulaDataType.TEXT);
+
+    public void assertFormula(String expectedResult, String expression) throws Exception
+    {
+        FormulaRuntimeContext context = setupMockContext(MockFormulaDataType.TEXT);
         RuntimeSqlFormulaInfo formulaInfo = FormulaInfoFactory.create(context, expression, getTemplateProperties());
         Formula formula = formulaInfo.getFormula();
-        String result = (String)formula.evaluate(context);
+        String result = (String) formula.evaluate(context);
         assertEquals(expectedResult, result);
     }
 
-
-    private FormulaEngineHooks oldHooks = null;
-    
     @Override
-    protected void setUp() throws Exception {
+    protected void setUp() throws Exception
+    {
         super.setUp();
         oldHooks = FormulaEngine.getHooks();
         FormulaEngine.setHooks(getHooksOverrideLocalizer(oldHooks, GMT_LOCALIZER));
     }
 
     @Override
-    protected void tearDown() throws Exception {
+    protected void tearDown() throws Exception
+    {
         FormulaEngine.setHooks(oldHooks);
         super.tearDown();
     }
-    
+
     /**
      * Verify various formats for number formula type ( valid and invalid)
      */
-    public void testFormatNumber() throws Exception {
+    public void testFormatNumber() throws Exception
+    {
         String expression = "This is a test of format {!format(100.0)}";
         assertFormula("This is a test of format 100", expression);
 
@@ -72,7 +73,8 @@ public class FunctionFormatTest extends BaseCustomizableParserTest {
     /**
      * Verify various formats for Date formula type ( valid and invalid)
      */
-    public void testFormatDate() throws Exception {
+    public void testFormatDate() throws Exception
+    {
         String expression = "This is a test of format {!format(DATE(2007,7,26))}";
         assertFormula("This is a test of format 7/26/2007", expression);
 
@@ -81,25 +83,31 @@ public class FunctionFormatTest extends BaseCustomizableParserTest {
 
 
         expression = "This is a test of format {!format(DATE(2007,7,26),\"INVALID\")}";
-        try {
+        try
+        {
             assertFormula(null, expression);
             fail();
-        } catch (FormulaEvaluationException ex) {
+        }
+        catch (FormulaEvaluationException ex)
+        {
 
         }
     }
 
 
-
     /**
      * Verify various formats for Text formula type ( valid and invalid)
      */
-    public void testFormatText() throws Exception {
+    public void testFormatText() throws Exception
+    {
         String expression = "This is a test of format {!format()}";
-        try {
+        try
+        {
             assertFormula(null, expression);
             fail();
-        } catch (WrongNumberOfArgumentsException ex) {
+        }
+        catch (WrongNumberOfArgumentsException ex)
+        {
         }
 
         expression = "This is a test of format {!format(\"USD\")}";
@@ -134,7 +142,7 @@ public class FunctionFormatTest extends BaseCustomizableParserTest {
 
         expression = "This is a test of format {!format(\"Test {3}\",\"USD\",\"USD\")}";
         assertFormula("This is a test of format Test {3}", expression);
-        
+
         HumanLanguage language = LanguageProviderFactory.get().getLanguage(Locale.GERMAN);
         BaseLocalizer localizer = new MockLocalizer(Locale.GERMANY, Locale.GERMANY, TimeZone.getTimeZone("PST"), language, null);
         FormulaEngine.setHooks(getHooksOverrideLocalizer(oldHooks, localizer));

@@ -4,16 +4,18 @@
 
 package com.force.formula.impl;
 
-import org.antlr.v4.runtime.TokenStream;
 import com.force.formula.parser.gen4.FormulaParser;
+import org.antlr.v4.runtime.TokenStream;
 
 /**
  * @author ashanjani
  * @since 220
  */
-public class FormulaParserImpl4 extends FormulaParser {
+public class FormulaParserImpl4 extends FormulaParser
+{
 
-    public FormulaParserImpl4(TokenStream input) {
+    public FormulaParserImpl4(TokenStream input)
+    {
         super(input);
     }
 

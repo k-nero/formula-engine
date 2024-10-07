@@ -5,7 +5,8 @@
  */
 package com.force.formula.impl;
 
-import com.force.formula.*;
+import com.force.formula.FormulaContext;
+import com.force.formula.FormulaDataType;
 
 /**
  * Describe your class here.
@@ -13,17 +14,20 @@ import com.force.formula.*;
  * @author stamm
  * @since 212
  */
-public class FieldReferenceHPJsTest extends FieldReferenceJsTest {
+public class FieldReferenceHPJsTest extends FieldReferenceJsTest
+{
     /**
      * @param name
      */
-    public FieldReferenceHPJsTest(String name) {
+    public FieldReferenceHPJsTest(String name)
+    {
         super(name);
     }
 
     @Override
-    protected BeanFormulaContext setupMockContext(FormulaDataType columnType) {
-        BeanFormulaContext context = super.setupMockContext(columnType); 
+    protected BeanFormulaContext setupMockContext(FormulaDataType columnType)
+    {
+        BeanFormulaContext context = super.setupMockContext(columnType);
         context.setProperty(FormulaContext.HIGHPRECISION_JS, Boolean.TRUE);
         return context;
     }

@@ -1,9 +1,5 @@
 package com.force.formula.commands;
 
-import java.math.BigDecimal;
-import java.math.MathContext;
-import java.math.RoundingMode;
-
 import com.force.formula.FormulaCommandType.AllowedContext;
 import com.force.formula.FormulaCommandType.SelectorSection;
 import com.force.formula.FormulaContext;
@@ -13,6 +9,10 @@ import com.force.formula.impl.JsValue;
 import com.force.formula.sql.SQLPair;
 import com.force.formula.util.BigDecimalHelper;
 
+import java.math.BigDecimal;
+import java.math.MathContext;
+import java.math.RoundingMode;
+
 /**
  * Describe your class here.
  *
@@ -20,50 +20,60 @@ import com.force.formula.util.BigDecimalHelper;
  * @since 140
  */
 @AllowedContext(section = SelectorSection.MATH, isOffline = true)
-public class FunctionCeiling extends UnaryMathCommandBehavior {
+public class FunctionCeiling extends UnaryMathCommandBehavior
+{
     private static final long serialVersionUID = 1L;
-	private static final MathContext MC = new MathContext(BigDecimalHelper.NUMBER_PRECISION_EXTERNAL, RoundingMode.HALF_DOWN);
+    private static final MathContext MC = new MathContext(BigDecimalHelper.NUMBER_PRECISION_EXTERNAL, RoundingMode.HALF_DOWN);
 
     @Override
-    public UnaryMathCommand getCommand(FormulaCommandInfo info) {
-        return new UnaryMathCommand(info) {
+    public UnaryMathCommand getCommand(FormulaCommandInfo info)
+    {
+        return new UnaryMathCommand(info)
+        {
             private static final long serialVersionUID = 1L;
 
-			@Override
-            protected BigDecimal execute(BigDecimal value) {
+            @Override
+            protected BigDecimal execute(BigDecimal value)
+            {
                 /*
                  * Cut of the digit just past the Oracle limit.
                  * We do this in order to deal with infinite fractions like 1/3, which can be said to be inexact just at the last digit.
                  */
                 value = value.round(MC);
 
-                return value.setScale(0, value.signum() == -1 ? RoundingMode.FLOOR: RoundingMode.CEILING);
+                return value.setScale(0, value.signum() == -1 ? RoundingMode.FLOOR : RoundingMode.CEILING);
             }
         };
     }
 
     @Override
-    public SQLPair getSQL(FormulaAST node, FormulaContext context, String[] args, String[] guards) {
-        FormulaSqlHooks hooks = (FormulaSqlHooks)context.getSqlStyle();
-    	String ceil = hooks.isTransactSqlStyle() ? "CEILING" : "CEIL";
-    	int precision = hooks.getExternalPrecision();
+    public SQLPair getSQL(FormulaAST node, FormulaContext context, String[] args, String[] guards)
+    {
+        FormulaSqlHooks hooks = (FormulaSqlHooks) context.getSqlStyle();
+        String ceil = hooks.isTransactSqlStyle() ? "CEILING" : "CEIL";
+        int precision = hooks.getExternalPrecision();
         String sql;
-        if (precision >= 0) { // If external precision is -1 don't reound before Ceil/Floor
-            sql = "CASE WHEN " + args[0] + ">=0 THEN "+ceil+"(ROUND(" + args[0] + ","+precision+")) ELSE FLOOR(ROUND(" + args[0] + ","+precision+")) END";
-        } else {
-            sql = "CASE WHEN " + args[0] + ">=0 THEN "+ceil+"(" + args[0] + ") ELSE FLOOR(" + args[0] + ") END";
+        if (precision >= 0)
+        { // If external precision is -1 don't reound before Ceil/Floor
+            sql = "CASE WHEN " + args[0] + ">=0 THEN " + ceil + "(ROUND(" + args[0] + "," + precision + ")) ELSE FLOOR(ROUND(" + args[0] + "," + precision + ")) END";
+        }
+        else
+        {
+            sql = "CASE WHEN " + args[0] + ">=0 THEN " + ceil + "(" + args[0] + ") ELSE FLOOR(" + args[0] + ") END";
         }
         return new SQLPair(sql, guards[0]);
     }
-    
+
     @Override
-    public JsValue getJavascript(FormulaAST node, FormulaContext context, JsValue[] args) {
+    public JsValue getJavascript(FormulaAST node, FormulaContext context, JsValue[] args)
+    {
         // See the oracle function above for the questionable implementation
-        if (context.useHighPrecisionJs()) {
+        if (context.useHighPrecisionJs())
+        {
             // We can be sure it isn't null because we're already guarding against args[0]
-            return JsValue.forNonNullResult("("+args[0]+".isPos()?"+args[0]+".toDP(18).ceil():"+args[0]+".toDP(18).floor())", args);
+            return JsValue.forNonNullResult("(" + args[0] + ".isPos()?" + args[0] + ".toDP(18).ceil():" + args[0] + ".toDP(18).floor())", args);
         }
-        return JsValue.forNonNullResult("(("+args[0] + ")>=0?Math.ceil("+args[0]+"):Math.floor("+args[0]+"))", args);
+        return JsValue.forNonNullResult("((" + args[0] + ")>=0?Math.ceil(" + args[0] + "):Math.floor(" + args[0] + "))", args);
     }
 
 }

@@ -1,12 +1,11 @@
 package com.force.formula.impl;
 
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
+import com.force.formula.*;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.force.formula.*;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  * Tests specific to JS code generation
@@ -14,32 +13,39 @@ import com.force.formula.*;
  * @author a.rich
  * @since 0.4.24
  */
-public class FormulaJsTest {
+public class FormulaJsTest
+{
     @Before
-    public void setUp() {
+    public void setUp()
+    {
         MockLocalizerContext.establishMock();
     }
-    
+
     /**
      * Tests that we use a relaxed JS size limit at runtime.
      */
     @Test
-    public void testJsTooBigAtRuntime() throws Exception {
+    public void testJsTooBigAtRuntime() throws Exception
+    {
         String formula = "CASE(TODAY(), TODAY()";
-        for (int i = 0; i < 30; i++) {
+        for (int i = 0; i < 30; i++)
+        {
             formula += ", TODAY(), TODAY()";
         }
         formula += ")";
 
         MockFormulaType type = MockFormulaType.JAVASCRIPT;
-        FormulaContext context = new MockFormulaContext( type,MockFormulaDataType.DATEONLY);
+        FormulaContext context = new MockFormulaContext(type, MockFormulaDataType.DATEONLY);
 
         boolean isCreateOrEdit = true;
         RuntimeFormulaInfo formulaInfo;
-        try {
+        try
+        {
             formulaInfo = FormulaEngine.getFactory().create(type, context, formula, true, false, isCreateOrEdit);
             fail("Expected a JSTooBigException! JS size: " + formulaInfo.getFormula().toJavascript().length());
-        } catch (JSTooBigException e) {
+        }
+        catch (JSTooBigException e)
+        {
             // expected;
         }
 
@@ -52,15 +58,19 @@ public class FormulaJsTest {
 
         // Now try with a *very* large formula:
         formula = "CASE(TODAY(), TODAY()";
-        for (int i = 0; i < 200; i++) {
+        for (int i = 0; i < 200; i++)
+        {
             formula += ", TODAY(), TODAY()";
         }
         formula += ")";
 
-        try {
+        try
+        {
             FormulaEngine.getFactory().create(type, context, formula, true, false, isCreateOrEdit);
             fail("Expected a JSTooBigException! JS size: " + formulaInfo.getFormula().toJavascript().length());
-        } catch (JSTooBigException e) {
+        }
+        catch (JSTooBigException e)
+        {
             // expected;
         }
     }

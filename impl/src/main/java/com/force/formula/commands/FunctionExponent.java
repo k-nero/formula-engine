@@ -4,13 +4,15 @@
  */
 package com.force.formula.commands;
 
-import java.math.BigDecimal;
-
-import com.force.formula.*;
 import com.force.formula.FormulaCommandType.AllowedContext;
 import com.force.formula.FormulaCommandType.SelectorSection;
-import com.force.formula.impl.*;
+import com.force.formula.FormulaContext;
+import com.force.formula.impl.FormulaAST;
+import com.force.formula.impl.FormulaSqlHooks;
+import com.force.formula.impl.JsValue;
 import com.force.formula.sql.SQLPair;
+
+import java.math.BigDecimal;
 
 /**
  * Describe your class here.
@@ -19,33 +21,39 @@ import com.force.formula.sql.SQLPair;
  * @since 140
  */
 @AllowedContext(section = SelectorSection.MATH, isOffline = true)
-public class FunctionExponent extends UnaryMathCommandBehavior {
+public class FunctionExponent extends UnaryMathCommandBehavior
+{
 
     private static final long serialVersionUID = 1L;
 
-	@Override
-    public UnaryMathCommand getCommand(FormulaCommandInfo info) {
-        return new UnaryMathCommand(info) {
+    @Override
+    public UnaryMathCommand getCommand(FormulaCommandInfo info)
+    {
+        return new UnaryMathCommand(info)
+        {
             private static final long serialVersionUID = 1L;
 
-			@Override
-            protected BigDecimal execute(BigDecimal arg) {
+            @Override
+            protected BigDecimal execute(BigDecimal arg)
+            {
                 return BigDecimal.valueOf(Math.exp(arg.doubleValue()));
             }
         };
     }
 
     @Override
-    public SQLPair getSQL(FormulaAST node, FormulaContext context, String[] args, String[] guards) {
-    	FormulaSqlHooks hooks = (FormulaSqlHooks) context.getSqlStyle();
-    	String sql = hooks.sqlExponent(args[0]);
+    public SQLPair getSQL(FormulaAST node, FormulaContext context, String[] args, String[] guards)
+    {
+        FormulaSqlHooks hooks = (FormulaSqlHooks) context.getSqlStyle();
+        String sql = hooks.sqlExponent(args[0]);
         return new SQLPair(sql, guards[0]);
     }
-    
+
     @Override
-    public JsValue getJavascript(FormulaAST node, FormulaContext context, JsValue[] args) {
+    public JsValue getJavascript(FormulaAST node, FormulaContext context, JsValue[] args)
+    {
         String pkg = FormulaCommandInfoImpl.jsMathPkg(context);
-        return JsValue.forNonNullResult(pkg+".exp("+args[0]+")",args);
+        return JsValue.forNonNullResult(pkg + ".exp(" + args[0] + ")", args);
     }
 
 }

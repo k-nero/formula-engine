@@ -15,19 +15,23 @@ import com.force.formula.impl.BeanFormulaContext;
  * @author stamm
  * @since 0.1
  */
-public class OptionalFunctionsHpJsTest extends OptionalFunctionsJsTest {
-    public OptionalFunctionsHpJsTest(String name) {
+public class OptionalFunctionsHpJsTest extends OptionalFunctionsJsTest
+{
+    public OptionalFunctionsHpJsTest(String name)
+    {
         super(name);
     }
-    
+
     @Override
-    protected boolean isHighPrecisionJs() {
+    protected boolean isHighPrecisionJs()
+    {
         return true;
     }
 
     @Override
-    protected BeanFormulaContext setupMockContext(FormulaDataType columnType) {
-    	BeanFormulaContext context = super.setupMockContext(columnType); 
+    protected BeanFormulaContext setupMockContext(FormulaDataType columnType)
+    {
+        BeanFormulaContext context = super.setupMockContext(columnType);
         context.setProperty(FormulaContext.HIGHPRECISION_JS, Boolean.TRUE);
         return context;
     }

@@ -7,13 +7,12 @@ package com.force.formula.impl;
 import antlr.CommonAST;
 import antlr.Token;
 import antlr.collections.AST;
+import com.force.formula.FormulaDataType;
 import com.force.formula.parser.gen.FormulaTokenTypes;
 
 import java.lang.reflect.Type;
 import java.util.LinkedList;
 import java.util.List;
-
-import com.force.formula.FormulaDataType;
 
 /**
  * AST for formula evaluation
@@ -21,39 +20,95 @@ import com.force.formula.FormulaDataType;
  * @author dchasman
  * @since 140
  */
-public class FormulaAST extends CommonAST {
+public class FormulaAST extends CommonAST
+{
 
     private static final long serialVersionUID = 1L;
-	public FormulaAST() {
+    private Type dataType;
+    private FormulaDataType columnType;
+    private FormulaAST parent;
+    private Token token;
+    private boolean isConstant = false;
+    private boolean canBeNull = true;
+
+    public FormulaAST()
+    {
         super();
     }
 
-    public FormulaAST(String token) {
+    public FormulaAST(String token)
+    {
         super();
         setText(token);
     }
 
-    public Type getDataType() {
+    public static boolean isTopOfTemplateExpression(FormulaAST node)
+    {
+        FormulaAST parent = node.getParent();
+        if (isFunctionNode(parent, "template"))
+        {
+            return true;
+        }
+
+        // Check the specific grandparent case of template(nullvalue(fieldref, "substitution text")) to support template null value substitution
+        FormulaAST grandparent = parent.getParent();
+        FormulaAST nextSibling = (FormulaAST) node.getNextSibling();
+        return (isFunctionNode(grandparent, "template") && isFunctionNode(parent, "nullvalue") &&
+                nextSibling != null && nextSibling.token != null && nextSibling.token.getType() == FormulaTokenTypes.STRING_LITERAL);
+    }
+
+    public static boolean isFunctionNode(FormulaAST node, String function)
+    {
+        if (node == null)
+        {
+            return false;
+        }
+
+        return ((node.getType() == FormulaTokenTypes.FUNCTION_CALL && node.getText().equalsIgnoreCase(function)));
+    }
+
+    public static boolean isTopOfReferenceFormula(FormulaAST node)
+    {
+        FormulaAST parent = node.getParent();
+        return parent.getType() == FormulaTokenTypes.DYNAMIC_REF_ROOT;
+    }
+
+    public Type getDataType()
+    {
         return dataType;
     }
 
-    public void setDataType(Type dataType) {
+    public void setDataType(Type dataType)
+    {
         this.dataType = dataType;
     }
 
-    public FormulaAST getParent() {
+    public FormulaAST getParent()
+    {
         return parent;
     }
 
-    public FormulaAST replace(FormulaAST newNode) {
-        FormulaAST currentChild = (FormulaAST)parent.getFirstChild();
+    public void setParent(FormulaAST parent)
+    {
+        this.parent = parent;
+    }
+
+    public FormulaAST replace(FormulaAST newNode)
+    {
+        FormulaAST currentChild = (FormulaAST) parent.getFirstChild();
         FormulaAST previousChild = null;
-        while (currentChild != null) {
-            if (currentChild == this) {
+        while (currentChild != null)
+        {
+            if (currentChild == this)
+            {
                 if (previousChild != null)
+                {
                     previousChild.setNextSibling(newNode);
+                }
                 else
+                {
                     parent.setFirstChild(newNode);
+                }
 
                 newNode.setParent(parent);
                 newNode.setNextSibling(currentChild.getNextSibling());
@@ -64,31 +119,36 @@ public class FormulaAST extends CommonAST {
                 return newNode;
             }
             previousChild = currentChild;
-            currentChild = (FormulaAST)currentChild.getNextSibling();
+            currentChild = (FormulaAST) currentChild.getNextSibling();
         }
         return this;
     }
 
-    public void reparent(FormulaAST newParent) {
+    public void reparent(FormulaAST newParent)
+    {
         reparent(newParent, null);
     }
 
-    public void reparent(FormulaAST newParent, FormulaAST newSibling) {
+    public void reparent(FormulaAST newParent, FormulaAST newSibling)
+    {
         FormulaAST currentParent = parent;
 
-        if (currentParent != null) {
+        if (currentParent != null)
+        {
             // Wire up new parent child relationship
             List<FormulaAST> children = new LinkedList<FormulaAST>();
-            FormulaAST currentChild = (FormulaAST)currentParent.getFirstChild();
-            while (currentChild != null) {
+            FormulaAST currentChild = (FormulaAST) currentParent.getFirstChild();
+            while (currentChild != null)
+            {
                 children.add((currentChild != this) ? currentChild : newParent);
-                currentChild = (FormulaAST)currentChild.getNextSibling();
+                currentChild = (FormulaAST) currentChild.getNextSibling();
             }
 
             currentParent.removeChildren();
 
             //TODO(arman): this is O(n^2) operation!
-            for (FormulaAST childToAdd : children) {
+            for (FormulaAST childToAdd : children)
+            {
                 childToAdd.setNextSibling(null);
                 currentParent.addChild(childToAdd);
             }
@@ -97,146 +157,132 @@ public class FormulaAST extends CommonAST {
         this.setNextSibling(null);
         newParent.addChild(this);
 
-        if (parent.getToken() == null) {
+        if (parent.getToken() == null)
+        {
             // Inherit the token of the child node (autogenerated/implicit wrapper parent node)
             parent.setToken(getToken());
         }
 
-        if (newSibling != null) {
+        if (newSibling != null)
+        {
             newSibling.setNextSibling(null);
             newParent.addChild(newSibling);
         }
     }
 
     @Override
-    public void addChild(AST child) {
+    public void addChild(AST child)
+    {
         super.addChild(child);
         setParentToThis(child);
     }
 
     @Override
-    public void removeChildren() {
+    public void removeChildren()
+    {
         // Set the parent to null to remove reference to this
-        FormulaAST child = (FormulaAST)getFirstChild();
-        while (child != null) {
+        FormulaAST child = (FormulaAST) getFirstChild();
+        while (child != null)
+        {
             child.parent = null;
-            child = (FormulaAST)child.getNextSibling();
+            child = (FormulaAST) child.getNextSibling();
         }
 
         super.removeChildren();
     }
 
     @Override
-    public void setFirstChild(AST child) {
+    public void setFirstChild(AST child)
+    {
         super.setFirstChild(child);
         setParentToThis(child);
     }
 
     @Override
-    public void setNextSibling(AST sibling) {
+    public void setNextSibling(AST sibling)
+    {
         super.setNextSibling(sibling);
 
         // Siblings must all have the same parent
         if (sibling != null)
-            ((FormulaAST)sibling).parent = this.parent;
+        {
+            ((FormulaAST) sibling).parent = this.parent;
+        }
     }
 
-    public FormulaDataType getColumnType() {
+    public FormulaDataType getColumnType()
+    {
         return this.columnType;
     }
 
-    public void setColumnType(FormulaDataType columnType) {
+    public void setColumnType(FormulaDataType columnType)
+    {
         this.columnType = columnType;
     }
 
-    public Token getToken() {
+    public Token getToken()
+    {
         return token;
     }
 
-    public void setToken(Token token) {
+    public void setToken(Token token)
+    {
         this.token = token;
     }
 
-    public void setParent(FormulaAST parent) {
-        this.parent = parent;
-    }
-
-    public static boolean isTopOfTemplateExpression(FormulaAST node) {
-        FormulaAST parent = node.getParent();
-        if (isFunctionNode(parent, "template")) {
-            return true;
-        }
-
-        // Check the specific grandparent case of template(nullvalue(fieldref, "substitution text")) to support template null value substitution
-        FormulaAST grandparent = parent.getParent();
-        FormulaAST nextSibling = (FormulaAST)node.getNextSibling();
-        return (isFunctionNode(grandparent, "template") && isFunctionNode(parent, "nullvalue") &&
-                 nextSibling != null && nextSibling.token != null && nextSibling.token.getType() == FormulaTokenTypes.STRING_LITERAL);
-    }
-
-    public static boolean isFunctionNode(FormulaAST node, String function) {
-        if (node == null) {
-            return false;
-        }
-
-        return ((node.getType() == FormulaTokenTypes.FUNCTION_CALL && node.getText().equalsIgnoreCase(function)));
-    }
-
-    public static boolean isTopOfReferenceFormula(FormulaAST node) {
-        FormulaAST parent = node.getParent();
-        return parent.getType() == FormulaTokenTypes.DYNAMIC_REF_ROOT;
-    }
-
-    public boolean isLiteral() {
-        switch(getType()) {
-        case FormulaTokenTypes.TRUE:
-            return true;
-        case FormulaTokenTypes.FALSE:
-            return true;
-        case FormulaTokenTypes.NUMBER:
-            return true;
-        case FormulaTokenTypes.NULL:
-            return true;
-        case FormulaTokenTypes.STRING_LITERAL:
-            return true;
-        default:
-            return false;
+    public boolean isLiteral()
+    {
+        switch (getType())
+        {
+            case FormulaTokenTypes.TRUE:
+                return true;
+            case FormulaTokenTypes.FALSE:
+                return true;
+            case FormulaTokenTypes.NUMBER:
+                return true;
+            case FormulaTokenTypes.NULL:
+                return true;
+            case FormulaTokenTypes.STRING_LITERAL:
+                return true;
+            default:
+                return false;
         }
     }
 
-    public boolean isConstantExpression() {
+    public boolean isConstantExpression()
+    {
         return isConstant;
     }
 
-    public void setConstantExpression(boolean val) {
+    public void setConstantExpression(boolean val)
+    {
         isConstant = val;
     }
 
-    public boolean canBeNull() {
+    public boolean canBeNull()
+    {
         return canBeNull;
     }
 
-    public void setCanBeNull(boolean val) {
+    public void setCanBeNull(boolean val)
+    {
         canBeNull = val;
     }
 
-    public boolean isDynamicReferenceBase() {
+    public boolean isDynamicReferenceBase()
+    {
         // a[b] : a is dynamic ref base;  or a[b].c  a[b] is dynamic ref base
         return parent != null && parent.getType() == FormulaTokenTypes.DYNAMIC_REF && parent.down == this
-          || this.getType() == FormulaTokenTypes.DYNAMIC_REF && this.right != null && this.right.getType() == FormulaTokenTypes.DYNAMIC_REF_IDENT;
+                || this.getType() == FormulaTokenTypes.DYNAMIC_REF && this.right != null && this.right.getType() == FormulaTokenTypes.DYNAMIC_REF_IDENT;
     }
 
-    private void setParentToThis(AST child) {
+    private void setParentToThis(AST child)
+    {
         if (child == null)
+        {
             return;
+        }
 
-        ((FormulaAST)child).parent = this;
+        ((FormulaAST) child).parent = this;
     }
-
-    private Type dataType;
-    private FormulaDataType columnType;
-    private FormulaAST parent;
-    private Token token;
-    private boolean isConstant = false;
-    private boolean canBeNull = true;
 }

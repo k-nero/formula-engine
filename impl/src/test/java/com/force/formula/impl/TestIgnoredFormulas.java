@@ -17,30 +17,36 @@ import java.io.IOException;
 
 /**
  * Contains ignored or bad tests for formulatests.xml
- * 
+ * <p>
  * Some are ignored because of other issues.  Currently there are not ignored formula tests
- * 
+ *
  * @author stamm
  */
 @RunWith(AllTests.class)
 @Ignore  // Yes, ignore them. Also, All XML defined tests are executed using FormulaPostgresXMLTests
-public class TestIgnoredFormulas extends FormulaPostgreSQLTests {
+public class TestIgnoredFormulas extends FormulaPostgreSQLTests
+{
 
-    public TestIgnoredFormulas(String owner) throws FileNotFoundException, ParserConfigurationException, SAXException, IOException {
+    public TestIgnoredFormulas(String owner) throws ParserConfigurationException, SAXException, IOException
+    {
         super("IgnoredFormulaTests");
     }
 
     public static TestSuite suite()
     {
-        try {
+        try
+        {
             return new TestIgnoredFormulas("no");
-        } catch (ParserConfigurationException | SAXException | IOException x) {
+        }
+        catch (ParserConfigurationException | SAXException | IOException x)
+        {
             throw new RuntimeException(x);
         }
     }
 
     @Override
-    protected boolean filterTests(FormulaTestCaseInfo testCase) {
+    protected boolean filterTests(FormulaTestCaseInfo testCase)
+    {
         return testCase.getTestLabels().contains("ignore");
     }
 }

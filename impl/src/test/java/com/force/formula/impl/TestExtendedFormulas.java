@@ -17,48 +17,55 @@ import java.io.IOException;
 
 /**
  * Contains non-extended tests for formulatests.xml
+ *
  * @author stamm
  * @since 0.2
  */
 @RunWith(AllTests.class)
 @Ignore //All XML defined tests are executed using FormulaPostgresXMLTests
-public class TestExtendedFormulas extends FormulaPostgreSQLTests {
+public class TestExtendedFormulas extends FormulaPostgreSQLTests
+{
 
-    public TestExtendedFormulas(String owner) throws FileNotFoundException, ParserConfigurationException, SAXException, IOException {
+    public TestExtendedFormulas(String owner) throws ParserConfigurationException, SAXException, IOException
+    {
         super("ExtendedFormulaTests");
     }
 
     public static TestSuite suite()
     {
-        try {
+        try
+        {
             return new TestExtendedFormulas("no");
-        } catch (ParserConfigurationException | SAXException | IOException x) {
+        }
+        catch (ParserConfigurationException | SAXException | IOException x)
+        {
             throw new RuntimeException(x);
         }
     }
 
     @Override
-    protected boolean filterTests(FormulaTestCaseInfo testCase) {
+    protected boolean filterTests(FormulaTestCaseInfo testCase)
+    {
         return testCase.getTestLabels().contains("extended");
     }
-    
-	@Override
-	protected boolean ignoreJavascriptValueMismatchInAutobuilds(String testName) {
-		if ("testDistance".equals(testName)) {
-			// TODO: Implement distance functions in Javascript
-			return true;
-		}
-		if ("testFormatCurrency".equals(testName)) {
-			// TODO: The negative sign shows up in front of the code in javascript.  
-			// "-USD 100.00" instead of "USD -100.00"
-			return true;
-		}
 
-		if ("testInitCap".equals(testName)) {
-			// TODO: Initcap function doesn't handle decomposed dotted I correctly.
-			return true;
-		}
-		return false;
-	}
+    @Override
+    protected boolean ignoreJavascriptValueMismatchInAutobuilds(String testName)
+    {
+        if ("testDistance".equals(testName))
+        {
+            // TODO: Implement distance functions in Javascript
+            return true;
+        }
+        if ("testFormatCurrency".equals(testName))
+        {
+            // TODO: The negative sign shows up in front of the code in javascript.
+            // "-USD 100.00" instead of "USD -100.00"
+            return true;
+        }
+
+        // TODO: Initcap function doesn't handle decomposed dotted I correctly.
+        return "testInitCap".equals(testName);
+    }
 
 }

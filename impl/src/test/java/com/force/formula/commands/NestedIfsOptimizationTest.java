@@ -1,17 +1,19 @@
 package com.force.formula.commands;
 
+import com.force.formula.FormulaEngine;
+import com.force.formula.FormulaEngineHooks;
+import com.force.formula.FormulaProperties;
+import com.force.formula.impl.FormulaAST;
+import com.force.formula.impl.FormulaUtils;
+import com.force.formula.impl.FormulaValidationHooks;
+import com.google.common.collect.Maps;
+import junit.framework.TestCase;
+import org.junit.Test;
+
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import org.junit.Test;
-
-import com.force.formula.*;
-import com.force.formula.impl.*;
-import com.google.common.collect.Maps;
-
-import junit.framework.TestCase;
 
 /**
  * A set of tests for the nested-IFs optimization.
@@ -19,24 +21,29 @@ import junit.framework.TestCase;
  * @author ashanjani
  * @since 234
  */
-public class NestedIfsOptimizationTest extends TestCase {
+public class NestedIfsOptimizationTest extends TestCase
+{
 
     FormulaEngineHooks oldHooks = FormulaEngine.getHooks();
 
     @Override
-    protected void setUp() throws Exception {
+    protected void setUp() throws Exception
+    {
         super.setUp();
         oldHooks = FormulaEngine.getHooks();
-        FormulaEngine.setHooks(new FormulaValidationHooks() {
+        FormulaEngine.setHooks(new FormulaValidationHooks()
+        {
             @Override
-            public boolean parseHook_shouldOptimizeNestedIfs() {
+            public boolean parseHook_shouldOptimizeNestedIfs()
+            {
                 return true;
             }
         });
     }
 
     @Override
-    protected void tearDown() throws Exception {
+    protected void tearDown() throws Exception
+    {
         super.tearDown();
         FormulaEngine.setHooks(oldHooks);
     }
@@ -45,19 +52,20 @@ public class NestedIfsOptimizationTest extends TestCase {
      * Tests various scenarios to ensure we find and correctly translate nested-IFs to IFS function.
      */
     @Test
-    public void testVarious() throws Exception {
+    public void testVarious() throws Exception
+    {
         Set<Map.Entry<String, String>> testcases = Stream.of(
-                Maps.immutableEntry("'test'", (String)null),
+                Maps.immutableEntry("'test'", (String) null),
 
                 Maps.immutableEntry("IF(AccountNumber == 0, '0', '-1')",
-                        (String)null),
+                        (String) null),
 
                 Maps.immutableEntry("IF(AccountNumber == 0, '0', '-1') + IF(AccountNumber == 1, '1', '-2')",
-                        (String)null),
+                        (String) null),
 
                 //only count nested-IFs through else clause
                 Maps.immutableEntry("IF(AccountNumber == 0, IF(NumberOfEmployees == 1, '1', '-1'), '-2')",
-                        (String)null),
+                        (String) null),
 
                 Maps.immutableEntry("IF(AccountNumber == 0, '0', IF(AccountNumber == 1, '1', '-1'))",
                         "IFS(AccountNumber == 0, '0', AccountNumber == 1, '1', '-1')"),
@@ -90,7 +98,8 @@ public class NestedIfsOptimizationTest extends TestCase {
 
         ).collect(Collectors.toSet());
 
-        for (Map.Entry<String, String> testcase: testcases) {
+        for (Map.Entry<String, String> testcase : testcases)
+        {
             assertNestedIfsOptimizationCorrectness(testcase.getKey(), testcase.getValue());
         }
     }
@@ -99,7 +108,8 @@ public class NestedIfsOptimizationTest extends TestCase {
      * Ensures we only find nested-IFs, and not other nested functions.
      */
     @Test
-    public void testIgnoreOtherNestedFunctions() throws Exception {
+    public void testIgnoreOtherNestedFunctions() throws Exception
+    {
         assertNestedIfsOptimizationCorrectness("CASE(AccountNumber == 0, '0', CASE(AccountNumber == 1, '1', '-1'))", null);
     }
 
@@ -107,7 +117,8 @@ public class NestedIfsOptimizationTest extends TestCase {
      * Ensure we ignore the capitalization pattern used for the IF function's name.
      */
     @Test
-    public void testIgnoreCase() throws Exception {
+    public void testIgnoreCase() throws Exception
+    {
         String formulaUsingIfsFunction = "IFS(AccountNumber == 0, '0', AccountNumber == 1, '1', '-1')";
 
         assertNestedIfsOptimizationCorrectness("if(AccountNumber == 0, '0', IF(AccountNumber == 1, '1', '-1'))", formulaUsingIfsFunction);
@@ -123,12 +134,13 @@ public class NestedIfsOptimizationTest extends TestCase {
      * the already-optimized {@code formulaUsingIfsFunction} formula.
      *
      * @param formulaUsingNestedIfFunctions Formula that is parsed and optimized to use IFS function.
-     * @param formulaUsingIfsFunction Formula that is already using IFS function.
-     *                                If null, non-optimized version of {@code formulaUsingNestedIfFunctions} will
-     *                                be used for comparison. Pass null if you don't expect any optimization
-     *                                opportunities to be found in {@code formulaUsingNestedIfFunctions}.
+     * @param formulaUsingIfsFunction       Formula that is already using IFS function.
+     *                                      If null, non-optimized version of {@code formulaUsingNestedIfFunctions} will
+     *                                      be used for comparison. Pass null if you don't expect any optimization
+     *                                      opportunities to be found in {@code formulaUsingNestedIfFunctions}.
      */
-    private void assertNestedIfsOptimizationCorrectness(String formulaUsingNestedIfFunctions, String formulaUsingIfsFunction) throws Exception {
+    private void assertNestedIfsOptimizationCorrectness(String formulaUsingNestedIfFunctions, String formulaUsingIfsFunction) throws Exception
+    {
         FormulaAST nestedIfFunctionsAST = FormulaUtils.parse(formulaUsingNestedIfFunctions, new FormulaProperties());
         FormulaAST optimizedAST = optimizeNestedIfs(nestedIfFunctionsAST);
 
@@ -140,18 +152,22 @@ public class NestedIfsOptimizationTest extends TestCase {
     /**
      * Walks through {@code ast} in the same order as {@link com.force.formula.impl.BaseFormulaInfoImpl#optimizeParseTree}.
      */
-    private FormulaAST optimizeNestedIfs(FormulaAST ast) {
-        if(ast == null || ast.getNumberOfChildren() == 0) {
+    private FormulaAST optimizeNestedIfs(FormulaAST ast)
+    {
+        if (ast == null || ast.getNumberOfChildren() == 0)
+        {
             return ast;
         }
 
-        FormulaAST child = (FormulaAST)ast.getFirstChild();
-        while (child != null) {
+        FormulaAST child = (FormulaAST) ast.getFirstChild();
+        while (child != null)
+        {
             child = optimizeNestedIfs(child);
-            child = (FormulaAST)child.getNextSibling();
+            child = (FormulaAST) child.getNextSibling();
         }
 
-        if(FormulaAST.isFunctionNode(ast, FunctionIf.CAPITALIZED_NAME)) {
+        if (FormulaAST.isFunctionNode(ast, FunctionIf.CAPITALIZED_NAME))
+        {
             FunctionIf.optimizeNestedIfs(ast);
         }
 

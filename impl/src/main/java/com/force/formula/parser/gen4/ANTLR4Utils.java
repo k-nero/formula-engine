@@ -1,29 +1,31 @@
 package com.force.formula.parser.gen4;
 
-import java.util.HashMap;
-import java.util.Map;
-
+import antlr.*;
+import com.force.formula.parser.gen.FormulaTokenTypes;
 import org.antlr.v4.runtime.LexerNoViableAltException;
 import org.antlr.v4.runtime.misc.Interval;
 
-import com.force.formula.parser.gen.FormulaTokenTypes;
-
-import antlr.*;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author ashanjani
  * @since 220
  */
-public class ANTLR4Utils {
+public class ANTLR4Utils
+{
 
-    public static Map<Integer, Integer> getNumberOfCharactersBeforeEachLine(String formula) {
+    public static Map<Integer, Integer> getNumberOfCharactersBeforeEachLine(String formula)
+    {
         Map<Integer, Integer> numberOfCharactersBeforeLine = new HashMap<>();
         numberOfCharactersBeforeLine.put(1, 0);
 
         int nextLineNumber = 2;
-        for(int i = 0; i < formula.length(); i++) {
-            if(formula.charAt(i) == '\n') {
-                numberOfCharactersBeforeLine.put(nextLineNumber, i+1);
+        for (int i = 0; i < formula.length(); i++)
+        {
+            if (formula.charAt(i) == '\n')
+            {
+                numberOfCharactersBeforeLine.put(nextLineNumber, i + 1);
                 nextLineNumber++;
             }
         }
@@ -31,11 +33,13 @@ public class ANTLR4Utils {
         return numberOfCharactersBeforeLine;
     }
 
-    static int getANTLR2Column(int startIndex, int numberOfCharactersBeforeLine, int antlr4Column) {
+    static int getANTLR2Column(int startIndex, int numberOfCharactersBeforeLine, int antlr4Column)
+    {
         return startIndex + numberOfCharactersBeforeLine + antlr4Column + 1;
     }
 
-    static Token convertAntlr4TokenToAntlr2Token(org.antlr.v4.runtime.Token antlr4Token, int antlr2Column) {
+    static Token convertAntlr4TokenToAntlr2Token(org.antlr.v4.runtime.Token antlr4Token, int antlr2Column)
+    {
         CommonToken antlr2Token = new CommonToken();
         antlr2Token.setText(antlr4Token.getText());
         antlr2Token.setType(convertANTLR4TypeToANTLR2Type(antlr4Token.getType()));
@@ -49,8 +53,10 @@ public class ANTLR4Utils {
     //those values will not match to ANTLR4's types' values (e.g. will be using an ANTLR2 type on an AST generated
     //by ANTLR4 with ANTLR types' values.
     //TODO(arman): remove this when ANTLR2 is removed completely and ANTLR4 automatically generates FormulaTokenTypes
-    static int convertANTLR4TypeToANTLR2Type(int antrl4Type) {
-        switch (antrl4Type) {
+    static int convertANTLR4TypeToANTLR2Type(int antrl4Type)
+    {
+        switch (antrl4Type)
+        {
             case FormulaParser.LPAREN:
                 return FormulaTokenTypes.LPAREN;
             case FormulaParser.RPAREN:
@@ -155,9 +161,11 @@ public class ANTLR4Utils {
         }
     }
 
-    public static ANTLRException convertANTLR4ExceptionToANTLR2(org.antlr.v4.runtime.RecognitionException e, int startIndex, Map<Integer, Integer> numberOfCharactersBeforeLine) {
-        if(e instanceof LexerNoViableAltException) {
-            LexerNoViableAltException lexerException = (LexerNoViableAltException)e;
+    public static ANTLRException convertANTLR4ExceptionToANTLR2(org.antlr.v4.runtime.RecognitionException e, int startIndex, Map<Integer, Integer> numberOfCharactersBeforeLine)
+    {
+        if (e instanceof LexerNoViableAltException)
+        {
+            LexerNoViableAltException lexerException = (LexerNoViableAltException) e;
             char c = lexerException.getInputStream().getText(Interval.of(lexerException.getStartIndex(), lexerException.getStartIndex())).charAt(0);
             return new NoViableAltForCharException(c, null, 1, lexerException.getStartIndex() + startIndex + 1);
         }
@@ -166,12 +174,16 @@ public class ANTLR4Utils {
         int antlr2Column = getANTLR2Column(startIndex, numberOfCharactersBeforeLine.get(antlr4Token.getLine()), antlr4Token.getCharPositionInLine());
         Token antlr2Token = convertAntlr4TokenToAntlr2Token(antlr4Token, antlr2Column);
 
-        if(e instanceof org.antlr.v4.runtime.NoViableAltException) {
+        if (e instanceof org.antlr.v4.runtime.NoViableAltException)
+        {
             return new NoViableAltException(antlr2Token, null);
         }
-        else if(e instanceof org.antlr.v4.runtime.InputMismatchException) {
+        else if (e instanceof org.antlr.v4.runtime.InputMismatchException)
+        {
             return new MismatchedTokenException(null, antlr2Token, convertANTLR4TypeToANTLR2Type(e.getExpectedTokens().get(0)), false, null);
-        } else { //should not get here
+        }
+        else
+        { //should not get here
             return new RecognitionException(e.getMessage(), null, antlr2Token.getLine(), antlr2Token.getColumn());
         }
     }

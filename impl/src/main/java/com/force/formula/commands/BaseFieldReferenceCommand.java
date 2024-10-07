@@ -15,17 +15,25 @@ import com.force.formula.util.FormulaFieldReferenceImpl;
  * @author aballard
  * @since 168
  */
-public abstract class BaseFieldReferenceCommand extends AbstractFormulaCommand {
+public abstract class BaseFieldReferenceCommand extends AbstractFormulaCommand
+{
     private static final long serialVersionUID = 1L;
+    protected final boolean useUnderlyingType;
+    protected final boolean isRoot;
+    protected final boolean isDynamicReferenceBase;
+    protected FormulaDataType dataType;
+
 
     /**
      * Construct a base field reference type
-     * @param commandName the unique command of the subclass
-     * @param useUnderlyingType whether to use the type of the field or the template type of the field
-     * @param isRoot is this the "root" of the formula.  If so, it'll return the field reference directly so the caller can do it themselves
+     *
+     * @param commandName            the unique command of the subclass
+     * @param useUnderlyingType      whether to use the type of the field or the template type of the field
+     * @param isRoot                 is this the "root" of the formula.  If so, it'll return the field reference directly so the caller can do it themselves
      * @param isDynamicReferenceBase support for the a[b] syntax in the formula engine
      */
-    public BaseFieldReferenceCommand(String commandName, boolean useUnderlyingType, boolean isRoot, boolean isDynamicReferenceBase) {
+    public BaseFieldReferenceCommand(String commandName, boolean useUnderlyingType, boolean isRoot, boolean isDynamicReferenceBase)
+    {
         super(commandName);
         // We need to record if this is top level field reference, since in that case we will not
         // evaluate to a value.
@@ -34,18 +42,28 @@ public abstract class BaseFieldReferenceCommand extends AbstractFormulaCommand {
         this.isDynamicReferenceBase = isDynamicReferenceBase;
     }
 
-    public FormulaDataType getDataType() {
+    public static Object dataTypeCheckHelper(FormulaDataType dt, FormulaRuntimeContext context, FormulaFieldReference fieldReference, boolean useUnderlyingType, boolean escapeStringForSQLGeneration)
+            throws FormulaException
+    {
+        return FormulaEngine.getHooks().getAndConvertFieldReferenceValue(dt, context, fieldReference, useUnderlyingType, escapeStringForSQLGeneration);
+    }
+
+    public FormulaDataType getDataType()
+    {
         return this.dataType;
     }
 
-    public Object execute(FormulaRuntimeContext context, FormulaFieldReference fieldReference) throws FormulaException {
+    public Object execute(FormulaRuntimeContext context, FormulaFieldReference fieldReference) throws FormulaException
+    {
         // If this is flagged as the root reference node, then we return a fieldReference.
         // This flag is set only for root nodes, and only when compiled as a reference formula.
-        if (isRoot) {
+        if (isRoot)
+        {
             // We want to return an object+property name. If the element name  part is multiple part, we must combine the base
             // with all parts of the name except the last.
             int lastIndexOf = fieldReference.getElement().lastIndexOf('.');
-            if (lastIndexOf >= 0) {
+            if (lastIndexOf >= 0)
+            {
                 String propertyName = fieldReference.getElement().substring(lastIndexOf + 1);
                 String baseExpressionString = fieldReference.getElement().substring(0, lastIndexOf);
                 DynamicReferenceCommand command = new DynamicReferenceCommand(getName(), false, true, true);
@@ -60,35 +78,26 @@ public abstract class BaseFieldReferenceCommand extends AbstractFormulaCommand {
         ContextualFormulaFieldInfo fieldInfo = FieldReferenceCommandInfo.lookup(context, fieldReference);
 
         // Get the value of the field and push on to the stack
-        Object value ;
+        Object value;
         dataType = useUnderlyingType ? fieldInfo.getTemplateDataType() : fieldInfo.getDataType();
 
         FormulaEngineHooks hooks = FormulaEngine.getHooks();
         value = hooks.getFieldReferenceValue(fieldInfo, dataType, context, fieldReference, useUnderlyingType);
 
 
-        if (dataType.isId() && value != null && context.convertIdto18Digits()) {
+        if (dataType.isId() && value != null && context.convertIdto18Digits())
+        {
             value = hooks.convertIdTo18Digits(value.toString());
         }
 
         // Hack for dynamic fields.  If we got a null value here, turn it into NullString object, so
         // comparison operators know whether to do string ops or not.
         // Probably safe to do this all the time, but doing only for dynamic fields to minimize impact.
-        if (value == null && fieldReference.isDynamic() && dataType.isTextOrEncrypted() && !dataType.isEncrypted()) {
+        if (value == null && fieldReference.isDynamic() && dataType.isTextOrEncrypted() && !dataType.isEncrypted())
+        {
             value = ConstantString.NullString;
         }
 
         return value;
     }
-    
-    public static Object dataTypeCheckHelper(FormulaDataType dt, FormulaRuntimeContext context, FormulaFieldReference fieldReference, boolean useUnderlyingType, boolean escapeStringForSQLGeneration)
-            throws FormulaException {
-        return FormulaEngine.getHooks().getAndConvertFieldReferenceValue(dt, context, fieldReference, useUnderlyingType, escapeStringForSQLGeneration);
-    }
-
-
-    protected final boolean useUnderlyingType;
-    protected final boolean isRoot;
-    protected final boolean isDynamicReferenceBase;
-    protected FormulaDataType dataType;
 }

@@ -1,13 +1,9 @@
 /**
- * 
+ *
  */
 package com.force.formula.template.commands;
 
-import com.force.formula.FormulaProperties;
-import com.force.formula.FormulaRuntimeContext;
-import com.force.formula.InvalidFieldReferenceException;
-import com.force.formula.MockFormulaDataType;
-import com.force.formula.MockFormulaType;
+import com.force.formula.*;
 import com.force.formula.impl.BaseCustomizableParserTest;
 import com.force.formula.impl.FormulaInfoFactory;
 import com.force.formula.impl.FormulaParseException;
@@ -19,18 +15,22 @@ import com.force.formula.sql.RuntimeSqlFormulaInfo;
  * @author stamm
  * @since 0.2.16
  */
-public class TemplateOptionsTest extends BaseCustomizableParserTest {
+public class TemplateOptionsTest extends BaseCustomizableParserTest
+{
 
-    public TemplateOptionsTest(String name) {
+    public TemplateOptionsTest(String name)
+    {
         super(name);
     }
-    
+
     @Override
-    protected MockFormulaType getFormulaType() {
+    protected MockFormulaType getFormulaType()
+    {
         return MockFormulaType.TEMPLATE;
     }
-    
-    public void testInvalidEmbeddedFormulaExpressions() throws Exception {
+
+    public void testInvalidEmbeddedFormulaExpressions() throws Exception
+    {
         FormulaRuntimeContext context = setupMockContext(MockFormulaDataType.TEXT);
 
         String message = "{!x} {! \"Some ok \" & \"stuff\"} {! y + x } followed by lexical garbage {!1 % 1 } and finally more garbage {! with another crap expression}";
@@ -43,34 +43,46 @@ public class TemplateOptionsTest extends BaseCustomizableParserTest {
         properties.setFailOnEmbeddedFormulaExceptions(true);
         properties.setThrowOnUnavailableField(true);
 
-        try {
+        try
+        {
             FormulaInfoFactory.create(context, message, properties);
             fail("Should fail");
-        } catch (FormulaParseException ex) {
+        }
+        catch (FormulaParseException ex)
+        {
             assertEquals("Syntax error", ex.getMessage());
         }
 
         // Invalid Field Reference should propogate
-        try {
+        try
+        {
             FormulaInfoFactory.create(context, "Far {!x}", properties);
             fail("Should fail");
-        } catch (InvalidFieldReferenceException ex) {
+        }
+        catch (InvalidFieldReferenceException ex)
+        {
             assertEquals("Field x does not exist. Check spelling.", ex.getMessage());
             assertEquals(7, ex.getLocation());
         }
 
         properties.setThrowOnUnavailableField(false);
-        try {
+        try
+        {
             FormulaInfoFactory.create(context, message, properties);
             fail("Should fail");
-        } catch (FormulaParseException ex) {
+        }
+        catch (FormulaParseException ex)
+        {
             assertEquals("Syntax error", ex.getMessage());
         }
-        
-        try {
+
+        try
+        {
             FormulaInfoFactory.create(context, "{!garbage test}", properties);
             fail("Should fail");
-        } catch (FormulaParseException ex) {
+        }
+        catch (FormulaParseException ex)
+        {
             assertEquals("Syntax error. Extra test", ex.getMessage());
         }
 
@@ -80,21 +92,21 @@ public class TemplateOptionsTest extends BaseCustomizableParserTest {
 
         RuntimeSqlFormulaInfo fi = FormulaInfoFactory.create(context, message, properties);
         assertEquals("null Some ok stuff null followed by lexical garbage null and finally more garbage null", fi.getFormula().evaluate(context));
-        
+
         // Fail on Embedded controls it.
         properties.setThrowOnUnavailableField(true);
         fi = FormulaInfoFactory.create(context, message, properties);
         assertEquals("null Some ok stuff null followed by lexical garbage null and finally more garbage null", fi.getFormula().evaluate(context));
-        
+
         // Test stufff
         fi = FormulaInfoFactory.create(context, "{!garbage test}", properties);
         assertEquals("null", fi.getFormula().evaluate(context));
         fi = FormulaInfoFactory.create(context, "{!1 % 1}", properties);
         assertEquals("null", fi.getFormula().evaluate(context));
-        
+
         // Make sure the "top level" is nulled, not the inner value for exceptions.
         fi = FormulaInfoFactory.create(context, "{!len(x)}", properties);
         assertEquals("null", fi.getFormula().evaluate(context));
-        
+
     }
 }

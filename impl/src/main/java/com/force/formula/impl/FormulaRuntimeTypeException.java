@@ -5,7 +5,8 @@
  */
 package com.force.formula.impl;
 
-import com.force.formula.*;
+import com.force.formula.FormulaEngine;
+import com.force.formula.FormulaEvaluationException;
 import com.force.formula.util.FormulaI18nUtils;
 
 /**
@@ -14,43 +15,49 @@ import com.force.formula.util.FormulaI18nUtils;
  * @author aballard
  * @since 166
  */
-public class FormulaRuntimeTypeException extends FormulaEvaluationException {
+public class FormulaRuntimeTypeException extends FormulaEvaluationException
+{
 
     private static final long serialVersionUID = 1L;
 
-	/**
+    /**
      * @param function the name of the function
      */
-    public FormulaRuntimeTypeException(String function) {
+    public FormulaRuntimeTypeException(String function)
+    {
         super(FormulaI18nUtils.getLocalizer().getLabel("FormulaFieldExceptionMessages", "IllegalArgumentTypeException",
-            WrongArgumentTypeException.getDescription(function)));
+                WrongArgumentTypeException.getDescription(function)));
     }
 
-    public FormulaRuntimeTypeException(String function, Class<?> expectedType, Object actualValue) {
+    public FormulaRuntimeTypeException(String function, Class<?> expectedType, Object actualValue)
+    {
         super(createErrorMessage(function, expectedType, actualValue));
     }
 
-    private static String createErrorMessage(String function, Class<?> expected, Object actualValue) {
+    private static String createErrorMessage(String function, Class<?> expected, Object actualValue)
+    {
         String actualName;
         actualName = FormulaEngine.getHooks().getTypeNameForErrorMessage(actualValue);
-        if (actualName == null) {
+        if (actualName == null)
+        {
             actualName = getFormulaTypeName(actualValue.getClass());
         }
-        String expectedName= getFormulaTypeName(expected);
+        String expectedName = getFormulaTypeName(expected);
         return FormulaI18nUtils.getLocalizer().getLabel("FormulaFieldExceptionMessages", "WrongArgumentTypeException",
-            WrongArgumentTypeException.getDescription(function), expectedName, actualName);
+                WrongArgumentTypeException.getDescription(function), expectedName, actualName);
 
     }
 
-    public static String getFormulaTypeName(Class<?> clazz) {
-        String typeName= FormulaI18nUtils.getLocalizer().getLabelNoThrow("FormulaFieldExceptionDataTypes", clazz.getName());
-        if (typeName == null ) {
+    public static String getFormulaTypeName(Class<?> clazz)
+    {
+        String typeName = FormulaI18nUtils.getLocalizer().getLabelNoThrow("FormulaFieldExceptionDataTypes", clazz.getName());
+        if (typeName == null)
+        {
             // something really unexpected... use the java class name.
             typeName = clazz.getName();
         }
         return typeName;
     }
-
 
 
 }

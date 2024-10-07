@@ -4,13 +4,16 @@
  */
 package com.force.formula.commands;
 
-import java.lang.reflect.Type;
-
-import com.force.formula.*;
+import com.force.formula.FormulaCommand;
+import com.force.formula.FormulaCommandType;
+import com.force.formula.FormulaContext;
+import com.force.formula.FormulaException;
 import com.force.formula.impl.FormulaAST;
 import com.force.formula.impl.JsValue;
 import com.force.formula.sql.ITableAliasRegistry;
 import com.force.formula.sql.SQLPair;
+
+import java.lang.reflect.Type;
 
 /**
  * Metadata for formula operations
@@ -18,7 +21,8 @@ import com.force.formula.sql.SQLPair;
  * @author dchasman
  * @since 140
  */
-public interface FormulaCommandInfo extends FormulaCommandType {
+public interface FormulaCommandInfo extends FormulaCommandType
+{
     Type getReturnType(FormulaAST node, FormulaContext context) throws FormulaException;
 
     Type[] getArgumentTypes(FormulaAST node, FormulaContext context) throws FormulaException;

@@ -1,6 +1,7 @@
 package com.force.formula.impl;
 
-public class JvmMetrics {
+public class JvmMetrics
+{
     public long cpuUsageNanos = 0;
     public long gcTimeMillis = 0;
     public long threadWaitedTime = 0;
@@ -8,7 +9,8 @@ public class JvmMetrics {
     public long threadSafepointWaitedTime = 0;
     public long threadAllocatedBytes = 0;
 
-    public static JvmMetrics diff(JvmMetrics start, JvmMetrics end) {
+    public static JvmMetrics diff(JvmMetrics start, JvmMetrics end)
+    {
         JvmMetrics diff = new JvmMetrics();
         diff.cpuUsageNanos = end.cpuUsageNanos - start.cpuUsageNanos;
         diff.gcTimeMillis = end.gcTimeMillis - start.gcTimeMillis;
@@ -20,7 +22,8 @@ public class JvmMetrics {
     }
 
     @Override
-    public String toString() {
+    public String toString()
+    {
         return "JvmMetrics{" +
                 "cpuUsageNanos=" + cpuUsageNanos +
                 ", gcTimeMillis=" + gcTimeMillis +

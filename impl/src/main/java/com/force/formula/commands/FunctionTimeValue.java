@@ -1,5 +1,13 @@
 package com.force.formula.commands;
 
+import com.force.formula.*;
+import com.force.formula.FormulaCommandType.AllowedContext;
+import com.force.formula.FormulaCommandType.SelectorSection;
+import com.force.formula.impl.*;
+import com.force.formula.sql.SQLPair;
+import com.force.formula.util.FormulaDateUtil;
+import com.force.i18n.BaseLocalizer;
+
 import java.lang.reflect.Type;
 import java.text.ParsePosition;
 import java.text.SimpleDateFormat;
@@ -8,76 +16,69 @@ import java.util.Date;
 import java.util.Deque;
 import java.util.GregorianCalendar;
 
-import com.force.formula.FormulaCommand;
-import com.force.formula.FormulaCommandType.AllowedContext;
-import com.force.formula.FormulaCommandType.SelectorSection;
-import com.force.formula.FormulaContext;
-import com.force.formula.FormulaDateException;
-import com.force.formula.FormulaDateTime;
-import com.force.formula.FormulaEngine;
-import com.force.formula.FormulaException;
-import com.force.formula.FormulaProperties;
-import com.force.formula.FormulaRuntimeContext;
-import com.force.formula.FormulaTime;
-import com.force.formula.impl.FormulaAST;
-import com.force.formula.impl.IllegalArgumentTypeException;
-import com.force.formula.impl.JsValue;
-import com.force.formula.impl.TableAliasRegistry;
-import com.force.formula.impl.WrongNumberOfArgumentsException;
-import com.force.formula.sql.SQLPair;
-import com.force.formula.util.FormulaDateUtil;
-import com.force.i18n.BaseLocalizer;
-
 /**
  * Describe your class here.
  *
  * @author pjain
  * @since 208
  */
-@AllowedContext(section=SelectorSection.DATE_TIME, nonFlowOnly=true, isOffline=true)
-public class FunctionTimeValue extends FormulaCommandInfoImpl implements FormulaCommandValidator {
+@AllowedContext(section = SelectorSection.DATE_TIME, nonFlowOnly = true, isOffline = true)
+public class FunctionTimeValue extends FormulaCommandInfoImpl implements FormulaCommandValidator
+{
 
     protected final static String JS_FORMAT_TEMPLATE = "new Date(new Date(%s).setUTCFullYear(1970,0,1))";
 
-    public FunctionTimeValue() {
-        super("TIMEVALUE", FormulaTime.class, new Class[] {});
+    public FunctionTimeValue()
+    {
+        super("TIMEVALUE", FormulaTime.class, new Class[]{});
     }
 
     @Override
-    public FormulaCommand getCommand(FormulaAST node, FormulaContext context) {
+    public FormulaCommand getCommand(FormulaAST node, FormulaContext context)
+    {
         return new FunctionTimeValueCommand(this);
     }
 
     @Override
     public SQLPair getSQL(FormulaAST node, FormulaContext context, String[] args, String[] guards,
-            TableAliasRegistry registry) {
-        Type inputDataType = ((FormulaAST)node.getFirstChild()).getDataType();
+            TableAliasRegistry registry)
+    {
+        Type inputDataType = ((FormulaAST) node.getFirstChild()).getDataType();
 
         String sql;
         String guard;
-        if (inputDataType == FormulaTime.class) {
-            sql =  args[0];
+        if (inputDataType == FormulaTime.class)
+        {
+            sql = args[0];
             guard = SQLPair.generateGuard(guards, null);
         }
-        else if (inputDataType == FormulaDateTime.class) {
+        else if (inputDataType == FormulaDateTime.class)
+        {
             String str = getSqlHooks(context).sqlCastNull(args[0], FormulaDateTime.class);
             sql = getSqlHooks(context).sqlExtractTimeFromDateTime(str);
             guard = SQLPair.generateGuard(guards, null);
         }
-        else {
+        else
+        {
             sql = getSqlHooks(context).sqlParseTime(args[0]);
 
-            FormulaAST child = (FormulaAST)node.getFirstChild();
-            if (child != null && child.isLiteral() && child.getDataType() == String.class) {
-                if (FunctionTimeValueCommand.isTimeValid(ConstantString.getStringValue(child, true))) {
+            FormulaAST child = (FormulaAST) node.getFirstChild();
+            if (child != null && child.isLiteral() && child.getDataType() == String.class)
+            {
+                if (FunctionTimeValueCommand.isTimeValid(ConstantString.getStringValue(child, true)))
+                {
                     // no guard needed
                     guard = SQLPair.generateGuard(guards, null);
-                } else {
+                }
+                else
+                {
                     // we know it's false
                     guard = SQLPair.generateGuard(guards, "0=0");
                     sql = getSqlHooks(context).sqlCastNull("NULL", FormulaTime.class);
                 }
-            } else {
+            }
+            else
+            {
                 // Guard protects against malformed times as strings.
                 guard = SQLPair
                         .generateGuard(
@@ -93,80 +94,69 @@ public class FunctionTimeValue extends FormulaCommandInfoImpl implements Formula
 
     @Override
     public Type validate(FormulaAST node, FormulaContext context, FormulaProperties properties)
-            throws FormulaException {
-        if (node.getNumberOfChildren() != 1) { throw new WrongNumberOfArgumentsException(node.getText(), 1, node); }
+            throws FormulaException
+    {
+        if (node.getNumberOfChildren() != 1)
+        {
+            throw new WrongNumberOfArgumentsException(node.getText(), 1, node);
+        }
 
-        Type inputDataType = ((FormulaAST)node.getFirstChild()).getDataType();
+        Type inputDataType = ((FormulaAST) node.getFirstChild()).getDataType();
 
         if (inputDataType != FormulaDateTime.class && inputDataType != String.class && inputDataType != FormulaTime.class
-                && inputDataType != RuntimeType.class) { throw new IllegalArgumentTypeException(node.getText()); }
+                && inputDataType != RuntimeType.class)
+        {
+            throw new IllegalArgumentTypeException(node.getText());
+        }
 
         return inputDataType == RuntimeType.class ? inputDataType : FormulaTime.class;
     }
 
     @Override
-    public JsValue getJavascript(FormulaAST node, FormulaContext context, JsValue[] args) throws FormulaException {
-        Type inputDataType = ((FormulaAST)node.getFirstChild()).getDataType();
-        if (inputDataType == FormulaDateTime.class) {
-            return JsValue.forNonNullResult("new Date("+args[0] + ".setUTCFullYear(1970,0,1))", args);
-        } else if (inputDataType == FormulaTime.class) {
+    public JsValue getJavascript(FormulaAST node, FormulaContext context, JsValue[] args) throws FormulaException
+    {
+        Type inputDataType = ((FormulaAST) node.getFirstChild()).getDataType();
+        if (inputDataType == FormulaDateTime.class)
+        {
+            return JsValue.forNonNullResult("new Date(" + args[0] + ".setUTCFullYear(1970,0,1))", args);
+        }
+        else if (inputDataType == FormulaTime.class)
+        {
             return args[0];
-        } else {
+        }
+        else
+        {
             return JsValue.forNonNullResult(String.format(JS_FORMAT_TEMPLATE, args[0].js), args);
         }
     }
 
-    public static class FunctionTimeValueCommand extends AbstractFormulaCommand {
+    public static class FunctionTimeValueCommand extends AbstractFormulaCommand
+    {
         private static final long serialVersionUID = 1L;
 
-        public FunctionTimeValueCommand(FormulaCommandInfo formulaCommandInfo) {
+        public FunctionTimeValueCommand(FormulaCommandInfo formulaCommandInfo)
+        {
             super(formulaCommandInfo);
         }
 
-        @Override
-        public void execute(FormulaRuntimeContext context, Deque<Object> stack) throws FormulaException {
-            Object input = stack.pop();
-
-            FormulaTime value = null;
-            if (input != null && input != ConstantString.NullString) {
-                if (input instanceof FormulaTime)  {
-                    value = (FormulaTime)input;
-                }
-                else if (input instanceof FormulaDateTime) {
-                    // Convert from FormulaDateTime to Date
-                    FormulaDateTime dateTimeInput = (FormulaDateTime)input;
-                    if (dateTimeInput != null) {
-                        Date date = dateTimeInput.getDate();
-                        if (date != null) {
-                            Calendar cal = new GregorianCalendar(BaseLocalizer.GMT_TZ);
-                            cal.setTime(date);
-                            value = FormulaEngine.getHooks().constructTime(FormulaDateUtil.millisecondOfDay(cal));
-                        }
-                    }
-                } else {
-                    try {
-                        value  = parseTime(checkStringType(input));
-                    } catch (FormulaDateException e) {
-                        FormulaEngine.getHooks().handleFormulaTimeException(e);
-                    }
-                }
-            }
-
-            stack.push(value);
-        }
-
-        protected static  boolean isTimeValid(String date) {
-            try {
+        protected static boolean isTimeValid(String date)
+        {
+            try
+            {
                 parseTime(date);
                 return true;
-            } catch (FormulaDateException x) {
+            }
+            catch (FormulaDateException x)
+            {
                 return false;
             }
         }
 
         // Convert from string of the form "HH:mm:ss.SSS" to Time
-        protected static FormulaTime parseTime(String input) throws FormulaDateException{
-            if (FormulaEngine.getHooks().isFormulaContainerCompiling()) {
+        protected static FormulaTime parseTime(String input) throws FormulaDateException
+        {
+            if (FormulaEngine.getHooks().isFormulaContainerCompiling())
+            {
                 return null; // dummy values during compile won't work
             }
             SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss.SSS");
@@ -176,11 +166,57 @@ public class FunctionTimeValue extends FormulaCommandInfoImpl implements Formula
             Date d = dateFormat.parse(input, p);
             FormulaTime ret = null;
             if (d != null)
+            {
                 ret = FormulaEngine.getHooks().constructTime(d.getTime());
-            if (ret == null || p.getIndex() != input.length() || p.getErrorIndex() != -1) {
+            }
+            if (ret == null || p.getIndex() != input.length() || p.getErrorIndex() != -1)
+            {
                 throw new FormulaDateException("Invalid time format: " + input);
             }
             return ret;
+        }
+
+        @Override
+        public void execute(FormulaRuntimeContext context, Deque<Object> stack) throws FormulaException
+        {
+            Object input = stack.pop();
+
+            FormulaTime value = null;
+            if (input != null && input != ConstantString.NullString)
+            {
+                if (input instanceof FormulaTime)
+                {
+                    value = (FormulaTime) input;
+                }
+                else if (input instanceof FormulaDateTime)
+                {
+                    // Convert from FormulaDateTime to Date
+                    FormulaDateTime dateTimeInput = (FormulaDateTime) input;
+                    if (dateTimeInput != null)
+                    {
+                        Date date = dateTimeInput.getDate();
+                        if (date != null)
+                        {
+                            Calendar cal = new GregorianCalendar(BaseLocalizer.GMT_TZ);
+                            cal.setTime(date);
+                            value = FormulaEngine.getHooks().constructTime(FormulaDateUtil.millisecondOfDay(cal));
+                        }
+                    }
+                }
+                else
+                {
+                    try
+                    {
+                        value = parseTime(checkStringType(input));
+                    }
+                    catch (FormulaDateException e)
+                    {
+                        FormulaEngine.getHooks().handleFormulaTimeException(e);
+                    }
+                }
+            }
+
+            stack.push(value);
         }
     }
 }

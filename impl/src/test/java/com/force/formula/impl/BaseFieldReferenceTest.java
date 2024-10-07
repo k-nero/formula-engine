@@ -5,34 +5,36 @@
  */
 package com.force.formula.impl;
 
-import static com.force.formula.MockFormulaDataType.BOOLEAN;
-import static com.force.formula.MockFormulaDataType.DATEONLY;
-import static com.force.formula.MockFormulaDataType.DOUBLE;
-import static com.force.formula.MockFormulaDataType.TEXT;
-
-import java.math.BigDecimal;
-import java.util.Date;
-
 import com.force.formula.MockFormulaDataType;
 import com.force.formula.util.BigDecimalHelper;
 import com.force.formula.util.FormulaDateUtil;
 
+import java.math.BigDecimal;
+import java.util.Date;
+
+import static com.force.formula.MockFormulaDataType.*;
+
 /**
  * FieldReferenceTest that includes a "bare" set of functions to validate
  * field references and null checking
+ *
  * @author stamm
  * @since 0.2.0
  */
-public abstract class BaseFieldReferenceTest extends BaseCustomizableParserTest {
-    public BaseFieldReferenceTest(String name) {
+public abstract class BaseFieldReferenceTest extends BaseCustomizableParserTest
+{
+    public BaseFieldReferenceTest(String name)
+    {
         super(name);
-    }    
+    }
 
     /**
      * Validate some functions that reference non-null values to test functionality
+     *
      * @throws Exception
      */
-    public void testFieldReference() throws Exception {
+    public void testFieldReference() throws Exception
+    {
         // This is Jan1 1900 GMT
         //
         assertEquals(-2208988800000L, evaluateDateTime("$System.OriginDateTime").getTime());
@@ -57,90 +59,110 @@ public abstract class BaseFieldReferenceTest extends BaseCustomizableParserTest 
         assertEquals(new BigDecimal("109"), evaluateBigDecimal("floor(ceiling(Account.Amount^2))"));
         assertEquals(new BigDecimal("0"), evaluateBigDecimal("blankvalue(Account.Percent,Account.Amount)"));
     }
-    
+
     /**
      * Validate formulas referencing fields with logical equality.
+     *
      * @throws Exception
      */
-    public void testEqualityFieldReference() throws Exception {
+    public void testEqualityFieldReference() throws Exception
+    {
         assertEquals(Boolean.TRUE, evaluateBoolean("Account.Name=\"FORMULA_ENGINE\" || Account.Amount=Account.Amount^2"));
         assertEquals(Boolean.TRUE, evaluateBoolean("OR(CONTAINS(Account.Name, \"FORMULA\")) || OR(CONTAINS(Account.Parent.Name, \"NONE\"))"));
-		assertEquals(Boolean.FALSE, evaluateBoolean("OR(CONTAINS(Account.Name, \"ABC\")) || OR(CONTAINS(Account.nullParent.Name, \"NONE\"))"));
-		assertEquals(Boolean.TRUE, evaluateBoolean("OR(CONTAINS(Account.Name, \"FORMULA\")) || OR(CONTAINS(Account.nullParent.Name, \"NONE\"))"));
+        assertEquals(Boolean.FALSE, evaluateBoolean("OR(CONTAINS(Account.Name, \"ABC\")) || OR(CONTAINS(Account.nullParent.Name, \"NONE\"))"));
+        assertEquals(Boolean.TRUE, evaluateBoolean("OR(CONTAINS(Account.Name, \"FORMULA\")) || OR(CONTAINS(Account.nullParent.Name, \"NONE\"))"));
 
-		assertEquals(Boolean.FALSE, evaluateBoolean("Account.Name = \"FORMULA\" || Account.Parent.Name = \"NONE\""));
-		assertEquals(Boolean.TRUE, evaluateBoolean("Account.Name = \"FORMULA_ENGINE\" || Account.Parent.Name = \"NONE\""));
-		assertEquals(Boolean.TRUE, evaluateBoolean("Account.Name = \"FORMULA\" || Account.Parent.Name = \"FORMULA_ENGINE_parent\""));
-		assertEquals(Boolean.TRUE, evaluateBoolean("Account.nullParent.Name = \"FORMULA_ENGINE_parent\" || Account.Parent.Name = \"FORMULA_ENGINE_parent\""));
+        assertEquals(Boolean.FALSE, evaluateBoolean("Account.Name = \"FORMULA\" || Account.Parent.Name = \"NONE\""));
+        assertEquals(Boolean.TRUE, evaluateBoolean("Account.Name = \"FORMULA_ENGINE\" || Account.Parent.Name = \"NONE\""));
+        assertEquals(Boolean.TRUE, evaluateBoolean("Account.Name = \"FORMULA\" || Account.Parent.Name = \"FORMULA_ENGINE_parent\""));
+        assertEquals(Boolean.TRUE, evaluateBoolean("Account.nullParent.Name = \"FORMULA_ENGINE_parent\" || Account.Parent.Name = \"FORMULA_ENGINE_parent\""));
 
-		assertEquals(Boolean.FALSE, evaluateBoolean("OR((Account.Name = \"FORMULA\"), (Account.Parent.Name = \"NONE\"))"));
-		assertEquals(Boolean.TRUE, evaluateBoolean("OR((Account.Name = \"FORMULA_ENGINE\"), (Account.Parent.Name = \"NONE\"))"));
-		assertEquals(Boolean.TRUE, evaluateBoolean("OR((Account.Name = \"FORMULA\"), (Account.Parent.Name = \"FORMULA_ENGINE_parent\"))"));
+        assertEquals(Boolean.FALSE, evaluateBoolean("OR((Account.Name = \"FORMULA\"), (Account.Parent.Name = \"NONE\"))"));
+        assertEquals(Boolean.TRUE, evaluateBoolean("OR((Account.Name = \"FORMULA_ENGINE\"), (Account.Parent.Name = \"NONE\"))"));
+        assertEquals(Boolean.TRUE, evaluateBoolean("OR((Account.Name = \"FORMULA\"), (Account.Parent.Name = \"FORMULA_ENGINE_parent\"))"));
 
-		assertEquals(Boolean.FALSE, evaluateBoolean("Account.nullParent.isActive"));
-		assertEquals(Boolean.TRUE, evaluateBoolean("Account.isActive || Account.Parent.isActive"));
-		assertEquals(Boolean.FALSE, evaluateBoolean("Account.Parent.isActive || Account.nullParent.isActive"));
-		assertEquals(Boolean.TRUE, evaluateBoolean("Account.isActive || Account.nullParent.isActive"));
+        assertEquals(Boolean.FALSE, evaluateBoolean("Account.nullParent.isActive"));
+        assertEquals(Boolean.TRUE, evaluateBoolean("Account.isActive || Account.Parent.isActive"));
+        assertEquals(Boolean.FALSE, evaluateBoolean("Account.Parent.isActive || Account.nullParent.isActive"));
+        assertEquals(Boolean.TRUE, evaluateBoolean("Account.isActive || Account.nullParent.isActive"));
     }
-    
-    public void testNumericValues() throws Exception {
+
+    public void testNumericValues() throws Exception
+    {
         secondNumberOverride = new BigDecimal("-0.00034");
         percentOverride = new BigDecimal("10");
-        try {
+        try
+        {
             secondNumberOverride = new BigDecimal("-0.00034");
             assertEquals(BigDecimal.ONE, evaluateBigDecimal("abs(ceiling(Account.SecondNumber))"));
             Date plus20 = FormulaDateUtil.addDurationToDate(true, EXAMPLE_DATE, new BigDecimal(20), false);
             assertEquals(plus20, evaluateDate("(DateFormula+Account.Percent+NumberFormula+Account.Amount+LEN(NullText))"));
-        } finally {
+        }
+        finally
+        {
             secondNumberOverride = null;
             percentOverride = null;
         }
     }
-    
+
     /**
      * Helper function for validating formulas with zero and null handling being different, assuming when asNull, it's null
-     * @param type the result type of the formula
-     * @param formula the formula source to evaluate 
-     * @param asZero the value that should be returned if null numbers are treated as zero
+     *
+     * @param type    the result type of the formula
+     * @param formula the formula source to evaluate
+     * @param asZero  the value that should be returned if null numbers are treated as zero
      * @throws Exception
      */
-    protected void validateFieldReferences(MockFormulaDataType type, String formula, Object asZero) throws Exception {
+    protected void validateFieldReferences(MockFormulaDataType type, String formula, Object asZero) throws Exception
+    {
         validateFieldReferences(type, formula, asZero, null);
     }
-    
+
     /**
-     * Helper function for validating formulas with zero and null handling being different.  
-     * @param type the result type of the formula
-     * @param formula the formula source to evaluate 
-     * @param asZero the value that should be returned if null numbers are treated as zero
-     * @param asNull the value that should be returned if null numbers are treated as null
+     * Helper function for validating formulas with zero and null handling being different.
+     *
+     * @param type    the result type of the formula
+     * @param formula the formula source to evaluate
+     * @param asZero  the value that should be returned if null numbers are treated as zero
+     * @param asNull  the value that should be returned if null numbers are treated as null
      */
-    protected void validateFieldReferences(MockFormulaDataType type, String formula, Object asZero, Object asNull) throws Exception {
+    protected void validateFieldReferences(MockFormulaDataType type, String formula, Object asZero, Object asNull) throws Exception
+    {
         Object value = null;
-        switch (type) {
-        case BOOLEAN:
-            value = evaluateBoolean(formula); break;
-        case DATEONLY:
-            value = evaluateDate(formula); break;
-        case DATETIME:
-            value = evaluateDateTime(formula); break;
-        case DOUBLE:
-            value = evaluateBigDecimal(formula); break;
-        case TEXT:
-            value = evaluateString(formula); break;
-        default:
+        switch (type)
+        {
+            case BOOLEAN:
+                value = evaluateBoolean(formula);
+                break;
+            case DATEONLY:
+                value = evaluateDate(formula);
+                break;
+            case DATETIME:
+                value = evaluateDateTime(formula);
+                break;
+            case DOUBLE:
+                value = evaluateBigDecimal(formula);
+                break;
+            case TEXT:
+                value = evaluateString(formula);
+                break;
+            default:
         }
-        
+
         Object expected = nullAsNull ? asNull : asZero;
-        if (type == DOUBLE && expected != null && value != null) {
+        if (type == DOUBLE && expected != null && value != null)
+        {
             // Trailing zeros are annoying for comparison
-            assertEquals("Formula mismatch: " + formula, BigDecimalHelper.formatBigDecimal((BigDecimal)expected), BigDecimalHelper.formatBigDecimal((BigDecimal)value));
-        } else {
+            assertEquals("Formula mismatch: " + formula, BigDecimalHelper.formatBigDecimal((BigDecimal) expected), BigDecimalHelper.formatBigDecimal((BigDecimal) value));
+        }
+        else
+        {
             assertEquals("Formula mismatch: " + formula, expected, value);
         }
     }
 
-    public void _testNullHandling() throws Exception {
+    public void _testNullHandling() throws Exception
+    {
         validateFieldReferences(DOUBLE, "NullAccount.Amount", BigDecimal.ZERO);
         validateFieldReferences(DOUBLE, "11+NullAccount.Amount", new BigDecimal("11"));
         validateFieldReferences(DATEONLY, "11+Account.NullDate", null);
@@ -177,27 +199,33 @@ public abstract class BaseFieldReferenceTest extends BaseCustomizableParserTest 
         validateFieldReferences(DOUBLE, "FIND(NullAccount.NullText,\"\")", BigDecimal.ZERO, BigDecimal.ZERO);
         validateFieldReferences(DOUBLE, "FIND(\"\",NullAccount.NullText)", BigDecimal.ZERO, BigDecimal.ZERO);
 
-        
+
         // TODO: The next one causes an error in Java and a non-error in Javascript
         //validateFieldReferences(DATEONLY, "DATE(2016,11,NullAccount.Amount)+Account.Amount", null);
     }
-    
+
     /**
      * This is used to validate that the NPE exception handling works appropriately
+     *
      * @throws Exception
      */
-    public void testNullAsNullHandling() throws Exception {
-        nullAsNull= true;
-        try {
+    public void testNullAsNullHandling() throws Exception
+    {
+        nullAsNull = true;
+        try
+        {
             _testNullHandling();
-        } finally {
+        }
+        finally
+        {
             nullAsNull = false;
         }
     }
-    
+
     // Validate the null as zero handling.
-    public void testNullAsZeroHandling() throws Exception {
+    public void testNullAsZeroHandling() throws Exception
+    {
         _testNullHandling();
     }
-   
+
 }

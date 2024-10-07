@@ -4,47 +4,10 @@
 
 package com.force.formula.impl;
 
-import java.lang.reflect.Type;
-import java.math.BigDecimal;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.BitSet;
-import java.util.Date;
-import java.util.Deque;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.regex.Matcher;
-
-import com.force.formula.ContextualFormulaFieldInfo;
-import com.force.formula.Formula;
-import com.force.formula.FormulaCommand;
-import com.force.formula.FormulaContext;
-import com.force.formula.FormulaDataType;
-import com.force.formula.FormulaDateTime;
-import com.force.formula.FormulaEngine;
-import com.force.formula.FormulaException;
-import com.force.formula.FormulaFieldInfo;
-import com.force.formula.FormulaProperties;
-import com.force.formula.FormulaProvider;
-import com.force.formula.FormulaReturnType;
-import com.force.formula.FormulaRuntimeContext;
+import antlr.Token;
+import com.force.formula.*;
 import com.force.formula.FormulaRuntimeContext.InaccessibleFieldStrategy;
-import com.force.formula.FormulaSchema;
-import com.force.formula.FormulaTime;
-import com.force.formula.FormulaTooLongException;
-import com.force.formula.FormulaTypeWithDomain;
-import com.force.formula.InvalidFieldReferenceException;
-import com.force.formula.JSTooBigException;
-import com.force.formula.RuntimeFormulaInfo;
-import com.force.formula.commands.ConstantNull;
-import com.force.formula.commands.FormulaCommandEnricher;
-import com.force.formula.commands.FormulaCommandInfo;
-import com.force.formula.commands.FormulaCommandInfoRegistry;
-import com.force.formula.commands.FormulaCommandOptimizer;
-import com.force.formula.commands.RuntimeType;
+import com.force.formula.commands.*;
 import com.force.formula.impl.FormulaCommandVisitorImpl.FormatCurrencyVisitor;
 import com.force.formula.parser.gen.FormulaTokenTypes;
 import com.force.formula.sql.FormulaWithSql;
@@ -55,167 +18,723 @@ import com.force.formula.util.FormulaTextUtil;
 import com.google.common.base.Joiner;
 import com.google.common.base.Utf8;
 
-import antlr.Token;
+import java.lang.reflect.Type;
+import java.math.BigDecimal;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.regex.Matcher;
 
 /**
  * @author dchasman
  * @since 140
  */
-public abstract class BaseFormulaInfoImpl implements RuntimeFormulaInfo {
-    public BaseFormulaInfoImpl(FormulaContext context, String source, FormulaProperties properties) throws FormulaException {
-        this(context, source, properties, false, false,false);
+public abstract class BaseFormulaInfoImpl implements RuntimeFormulaInfo
+{
+    protected static final String ID_PREFIX = "ID:";
+    private final FormulaContext context;
+    private final ContextualFormulaFieldInfo[] fieldReferences;
+    private final String source;
+    private final FormulaProperties properties;
+    private final FormulaWithSql formula;
+    private final FormulaSQLSize sqlSize;
+    private final boolean referenceEncryptedFields;
+
+    public BaseFormulaInfoImpl(FormulaContext context, String source, FormulaProperties properties) throws FormulaException
+    {
+        this(context, source, properties, false, false, false);
     }
 
     public BaseFormulaInfoImpl(FormulaContext context, String originalSource, FormulaProperties properties,
-            boolean existingFormula, boolean forceDisabled, boolean isCreateOrEditFormula) throws FormulaException {
+            boolean existingFormula, boolean forceDisabled, boolean isCreateOrEditFormula) throws FormulaException
+    {
         long startTime = System.currentTimeMillis();
 
         this.context = context;
         this.properties = properties;
-        
-        try {
+
+        try
+        {
             boolean isCheckingSqlLengthLimit = (isCreateOrEditFormula && !FormulaValidationHooks.get().parseHook_ignoreSqlTextLengthLimit());
             this.context.setProperty(FormulaContext.CHECK_SQL_LENGTH_LIMIT, isCheckingSqlLengthLimit);
             this.context.setProperty(FormulaContext.IS_CREATE_OR_EDIT_FORMULA, isCreateOrEditFormula);
             this.context.setProperty(FormulaContext.FORCE_DISABLED, forceDisabled);
-            
+
             // Propagating the info if FormulaInfo is being created for Runtime/Design time.
             this.properties.setExistingFormula(existingFormula);
-    
+
             String source = FormulaUtils.decode(context, originalSource, properties);
-            if (forceDisabled) this.properties.setDisabled(true);
-    
-            if (source == null) {
+            if (forceDisabled)
+            {
+                this.properties.setDisabled(true);
+            }
+
+            if (source == null)
+            {
                 source = "";
-            } else {
+            }
+            else
+            {
                 source = autoStripCurlyBangs(source, this.properties);
             }
-    
-            if (source.length() > MAX_FORMULA_LENGTH && !properties.getParseAsTemplate() && properties.getCheckDecodedSize()) {
+
+            if (source.length() > MAX_FORMULA_LENGTH && !properties.getParseAsTemplate() && properties.getCheckDecodedSize())
+            {
                 throw new FormulaTooLongException(source.length(), MAX_FORMULA_LENGTH);
             }
             this.source = source;
-    
+
             // if the formula is disabled, make it an error. Bug: 137381
-            if (this.properties.isDisabled()) {
+            if (this.properties.isDisabled())
+            {
                 this.formula = new InvalidFormula(FormulaValidationHooks.get().parseHook_getFormulaDisabledException());
                 this.sqlSize = null;
                 this.fieldReferences = new ContextualFormulaFieldInfo[0];
                 this.referenceEncryptedFields = false;
-            } else {
+            }
+            else
+            {
                 FormulaAST astRoot = FormulaUtils.parse(this.source, properties);
-    
-                if (!properties.getAllowCycles()) {
-                    FormulaValidationHooks.get().parseHook_checkForCycles(context, (String) context.getProperty(FIELD_NAME_OVERRIDE), getReferencedNames(astRoot, properties));
+
+                if (!properties.getAllowCycles())
+                {
+                    FormulaValidationHooks.get().parseHook_checkForCycles(context, context.getProperty(FIELD_NAME_OVERRIDE), getReferencedNames(astRoot, properties));
                 }
-    
+
                 FormulaAST ast = (FormulaAST) astRoot.getFirstChild();
-                
+
                 // Handle inaccessible fields before annotating to prevent treatNullAsNull setting from interfering
                 handleInaccessibleFields(ast, context);
-                
+
                 AnnotationVisitor annotationVisitor = annotateAst(ast, context, properties);
                 ast = enrichRoot(ast, context, properties);
-    
+
                 // Finish annotation
                 fieldReferences = annotationVisitor.getFieldReferences();
-    
-                if (isCreateOrEditFormula) {
+
+                if (isCreateOrEditFormula)
+                {
                     this.referenceEncryptedFields = FormulaValidationHooks.get().parseHook_hasEncryptedDataReferences(context, ast, properties);
-                } else {
+                }
+                else
+                {
                     this.referenceEncryptedFields = false;
                 }
-    
+
                 BitSet propertyBits = new BitSet();
-    
+
                 // This has utility value, really only if we trying to generate SQL or operating
                 // on the results in bulk.
                 // That is generally not true for templates.
-                if (!properties.isDisabled() && !properties.getParseAsTemplate()) {
-                    ast = optimizeParseTree(ast,context,propertyBits,properties);
+                if (!properties.isDisabled() && !properties.getParseAsTemplate())
+                {
+                    ast = optimizeParseTree(ast, context, propertyBits, properties);
                 }
-    
+
                 List<FormulaCommand> commandList = new LinkedList<FormulaCommand>();
                 propertyBits.or(generate(ast, commandList, context, properties));
-    
+
                 TableAliasRegistry registry = new TableAliasRegistry();
                 SQLPair sqlPair;
-    
-                if (properties.getGenerateSQL()) {
+
+                if (properties.getGenerateSQL())
+                {
                     sqlPair = visitPostorder(ast, context, registry);
                     this.sqlSize = calculateSqlSize(sqlPair, isCheckingSqlLengthLimit, this.properties.getMaxSqlSize());
-                    if (isCheckingSqlLengthLimit) {
+                    if (isCheckingSqlLengthLimit)
+                    {
                         // SQL generated for length limit checks must be discarded
                         sqlPair = new SQLPair(null, null);
                     }
-                } else {
+                }
+                else
+                {
                     sqlPair = new SQLPair(null, null);
                     this.sqlSize = null;
                 }
-    
+
                 // Log if it is greater than the Maximum Nested Case
-                if (isCreateOrEditFormula) {
+                if (isCreateOrEditFormula)
+                {
                     FormulaValidationHooks.get().parseHook_validateNestedIf(astRoot, source, sqlPair);
                 }
-    
+
                 JsValue javascript;
-                if (properties.getGenerateJavascript() || FormulaValidationHooks.get().parseHook_generateJavascript()) {
-                    if (properties.getGenerateJavascript()) {
-                        assert context.getGlobalProperties().getFormulaType().getDefaultProperties()
-                                .getGenerateJavascript() : "Formula type must be enabled for JavaScript generation";
-                    }
+                if (properties.getGenerateJavascript() || FormulaValidationHooks.get().parseHook_generateJavascript())
+                {
+                    assert !properties.getGenerateJavascript() || context.getGlobalProperties().getFormulaType().getDefaultProperties()
+                            .getGenerateJavascript() : "Formula type must be enabled for JavaScript generation";
                     final long start = System.currentTimeMillis();
-                    try {
+                    try
+                    {
                         javascript = visitJavascript(ast, context);
-                        if (isCreateOrEditFormula && javascript != null && javascript.js.length() > MAX_JS_SIZE) {
+                        if (isCreateOrEditFormula && javascript != null && javascript.js.length() > MAX_JS_SIZE)
+                        {
                             throw new JSTooBigException(javascript.js.length(), true);
                         }
-                    } catch (JSTooBigException e) { // NOPMD
+                    }
+                    catch (JSTooBigException e)
+                    { // NOPMD
                         // Log formulas that have been stopped mid-generation.
                         LogInfo logInfo = getLogInfo(astRoot, properties);
                         FormulaValidationHooks.get().parseHook_logOfflineFormula(start, e.getSize(), e.isFinished(),
                                 logInfo.commands);
                         throw e;
                     }
-                } else {
+                }
+                else
+                {
                     javascript = JsValue.NULL;
                 }
-    
+
                 boolean referencesSubFormula = false;
-                for (FormulaFieldInfo formulaFieldInfo : getReferences()) {
+                for (FormulaFieldInfo formulaFieldInfo : getReferences())
+                {
                     if ((formulaFieldInfo instanceof FormulaProvider)
-                        && (((FormulaProvider)formulaFieldInfo).getFormula() != null)) {
-                        Formula formula = ((FormulaProvider)formulaFieldInfo).getFormula();
-                        if (formula.hasAttribute(FormulaUtils.REFERENCES_SUBFORMULA)) {
+                            && (((FormulaProvider) formulaFieldInfo).getFormula() != null))
+                    {
+                        Formula formula = ((FormulaProvider) formulaFieldInfo).getFormula();
+                        if (formula.hasAttribute(FormulaUtils.REFERENCES_SUBFORMULA))
+                        {
                             referencesSubFormula = true;
                         }
-                    } else if (formulaFieldInfo.isCustom()) {
+                    }
+                    else if (formulaFieldInfo.isCustom())
+                    {
                         referencesSubFormula = true;
                     }
                 }
-    
+
                 this.formula = new FormulaImpl(commandList.toArray(new FormulaCommand[commandList.size()]), sqlPair.sql,
-                    sqlPair.guard, javascript, properties, context.getFormulaReturnType(), ast.getDataType(),
-                    propertyBits, referencesSubFormula, context.getSqlStyle(), registry);
-    
+                        sqlPair.guard, javascript, properties, context.getFormulaReturnType(), ast.getDataType(),
+                        propertyBits, referencesSubFormula, context.getSqlStyle(), registry);
+
                 logSuccess(startTime, isCreateOrEditFormula, source, astRoot, javascript);
             }
-        } catch (Exception e) {
+        }
+        catch (Exception e)
+        {
             logFailure(startTime, isCreateOrEditFormula, originalSource, e);
             throw e;
         }
+    }
+
+    private static AnnotationVisitor annotateAst(FormulaAST ast, FormulaContext context, FormulaProperties properties) throws FormulaException
+    {
+        // Annotate with datatype information, build reference table, and check
+        // for cycles
+        AnnotationVisitor annotationVisitor = new AnnotationVisitor(context, properties);
+        visit(ast, annotationVisitor, properties);
+        return annotationVisitor;
+    }
+
+    private static FormulaAST enrichRoot(FormulaAST ast, FormulaContext context, FormulaProperties properties) throws FormulaException
+    {
+        // Allow the root node to enrich itself
+        FormulaCommandInfo commandInfo = FormulaCommandInfoRegistry.get(ast);
+        if (commandInfo instanceof FormulaCommandEnricher)
+        {
+            ast = ((FormulaCommandEnricher) commandInfo).enrich(ast, context, properties);
+        }
+
+        if (!properties.isPolymorphicReturnType())
+        {
+            // Type check the root against the type of the field
+            FormulaDataType expectedType = context.getFormulaReturnType().getDataType();
+
+            Type actualType = ast.getDataType();
+
+            // Special logic for Flow Trigger parameters - we insert a TEXT function for fields that
+            // need translation to strings which is supported in the Flow Interface (W-1935153)
+            if (context.getGlobalProperties().getFormulaType().allowSObjectRowReference() && // ONLY ACTIONPARAM
+                    expectedType.isSimpleTextOrClob() &&
+                    !FormulaTypeUtils.isTypeText(actualType) &&
+                    // These are the types we support conversion
+                    (actualType == BigDecimal.class || actualType == FormulaDateTime.class || actualType == Date.class || FormulaTypeUtils.isTypePicklist(actualType)))
+            {
+                FormulaAST newParent = new FormulaAST();
+                newParent.setType(FormulaTokenTypes.FUNCTION_CALL);
+                newParent.setText("TEXT");
+                newParent.setDataType(String.class);
+                ast.reparent(newParent);
+                return newParent;
+            }
+
+            boolean ok = (actualType == ConstantNull.class)
+                    || (actualType == RuntimeType.class)
+                    || ((expectedType.isCurrency()) && actualType == BigDecimal.class)
+                    || ((expectedType.isNumber()) && actualType == BigDecimal.class)
+                    || ((expectedType.isSimpleTextOrClob()) && FormulaTypeUtils.isTypeText(actualType))
+                    || ((expectedType.isEncrypted() && expectedType.isTextOrEncrypted()) && actualType == String.class)  // ENCRYPTEDTEXT
+                    || ((expectedType.isDate()) && actualType == FormulaDateTime.class)
+                    || ((expectedType.isTimeOnly()) && actualType == FormulaTime.class)
+                    || ((expectedType.isDateOnly()) && actualType == Date.class)
+                    || ((expectedType.isText() && expectedType.isSingleDynamicPicklist()) && FormulaTypeUtils.isTypeText(actualType)) // TEXTENUM
+                    || ((expectedType.isPickval() && FormulaTypeUtils.isTypeText(actualType)))
+                    || ((expectedType.isMultiEnum() && FormulaTypeUtils.isTypeText(actualType)))
+                    || ((expectedType.isBoolean()) && actualType == Boolean.class)
+                    || ((expectedType.isSingleDynamicPicklist()) && FormulaTypeUtils.isTypeText(actualType));
+
+            if (!ok && expectedType.isId() && actualType instanceof FormulaTypeWithDomain.IdType)
+            {
+                // For Ids we need to check domains and handle special sobjectrow self reference
+                FormulaSchema.FieldOrColumn info = context.getFormulaReturnType().getFieldOrColumnInfo();
+                if (((FormulaTypeWithDomain.IdType) actualType).isApplicable(info))
+                {
+                    // domain checks out - make sure if we are expecting a sobjectrow then we for sure have a sobjectrow reference - no other id type will work
+                    ok = (FormulaUtils.isTypeSobjectRow(expectedType)) == !(((FormulaTypeWithDomain.IdType) actualType).isTypeText());
+                }
+            }
+
+            if (!ok && (actualType instanceof FormulaTypeWithDomain))
+            {
+                FormulaSchema.FieldOrColumn info = context.getFormulaReturnType().getFieldOrColumnInfo();
+                ok = (FormulaTypeUtils.isTypeIdList(actualType, expectedType, info));
+            }
+
+            if (!ok)
+            {
+                throw new WrongExpressionTypeException(expectedType, actualType, context.getFormulaReturnType().getFieldOrColumnInfo());
+            }
+        }
+        return ast;
+    }
+
+    private static FormulaSQLSize calculateSqlSize(SQLPair sqlPair, boolean isCheckingSqlLengthLimit, int maxSqlSize) throws FormulaException
+    {
+        int sqlSize = (sqlPair.sql != null) ? sqlPair.sql.length() : 0;
+        int guardSize = (sqlPair.guard != null) ? sqlPair.guard.length() : 0;
+
+        if (isCheckingSqlLengthLimit && sqlSize > maxSqlSize)
+        {
+            throw new SQLTooBigException(sqlSize, maxSqlSize);
+        }
+
+        return new FormulaSQLSize(sqlSize, guardSize);
+    }
+
+    /**
+     * Proceed through tree in InFix order. Eliminate all constant expression by evaluating them
+     * and replacing them with their result at compile time.
+     *
+     * @param ast               the root AST of the formulat
+     * @param context           the context for the evaluation
+     * @param properties        the attributes of the parsed expression that will be updated while optimizing (see FormulaImpl)
+     * @param formulaProperties the properties of the parisng
+     * @return the AST after optimization
+     * @throws FormulaException if there was an exception while optimizing
+     */
+    protected static FormulaAST optimizeParseTree(FormulaAST ast, FormulaContext context, BitSet properties, FormulaProperties formulaProperties) throws FormulaException
+    {
+        boolean isConstant = true;
+        boolean canBeNull = false;
+
+        // leaves
+        if (ast.getNumberOfChildren() == 0)
+        {
+            isConstant = ast.isLiteral();
+            canBeNull = ast.getType() == FormulaTokenTypes.NULL || ast.getType() == FormulaTokenTypes.IDENT;
+        }
+
+        // 1/3 is a more efficient representation than 0.33333333333333333333333333333333333333333333333
+        // We also may lose precision, so do not precompile divisions and let SQL deal with it.
+        if (ast.getType() == FormulaTokenTypes.DIV)
+        {
+            isConstant = false;
+        }
+
+        // depth first traversal
+        FormulaAST child = (FormulaAST) ast.getFirstChild();
+        while (child != null)
+        {
+            child = optimizeParseTree(child, context, properties, formulaProperties);
+            isConstant &= child.isConstantExpression();
+            if (!(FormulaAST.isFunctionNode(ast, "nullvalue") && child.getNextSibling() != null))
+            {
+                // ignore NULLVALUE's first argument
+                canBeNull |= child.canBeNull();
+            }
+            child = (FormulaAST) child.getNextSibling();
+        }
+
+        ast.setCanBeNull(canBeNull);
+        ast.setConstantExpression(isConstant);
+
+        // give formula commands a chance to optimize themselves
+        FormulaCommandInfo commandInfo = FormulaCommandInfoRegistry.get(ast);
+        if (commandInfo instanceof FormulaCommandOptimizer)
+        {
+            ast = ((FormulaCommandOptimizer) commandInfo).optimize(ast, context);
+        }
+
+        Type type = ast.getDataType();
+        if (ast.isConstantExpression() && !ast.isLiteral() && (type == BigDecimal.class || type == String.class || type == Boolean.class || type == ConstantNull.class))
+        {
+            try
+            {
+                // if it is constant... run it now, and replace the AST node with the result
+                // i.e. evaluate constant portions of the formula at compile time
+                // This also gets rid of superfluous NVL, etc, etc.
+                Deque<Object> stack = new FormulaStack();
+                List<FormulaCommand> commandList = new LinkedList<FormulaCommand>();
+                properties.or(generateOne(ast, commandList, context, formulaProperties));
+                FormulaRuntimeContext r = new ConstantFormulaContext(context);
+
+                for (FormulaCommand command : commandList)
+                {
+                    command.execute(r, stack);
+                }
+
+                // now replace the constant subexpression with its result
+                // this is propagated up the parse tree by the depth first traversal
+                ast.setConstantExpression(true);
+                ast.removeChildren();
+                Object res = stack.pop();
+                if (res == null)
+                {
+                    ast.setType(FormulaTokenTypes.NULL);
+                    ast.setText("null");
+                    ast.setCanBeNull(true);
+                }
+                else if (res instanceof BigDecimal)
+                {
+                    BigDecimal num = (BigDecimal) res;
+                    FormulaAST node;
+                    if (num.compareTo(BigDecimal.ZERO) == -1)
+                    {
+                        // constants like -1 are normally parsed into two nodes: '-' and '1'
+                        // this makes sure that we create the same parse tree.
+                        ast.setType(FormulaTokenTypes.MINUS);
+                        ast.setText("-");
+                        ast.setCanBeNull(false);
+                        node = new FormulaAST();
+                        ast.addChild(node);
+                        num = num.abs();
+                    }
+                    else
+                    {
+                        node = ast;
+                    }
+                    // add the value node
+                    node.setType(FormulaTokenTypes.NUMBER);
+                    node.setText(num.toPlainString());
+                    node.setCanBeNull(false);
+                }
+                else if (res instanceof Boolean)
+                {
+                    boolean tmp = (Boolean) res;
+                    ast.setType(tmp ? FormulaTokenTypes.TRUE : FormulaTokenTypes.FALSE);
+                    ast.setText("" + tmp);
+                    ast.setCanBeNull(false);
+                }
+                else if (res instanceof String)
+                {
+                    ast.setType(FormulaTokenTypes.STRING_LITERAL);
+                    ast.setText("\"" + FormulaTextUtil.escapeForFormulaString(res.toString()) + "\"");
+                    ast.setCanBeNull(false);
+                }
+                else
+                {
+                    throw new RuntimeException("Unknown constant type");
+                }
+            }
+            catch (Exception x)
+            {  // NOPMD
+                // there was an error... too bad... do not optimize anything
+            }
+        }
+        return ast;
+    }
+
+    private static SQLPair visitPostorder(FormulaAST ast, FormulaContext context, TableAliasRegistry registry) throws FormulaException
+    {
+        // Process the children
+        int numChildren = ast.getNumberOfChildren();
+        String[] args = new String[numChildren];
+        String[] guards = new String[numChildren];
+
+        FormulaAST child = null;
+        for (int i = 0; i < numChildren; i++)
+        {
+            child = (FormulaAST) (i == 0 ? ast.getFirstChild() : child.getNextSibling());
+            SQLPair result = visitPostorder(child, context, registry);
+            args[i] = result.sql;
+            guards[i] = result.guard;
+        }
+        // Process this node
+        FormulaCommandInfo commandInfo = FormulaCommandInfoRegistry.get(ast);
+        return commandInfo.getSQL(ast, context, args, guards, registry);
+    }
+
+    private static JsValue visitJavascript(FormulaAST ast, FormulaContext context) throws FormulaException
+    {
+        // Process the children
+        int numChildren = ast.getNumberOfChildren();
+        JsValue[] args = new JsValue[numChildren];
+
+        int argsLength = 0;
+        FormulaAST child = null;
+        for (int i = 0; i < numChildren; i++)
+        {
+            child = (FormulaAST) (i == 0 ? ast.getFirstChild() : child.getNextSibling());
+            JsValue result = visitJavascript(child, context);
+            args[i] = result;
+
+            argsLength += args[i].js != null ? args[i].js.length() : 0;
+            if (argsLength > MAX_JS_SIZE_HARD_LIMIT)
+            {
+                throw new JSTooBigException(argsLength, false);
+            }
+        }
+        // Process this node
+        FormulaCommandInfo commandInfo = FormulaCommandInfoRegistry.get(ast);
+        return commandInfo.getJavascript(ast, context, args);
+    }
+
+    public static void visit(FormulaAST node, FormulaASTVisitor visitor, FormulaProperties properties)
+            throws FormulaException
+    {
+
+        /**
+         * As the recursive inorder traversal was resulting in StackOverFlow error when the tree is skewed or
+         * deeply nested, using iterative implementation to do the same work
+         */
+
+
+        visitInorderIterative(node, visitor, properties);
+    }
+
+    // Iterative function to perform inorder traversal on the tree
+    private static void visitInorderIterative(FormulaAST root, FormulaASTVisitor visitor, FormulaProperties properties) throws FormulaException
+    {
+        Deque<FormulaAST> stack = new ArrayDeque<>();
+        FormulaAST curr = root;
+        while (curr != null || !stack.isEmpty())
+        {
+            while (curr != null)
+            {
+                stack.push(curr);
+                curr = (FormulaAST) curr.getFirstChild();
+            }
+            curr = stack.pop();
+            try
+            {
+                visitor.visit(curr);
+            }
+            catch (FormulaException x)
+            {
+                // Let the exception propagate if we are configured to throw exceptions on embedded formula exceptions
+                if (!properties.getParseAsTemplate() || properties.getFailOnEmbeddedFormulaExceptions())
+                {
+                    if (x instanceof InvalidFieldReferenceException)
+                    {
+                        InvalidFieldReferenceException ifre = (InvalidFieldReferenceException) x;
+                        if (ifre.getLocation() < 0)
+                        {
+                            ifre.setLocation(curr.getToken().getColumn());
+                        }
+                    }
+                    throw x;
+                }
+
+                // Go to the top of the template expression so we replace that with a string literal
+                while (!FormulaAST.isTopOfTemplateExpression(curr))
+                {
+                    curr = stack.pop();
+                }
+                // Turn the entire template expression into an empty string at the top level and visit it.
+                curr.removeChildren();
+                curr.setType(FormulaTokenTypes.STRING_LITERAL);
+                curr.setText("\"\"");
+                visitor.visit(curr);
+            }
+            curr = (FormulaAST) curr.getNextSibling();
+        }
+    }
+
+    static String autoStripCurlyBangs(String source, FormulaProperties properties)
+    {
+        // Auto strip extraneous {! }'s for non-template contexts
+        if (!properties.getParseAsTemplate())
+        {
+            StringBuffer autoStrippedSource = new StringBuffer();
+            Matcher matcher = FormulaUtils.REFERENCE_PATTERN.matcher(source);
+            while (matcher.find())
+            {
+                String reference = matcher.group(1);
+                FormulaUtils.padIfNeeded(autoStrippedSource, source, matcher, reference);
+            }
+
+            matcher.appendTail(autoStrippedSource);
+            return autoStrippedSource.toString();
+        }
+        return source;
+    }
+
+    public static Set<String> getReferencedNames(FormulaAST ast, FormulaProperties properties) throws FormulaException
+    {
+        // Get the list of field references
+        final Set<String> references = new HashSet<String>();
+        FormulaASTVisitor visitor = new FormulaASTVisitor()
+        {
+            @Override
+            public void visit(FormulaAST node) throws FormulaException
+            {
+                if (node.getType() == FormulaTokenTypes.IDENT)
+                {
+                    // Strip off ID prefix
+                    String reference = node.getText();
+                    if (reference.startsWith(ID_PREFIX))
+                    {
+                        reference = reference.substring(ID_PREFIX.length());
+                    }
+
+                    references.add(reference);
+                }
+            }
+        };
+
+        BaseFormulaInfoImpl.visit(ast, visitor, properties);
+
+        return references;
+    }
+
+    static boolean isEncoded(String formulaSource)
+    {
+        return formulaSource != null && formulaSource.startsWith(FormulaInfoFactory.ENCODED_PREFIX);
+    }
+
+    static boolean isDisabled(String formulaSource)
+    {
+        return formulaSource != null && formulaSource.contains(FormulaUtils.DISABLE_ANNOTATION);
+    }
+
+    private static BitSet generate(FormulaAST ast, List<FormulaCommand> result, FormulaContext context, FormulaProperties formulaProperties) throws FormulaException
+    {
+        // Handle this node and its arguments
+        BitSet properties = generateOne(ast, result, context, formulaProperties);
+
+        // Handle siblings of this node
+        FormulaAST firstSibling = (FormulaAST) ast.getNextSibling();
+        if (firstSibling != null)
+        {
+            properties.or(generate(firstSibling, result, context, formulaProperties));
+        }
+        return properties;
+    }
+
+    private static BitSet generateOne(FormulaAST ast, List<FormulaCommand> result, FormulaContext context, FormulaProperties formulaProperties) throws FormulaException
+    {
+        BitSet properties = new BitSet();
+
+        FormulaCommand command = null;
+
+        String name = ast.getText().toUpperCase();
+        if (ast.getType() != FormulaTokenTypes.TEMPLATE_STRING_LITERAL)
+        {
+            FormulaValidationHooks.ShortCircuitBehavior scb = FormulaValidationHooks.get().parseHook_caseShortCircuit(name);
+
+            FormulaAST current = (FormulaAST) ast.getFirstChild();
+
+            // Generate code for the arguments to this command.  But not if it is template text that just
+            // happens to match a function name
+            switch (scb)
+            {
+                case THUNK_REST:
+                    // Don't delay the first argument
+                    // To make CASE conditional, add it to this branch
+                    properties.or(generateOne(current, result, context, formulaProperties));
+                    // Delay the rest of the arguments
+                    current = (FormulaAST) current.getNextSibling();
+                    while (current != null)
+                    {
+                        LinkedList<FormulaCommand> currentResult = new LinkedList<FormulaCommand>();
+                        properties.or(generateOne(current, currentResult, context, formulaProperties));
+                        result.add(new Thunk(currentResult.toArray(new FormulaCommand[currentResult.size()])));
+                        current = (FormulaAST) current.getNextSibling();
+                    }
+                    break;
+                case THUNK_ALL:
+                    // PrevGroupVal and ParentGroupVal arguments are used at parse time only and somewhat costly to evaluate
+                    // Delay all of the arguments
+                    while (current != null)
+                    {
+                        LinkedList<FormulaCommand> currentResult = new LinkedList<FormulaCommand>();
+                        properties.or(generateOne(current, currentResult, context, formulaProperties));
+                        result.add(new Thunk(currentResult.toArray(new FormulaCommand[currentResult.size()])));
+                        current = (FormulaAST) current.getNextSibling();
+                    }
+                    break;
+                case THUNK_VLOOKUP:
+                    List<FormulaCommand> vlookupCommands = new ArrayList<FormulaCommand>(3);
+                    for (int i = 0; i < 3; i++)
+                    {
+                        List<FormulaCommand> tempCommands = new LinkedList<FormulaCommand>();
+                        properties.or(generateOne(current, tempCommands, context, formulaProperties));
+
+                        if (i == 2)
+                        {
+                            List<FormulaCommand> swapCommands = new LinkedList<FormulaCommand>();
+                            swapCommands.add(new Thunk(tempCommands.toArray(new FormulaCommand[tempCommands.size()])));
+                            tempCommands = swapCommands;
+                        }
+
+                        vlookupCommands.addAll(tempCommands);
+                        current = (FormulaAST) current.getNextSibling();
+                    }
+
+                    command = FormulaValidationHooks.get().parseHook_generateFunctionVLookup(FormulaCommandInfoRegistry.get(ast),
+                            vlookupCommands);
+                    break;
+                case THUNK_PREDICT:
+                    List<FormulaCommand> predictCommands = new ArrayList<>();
+                    // Don't delay the first argument
+                    properties.or(generateOne(current, predictCommands, context, formulaProperties));
+                    // Delay the rest of the arguments
+                    current = (FormulaAST) current.getNextSibling();
+                    while (current != null)
+                    {
+                        LinkedList<FormulaCommand> currentResult = new LinkedList<FormulaCommand>();
+                        properties.or(generateOne(current, currentResult, context, formulaProperties));
+                        predictCommands.add(new Thunk(currentResult.toArray(new FormulaCommand[currentResult.size()])));
+                        current = (FormulaAST) current.getNextSibling();
+                    }
+                    command = FormulaValidationHooks.get().parseHook_generateFunctionPredict(
+                            FormulaCommandInfoRegistry.get(ast), predictCommands);
+                    break;
+                case EVAL_ALL:
+                    // Standard treatment
+                    if (current != null)
+                    {
+                        properties.or(generate(current, result, context, formulaProperties));
+                    }
+            }
+        }
+
+        if (command == null)
+        {
+            command = FormulaCommandInfoRegistry.get(ast).getCommand(ast, context);
+        }
+
+        result.add(command);
+
+        FormulaValidationHooks.get().parseHook_validateJavascriptInCommands(ast, name, command, properties, formulaProperties);
+
+        return properties;
     }
 
     /**
      * Logs a successful formula parsing
      */
     private void logSuccess(long startTime, boolean isCreateOrEditFormula, String source,
-            FormulaAST astRoot, JsValue javascript) {
+            FormulaAST astRoot, JsValue javascript)
+    {
         // If it's create or edit we always log, during runtime we sample.
-        if (isCreateOrEditFormula || FormulaEngine.getHooks().shouldLogRuntime()) {
-        	LogInfo logInfo = getLogInfo(astRoot, properties);
-   
-            if (isCreateOrEditFormula) {
+        if (isCreateOrEditFormula || FormulaEngine.getHooks().shouldLogRuntime())
+        {
+            LogInfo logInfo = getLogInfo(astRoot, properties);
+
+            if (isCreateOrEditFormula)
+            {
                 FormulaEngine.getHooks().logFormulaDesignTime(startTime, source.length(),
                         logInfo.commands,
                         logInfo.globalVariables,
@@ -223,10 +742,12 @@ public abstract class BaseFormulaInfoImpl implements RuntimeFormulaInfo {
                         context.getFormulaReturnType().getDataType().getName(),
                         context.getClass().getSimpleName(),
                         null /*exception*/);
-            } else {
+            }
+            else
+            {
                 FormulaEngine.getHooks().logFormulaRuntime(startTime, source.length(),
-                		logInfo.commands,
-                		logInfo.globalVariables,
+                        logInfo.commands,
+                        logInfo.globalVariables,
                         sqlSize == null ? 0 : sqlSize.getSqlSize(),
                         javascript == null ? 0 : javascript.js.length(),
                         context.getClass().getSimpleName(),
@@ -240,9 +761,12 @@ public abstract class BaseFormulaInfoImpl implements RuntimeFormulaInfo {
      * Logs a failed formula parsing
      */
     private void logFailure(long startTime, boolean isCreateOrEditFormula, String originalSource,
-            Exception exception) {
-        try {
-            if (isCreateOrEditFormula || FormulaEngine.getHooks().shouldLogRuntime()) {
+            Exception exception)
+    {
+        try
+        {
+            if (isCreateOrEditFormula || FormulaEngine.getHooks().shouldLogRuntime())
+            {
                 String contextName = this.context.getClass().getSimpleName();
 
                 // Protect against NPE since we are just logging this info.
@@ -250,13 +774,16 @@ public abstract class BaseFormulaInfoImpl implements RuntimeFormulaInfo {
                 FormulaDataType dataType = returnType != null ? returnType.getDataType() : null;
                 String dataTypeString = dataType != null ? dataType.getName() : null;
                 int length = originalSource != null ? originalSource.length() : 0;
-                if (isCreateOrEditFormula) {
-                    FormulaEngine.getHooks().logFormulaDesignTime(startTime, length, 
+                if (isCreateOrEditFormula)
+                {
+                    FormulaEngine.getHooks().logFormulaDesignTime(startTime, length,
                             null, null, null,
                             dataTypeString,
                             contextName,
                             exception);
-                } else {
+                }
+                else
+                {
                     FormulaEngine.getHooks().logFormulaRuntime(startTime, length,
                             null, null, 0, 0,
                             contextName,
@@ -264,7 +791,9 @@ public abstract class BaseFormulaInfoImpl implements RuntimeFormulaInfo {
                             exception);
                 }
             }
-        } catch (Exception e) { // NOPMD
+        }
+        catch (Exception e)
+        { // NOPMD
             // We are logging a failed formula. Don't gack because of exceptions here.
         }
     }
@@ -272,135 +801,154 @@ public abstract class BaseFormulaInfoImpl implements RuntimeFormulaInfo {
     /**
      * Traverse the formula AST and possibly take action on a field not accessible to a user
      */
-    private void handleInaccessibleFields(FormulaAST ast, FormulaContext context) throws FormulaException {
+    private void handleInaccessibleFields(FormulaAST ast, FormulaContext context) throws FormulaException
+    {
         InaccessibleFieldStrategy strategy = context.getProperty(FormulaRuntimeContext.HANDLE_INACCESSIBLE_FIELDS);
 
         // By default, allow fields a user doesn't have access to (take no action).
-        if (strategy == null || strategy == InaccessibleFieldStrategy.ALLOW) {
+        if (strategy == null || strategy == InaccessibleFieldStrategy.ALLOW)
+        {
             return;
         }
 
-        FormulaASTVisitor visitor = new FormulaASTVisitor() {
+        FormulaASTVisitor visitor = new FormulaASTVisitor()
+        {
             @Override
-            public void visit(FormulaAST node) throws FormulaException {
+            public void visit(FormulaAST node) throws FormulaException
+            {
                 // Only look at field references
-                if (node.getType() == FormulaTokenTypes.IDENT) {
+                if (node.getType() == FormulaTokenTypes.IDENT)
+                {
                     ContextualFormulaFieldInfo fieldReference = context.lookup(node.getText());
                     if (fieldReference.getFieldOrColumnInfo() != null &&
-                            !FormulaEngine.getHooks().isFieldReadable(fieldReference.getFieldOrColumnInfo().getFieldInfo())) {
-                        switch (strategy) {
-                        case REPLACE_WITH_NULL:
-                            node.setType(FormulaTokenTypes.NULL);
-                            node.setText("null");
-                            node.setCanBeNull(true);
-                            break;
-                        case THROW_EXCEPTION:
-                        default:
-                            throw new InvalidFieldReferenceException(fieldReference.getName(), "Not accessible", true);
+                            !FormulaEngine.getHooks().isFieldReadable(fieldReference.getFieldOrColumnInfo().getFieldInfo()))
+                    {
+                        switch (strategy)
+                        {
+                            case REPLACE_WITH_NULL:
+                                node.setType(FormulaTokenTypes.NULL);
+                                node.setText("null");
+                                node.setCanBeNull(true);
+                                break;
+                            case THROW_EXCEPTION:
+                            default:
+                                throw new InvalidFieldReferenceException(fieldReference.getName(), "Not accessible", true);
                         }
                     }
-                    return;
                 }
             }
         };
 
         visit(ast, visitor, properties);
     }
-    
-    private static class LogInfo {
-    	public final boolean hasPolymorphicFields;
-    	public final String commands;
-    	public final String globalVariables;
-		public LogInfo(boolean hasPolymorphicFields, String commands, String globalVariables) {
-			super();
-			this.hasPolymorphicFields = hasPolymorphicFields;
-			this.commands = commands;
-			this.globalVariables = globalVariables;
-		}
-    }
 
     /**
      * Visits the formula AST to get the list of functions and global variables
      * and determine if there are polymorphic fields referenced.
+     *
      * @return Triple: (hasPolymorphicFields, commandList, globalVariablesList)
      */
-    private LogInfo getLogInfo(FormulaAST astRoot, FormulaProperties props) {
+    private LogInfo getLogInfo(FormulaAST astRoot, FormulaProperties props)
+    {
         final List<String> commands = new ArrayList<>();
         final List<String> globalVariables = new ArrayList<>();
         final AtomicBoolean hasPolymorphicFields = new AtomicBoolean(false);
-        FormulaASTVisitor logVisitor = new FormulaASTVisitor() {
+        FormulaASTVisitor logVisitor = new FormulaASTVisitor()
+        {
             @Override
-            public void visit(FormulaAST node) throws FormulaException {
+            public void visit(FormulaAST node) throws FormulaException
+            {
                 String fieldName = node.getText();
-                if (node.getType() == FormulaTokenTypes.IDENT) {
-                    if (!hasPolymorphicFields.get() && fieldName.contains(":")) {
+                if (node.getType() == FormulaTokenTypes.IDENT)
+                {
+                    if (!hasPolymorphicFields.get() && fieldName.contains(":"))
+                    {
                         hasPolymorphicFields.set(true);
                     }
                     // Include global variables
-                    if (!fieldName.isEmpty() && fieldName.charAt(0) == '$') {
+                    if (!fieldName.isEmpty() && fieldName.charAt(0) == '$')
+                    {
                         int i = fieldName.indexOf('.');
-                        if (i > -1) {
+                        if (i > -1)
+                        {
                             // Can only log the type since the actual field name may be customer metadata
                             globalVariables.add(fieldName.substring(0, i).toUpperCase());
                         }
                     }
-                } else if (node.getType() != FormulaTokenTypes.ROOT && !node.isLiteral()
+                }
+                else if (node.getType() != FormulaTokenTypes.ROOT && !node.isLiteral()
                         && node.getType() != FormulaTokenTypes.TEMPLATE_STRING_LITERAL
                         && node.getType() != FormulaTokenTypes.DYNAMIC_REF_IDENT
-                        && node.getText() != null && !"template".equals(node.getText())) {
+                        && node.getText() != null && !"template".equals(node.getText()))
+                {
                     commands.add(node.getText().toUpperCase());
                 }
             }
         };
-        try {
+        try
+        {
             visit(astRoot, logVisitor, props);
-        } catch (FormulaException e) {
+        }
+        catch (FormulaException e)
+        {
             // Don't throw exceptions, we were just trying to log
             return new LogInfo(false, null, null);
         }
 
         return new LogInfo(
-            hasPolymorphicFields.get(),
-            Joiner.on(',').join(commands),
-            Joiner.on(',').join(globalVariables));
+                hasPolymorphicFields.get(),
+                Joiner.on(',').join(commands),
+                Joiner.on(',').join(globalVariables));
     }
 
     @Override
-    public Formula getFormula() throws FormulaException {
+    public Formula getFormula() throws FormulaException
+    {
         return formula;
     }
 
     @Override
-    public String getSource() {
+    public String getSource()
+    {
         return source;
     }
 
     @Override
-    public FormulaProperties getProperties() {
+    public FormulaProperties getProperties()
+    {
         return properties;
     }
 
-    protected FormulaContext getContext() {
+    protected FormulaContext getContext()
+    {
         return this.context;
     }
 
     @Override
-    public String encode() throws FormulaException {
+    public String encode() throws FormulaException
+    {
         final List<Token> tokens = new ArrayList<Token>();
 
-        FormulaASTVisitor visitor = new FormulaASTVisitor() {
+        FormulaASTVisitor visitor = new FormulaASTVisitor()
+        {
             @Override
-            public void visit(FormulaAST node) throws FormulaException {
-                if (node.getType() == FormulaTokenTypes.IDENT) {
+            public void visit(FormulaAST node) throws FormulaException
+            {
+                if (node.getType() == FormulaTokenTypes.IDENT)
+                {
                     tokens.add(node.getToken());
                 }
             }
         };
 
-        try {
+        try
+        {
             BaseFormulaInfoImpl.visit(FormulaUtils.getAST(source, properties), visitor, properties);
-        } catch (FormulaException fe) {
-            if (!properties.isDisabled()) {
+        }
+        catch (FormulaException fe)
+        {
+            if (!properties.isDisabled())
+            {
                 /*
                  * Bug: 148114
                  * Somehow the formula was already invalid and while that should
@@ -419,25 +967,32 @@ public abstract class BaseFormulaInfoImpl implements RuntimeFormulaInfo {
         StringBuilder encodedSource = new StringBuilder(FormulaInfoFactory.ENCODED_PREFIX);
 
         // Add annotation
-        if (!properties.getParseAsTemplate()) {
-            if (!properties.getTreatNullNumberAsZero()) {
+        if (!properties.getParseAsTemplate())
+        {
+            if (!properties.getTreatNullNumberAsZero())
+            {
                 encodedSource.append(FormulaUtils.TREAT_NULL_AS_NULL_ANNOTATION);
             }
-            if (properties.isDisabled()) {
+            if (properties.isDisabled())
+            {
                 encodedSource.append(FormulaUtils.DISABLE_ANNOTATION);
             }
         }
 
         int previousLocation = 0;
-        for (Token token : tokens) {
+        for (Token token : tokens)
+        {
             String tokenText = token.getText();
 
             String durableName;
-            try {
+            try
+            {
                 durableName = context.toDurableName(tokenText);
             }
-            catch (InvalidFieldReferenceException x) {
-                if (properties.getFailOnEmbeddedFormulaExceptions()) {
+            catch (InvalidFieldReferenceException x)
+            {
+                if (properties.getFailOnEmbeddedFormulaExceptions())
+                {
                     throw x;
                 }
 
@@ -447,23 +1002,27 @@ public abstract class BaseFormulaInfoImpl implements RuntimeFormulaInfo {
             String encodedFieldRef = "{!" + ID_PREFIX + durableName + "}";
 
             int location = token.getColumn() - 1;
-            encodedSource.append(source.substring(previousLocation, location)).append(encodedFieldRef);
+            encodedSource.append(source, previousLocation, location).append(encodedFieldRef);
 
             previousLocation = location + tokenText.length();
         }
 
-        if (previousLocation < source.length()) {
+        if (previousLocation < source.length())
+        {
             encodedSource.append(source.substring(previousLocation));
         }
 
         String encodedSourceString = encodedSource.toString();
 
-        if (!properties.getParseAsTemplate()) {
+        if (!properties.getParseAsTemplate())
+        {
             // this same check happens in StringField - however for pre-validation we don't get into that code so I have
             // to have this here too.  bah
             int l;
-            if ((l = Utf8.encodedLength(encodedSourceString)) > MAX_STORAGE_SIZE) {
-                throw new FormulaException(FormulaI18nUtils.getLocalizer().getLabel("FormulaFieldExceptionMessages", "EncodedByteLengthTooLong", l, MAX_STORAGE_SIZE)) {
+            if ((l = Utf8.encodedLength(encodedSourceString)) > MAX_STORAGE_SIZE)
+            {
+                throw new FormulaException(FormulaI18nUtils.getLocalizer().getLabel("FormulaFieldExceptionMessages", "EncodedByteLengthTooLong", l, MAX_STORAGE_SIZE))
+                {
                     private static final long serialVersionUID = 1L;
                 };
             }
@@ -473,386 +1032,42 @@ public abstract class BaseFormulaInfoImpl implements RuntimeFormulaInfo {
     }
 
     @Override
-    public ContextualFormulaFieldInfo[] getReferences() {
+    public ContextualFormulaFieldInfo[] getReferences()
+    {
         return fieldReferences;
     }
 
-    private static AnnotationVisitor annotateAst(FormulaAST ast, FormulaContext context, FormulaProperties properties) throws FormulaException {
-        // Annotate with datatype information, build reference table, and check
-        // for cycles
-        AnnotationVisitor annotationVisitor = new AnnotationVisitor(context, properties);
-        visit(ast, annotationVisitor, properties);
-        return annotationVisitor;
-    }
-
-    private static FormulaAST enrichRoot(FormulaAST ast, FormulaContext context, FormulaProperties properties) throws FormulaException {
-        // Allow the root node to enrich itself
-        FormulaCommandInfo commandInfo = FormulaCommandInfoRegistry.get(ast);
-        if (commandInfo instanceof FormulaCommandEnricher)
-            ast = ((FormulaCommandEnricher)commandInfo).enrich(ast, context, properties);
-
-        if (!properties.isPolymorphicReturnType()) {
-            // Type check the root against the type of the field
-            FormulaDataType expectedType = context.getFormulaReturnType().getDataType();
-
-            Type actualType = ast.getDataType();
-
-            // Special logic for Flow Trigger parameters - we insert a TEXT function for fields that
-            // need translation to strings which is supported in the Flow Interface (W-1935153)
-            if (context.getGlobalProperties().getFormulaType().allowSObjectRowReference() && // ONLY ACTIONPARAM
-                    expectedType.isSimpleTextOrClob() &&
-                    !FormulaTypeUtils.isTypeText(actualType) &&
-                    // These are the types we support conversion
-                    (actualType == BigDecimal.class || actualType == FormulaDateTime.class || actualType == Date.class || FormulaTypeUtils.isTypePicklist(actualType))) {
-                FormulaAST newParent = new FormulaAST();
-                newParent.setType(FormulaTokenTypes.FUNCTION_CALL);
-                newParent.setText("TEXT");
-                newParent.setDataType(String.class);
-                ast.reparent(newParent);
-                return newParent;
-            }
-
-            boolean ok = (actualType == ConstantNull.class)
-                || (actualType == RuntimeType.class)
-                || ((expectedType.isCurrency()) && actualType == BigDecimal.class)
-                || ((expectedType.isNumber()) && actualType == BigDecimal.class)
-                || ((expectedType.isSimpleTextOrClob()) && FormulaTypeUtils.isTypeText(actualType))
-                || ((expectedType.isEncrypted() && expectedType.isTextOrEncrypted()) && actualType == String.class)  // ENCRYPTEDTEXT
-                || ((expectedType.isDate()) && actualType == FormulaDateTime.class)
-                || ((expectedType.isTimeOnly()) && actualType == FormulaTime.class)
-                || ((expectedType.isDateOnly()) && actualType == Date.class)
-                || ((expectedType.isText() && expectedType.isSingleDynamicPicklist()) && FormulaTypeUtils.isTypeText(actualType)) // TEXTENUM
-                || ((expectedType.isPickval() && FormulaTypeUtils.isTypeText(actualType)))
-                || ((expectedType.isMultiEnum() && FormulaTypeUtils.isTypeText(actualType)))
-                || ((expectedType.isBoolean()) && actualType == Boolean.class)
-                || ((expectedType.isSingleDynamicPicklist()) && FormulaTypeUtils.isTypeText(actualType));
-
-            if (!ok && expectedType.isId() && actualType instanceof FormulaTypeWithDomain.IdType) {
-                // For Ids we need to check domains and handle special sobjectrow self reference
-                FormulaSchema.FieldOrColumn info = context.getFormulaReturnType().getFieldOrColumnInfo();
-                if (((FormulaTypeWithDomain.IdType)actualType).isApplicable(info)) {
-                    // domain checks out - make sure if we are expecting a sobjectrow then we for sure have a sobjectrow reference - no other id type will work
-                    ok = (FormulaUtils.isTypeSobjectRow(expectedType)) ==  !(((FormulaTypeWithDomain.IdType)actualType).isTypeText());
-                }
-            }
-
-            if (!ok && (actualType instanceof FormulaTypeWithDomain)) {
-                FormulaSchema.FieldOrColumn info = context.getFormulaReturnType().getFieldOrColumnInfo();
-                ok = (FormulaTypeUtils.isTypeIdList(actualType, expectedType, info));
-            }
-
-            if (!ok) {
-                throw new WrongExpressionTypeException(expectedType, actualType, context.getFormulaReturnType().getFieldOrColumnInfo());
-            }
-        }
-        return ast;
-    }
-
-    private static FormulaSQLSize calculateSqlSize(SQLPair sqlPair, boolean isCheckingSqlLengthLimit, int maxSqlSize) throws FormulaException {
-        int sqlSize = (sqlPair.sql != null) ? sqlPair.sql.length() : 0;
-        int guardSize = (sqlPair.guard != null) ? sqlPair.guard.length() : 0;
-
-        if (isCheckingSqlLengthLimit && sqlSize > maxSqlSize) {
-            throw new SQLTooBigException(sqlSize, maxSqlSize);
-        }
-
-        return new FormulaSQLSize(sqlSize, guardSize);
-    }
-
-
     @Override
-    public int getSQLSize() {
+    public int getSQLSize()
+    {
         return sqlSize.getSqlSize();
     }
+
     @Override
-    public int getGuardSQLSize() {
+    public int getGuardSQLSize()
+    {
         return sqlSize.getGuardSize();
     }
 
-    /**
-     * Proceed through tree in InFix order. Eliminate all constant expression by evaluating them
-     * and replacing them with their result at compile time.
-     *
-     * @param ast the root AST of the formulat
-     * @param context the context for the evaluation
-     * @param properties the attributes of the parsed expression that will be updated while optimizing (see FormulaImpl)
-     * @param formulaProperties the properties of the parisng
-     * @return the AST after optimization
-     * @throws FormulaException if there was an exception while optimizing
-     */
-    protected static FormulaAST optimizeParseTree(FormulaAST ast, FormulaContext context, BitSet properties, FormulaProperties formulaProperties) throws FormulaException {
-        boolean isConstant = true;
-        boolean canBeNull = false;
-
-        // leaves
-        if (ast.getNumberOfChildren() == 0) {
-            isConstant = ast.isLiteral();
-            canBeNull = ast.getType() == FormulaTokenTypes.NULL || ast.getType() == FormulaTokenTypes.IDENT;
-        }
-
-        // 1/3 is a more efficient representation than 0.33333333333333333333333333333333333333333333333
-        // We also may lose precision, so do not precompile divisions and let SQL deal with it.
-        if (ast.getType() == FormulaTokenTypes.DIV) {
-            isConstant = false;
-        }
-
-        // depth first traversal
-        FormulaAST child = (FormulaAST)ast.getFirstChild();
-        while (child != null) {
-            child = optimizeParseTree(child, context, properties, formulaProperties);
-            isConstant &= child.isConstantExpression();
-            if (!(FormulaAST.isFunctionNode(ast, "nullvalue") && child.getNextSibling() != null)) {
-                // ignore NULLVALUE's first argument
-                canBeNull |= child.canBeNull();
-            }
-            child = (FormulaAST)child.getNextSibling();
-        }
-
-        ast.setCanBeNull(canBeNull);
-        ast.setConstantExpression(isConstant);
-
-        // give formula commands a chance to optimize themselves
-        FormulaCommandInfo commandInfo = FormulaCommandInfoRegistry.get(ast);
-        if (commandInfo instanceof FormulaCommandOptimizer)
-            ast = ((FormulaCommandOptimizer)commandInfo).optimize(ast, context);
-
-        Type type = ast.getDataType();
-        if (ast.isConstantExpression() && !ast.isLiteral() && (type == BigDecimal.class || type == String.class || type == Boolean.class || type == ConstantNull.class)) {
-           try {
-               // if it is constant... run it now, and replace the AST node with the result
-               // i.e. evaluate constant portions of the formula at compile time
-               // This also gets rid of superfluous NVL, etc, etc.
-               Deque<Object> stack = new FormulaStack();
-               List<FormulaCommand> commandList = new LinkedList<FormulaCommand>();
-               properties.or(generateOne(ast, commandList, context, formulaProperties));
-               FormulaRuntimeContext r = new ConstantFormulaContext(context);
-
-               for (FormulaCommand command : commandList) {
-                   command.execute(r, stack);
-               }
-
-               // now replace the constant subexpression with its result
-               // this is propagated up the parse tree by the depth first traversal
-               ast.setConstantExpression(true);
-               ast.removeChildren();
-               Object res = stack.pop();
-               if (res == null) {
-                   ast.setType(FormulaTokenTypes.NULL);
-                   ast.setText("null");
-                   ast.setCanBeNull(true);
-               } else if (res instanceof BigDecimal) {
-                   BigDecimal num = (BigDecimal)res;
-                   FormulaAST node;
-                   if (num.compareTo(BigDecimal.ZERO) == -1) {
-                       // constants like -1 are normally parsed into two nodes: '-' and '1'
-                       // this makes sure that we create the same parse tree.
-                       ast.setType(FormulaTokenTypes.MINUS);
-                       ast.setText("-");
-                       ast.setCanBeNull(false);
-                       node = new FormulaAST();
-                       ast.addChild(node);
-                       num = num.abs();
-                   } else {
-                       node = ast;
-                   }
-                   // add the value node
-                   node.setType(FormulaTokenTypes.NUMBER);
-                   node.setText(num.toPlainString());
-                   node.setCanBeNull(false);
-               } else if (res instanceof Boolean) {
-                   boolean tmp = (Boolean) res;
-                   ast.setType(tmp ? FormulaTokenTypes.TRUE : FormulaTokenTypes.FALSE);
-                   ast.setText(""+tmp);
-                   ast.setCanBeNull(false);
-               } else if (res instanceof String) {
-                   ast.setType(FormulaTokenTypes.STRING_LITERAL);
-                   ast.setText("\""+FormulaTextUtil.escapeForFormulaString(res.toString())+"\"");
-                   ast.setCanBeNull(false);
-               } else {
-                   throw new RuntimeException("Unknown constant type");
-               }
-           }
-           catch (Exception x) {  // NOPMD
-               // there was an error... too bad... do not optimize anything
-           }
-        }
-        return ast;
-   }
-
-    private static SQLPair visitPostorder(FormulaAST ast, FormulaContext context, TableAliasRegistry registry) throws FormulaException {
-        // Process the children
-        int numChildren = ast.getNumberOfChildren();
-        String[] args = new String[numChildren];
-        String[] guards = new String[numChildren];
-
-        FormulaAST child = null;
-        for (int i = 0; i < numChildren; i++) {
-            child = (FormulaAST)(i == 0 ? ast.getFirstChild() : child.getNextSibling());
-            SQLPair result = visitPostorder(child, context, registry);
-            args[i] = result.sql;
-            guards[i] = result.guard;
-        }
-        // Process this node
-        FormulaCommandInfo commandInfo = FormulaCommandInfoRegistry.get(ast);
-        return commandInfo.getSQL(ast, context, args, guards, registry);
-    }
-
-    private static JsValue visitJavascript(FormulaAST ast, FormulaContext context) throws FormulaException {
-        // Process the children
-        int numChildren = ast.getNumberOfChildren();
-        JsValue[] args = new JsValue[numChildren];
-
-        int argsLength = 0;
-        FormulaAST child = null;
-        for (int i = 0; i < numChildren; i++) {
-            child = (FormulaAST)(i == 0 ? ast.getFirstChild() : child.getNextSibling());
-            JsValue result = visitJavascript(child, context);
-            args[i] = result;
-
-            argsLength += args[i].js != null ? args[i].js.length() : 0;
-            if (argsLength > MAX_JS_SIZE_HARD_LIMIT) {
-                throw new JSTooBigException(argsLength, false);
-            }
-        }
-        // Process this node
-        FormulaCommandInfo commandInfo = FormulaCommandInfoRegistry.get(ast);
-        return commandInfo.getJavascript(ast, context, args);
-    }
-    
-    public static void visit(FormulaAST node, FormulaASTVisitor visitor, FormulaProperties properties)
-            throws FormulaException {
-        
-        /**
-         * As the recursive inorder traversal was resulting in StackOverFlow error when the tree is skewed or
-         * deeply nested, using iterative implementation to do the same work
-         */
-
-        
-
-        visitInorderIterative(node, visitor, properties);
-    }
-
-    // Iterative function to perform inorder traversal on the tree
-    private static void visitInorderIterative(FormulaAST root, FormulaASTVisitor visitor, FormulaProperties properties) throws FormulaException{
-        Deque<FormulaAST> stack = new ArrayDeque<>();
-        FormulaAST curr = root;
-        while (curr != null || !stack.isEmpty()) {
-            while (curr != null) {
-                stack.push(curr);
-                curr = (FormulaAST)curr.getFirstChild();
-            }
-            curr = stack.pop();
-            try{
-                visitor.visit(curr);
-            }catch (FormulaException x){
-                // Let the exception propagate if we are configured to throw exceptions on embedded formula exceptions
-                if (!properties.getParseAsTemplate() || properties.getFailOnEmbeddedFormulaExceptions()) {
-                    if (x instanceof InvalidFieldReferenceException) {
-                        InvalidFieldReferenceException ifre = (InvalidFieldReferenceException) x;
-                        if (ifre.getLocation() < 0) {
-                            ifre.setLocation(curr.getToken().getColumn());
-                        }
-                    }
-                    throw x;
-                }
-                
-                // Go to the top of the template expression so we replace that with a string literal
-                while (!FormulaAST.isTopOfTemplateExpression(curr)) {
-                    curr = stack.pop();
-                }
-                // Turn the entire template expression into an empty string at the top level and visit it.
-                curr.removeChildren();
-                curr.setType(FormulaTokenTypes.STRING_LITERAL);
-                curr.setText("\"\"");
-                visitor.visit(curr);                
-            }
-            curr = (FormulaAST)curr.getNextSibling();
-        }
-    }
-
-    static String autoStripCurlyBangs(String source, FormulaProperties properties) {
-        // Auto strip extraneous {! }'s for non-template contexts
-        if (!properties.getParseAsTemplate()) {
-            StringBuffer autoStrippedSource = new StringBuffer();
-            Matcher matcher = FormulaUtils.REFERENCE_PATTERN.matcher(source);
-            while (matcher.find()) {
-                String reference = matcher.group(1);
-                FormulaUtils.padIfNeeded(autoStrippedSource, source, matcher, reference);
-            }
-
-            matcher.appendTail(autoStrippedSource);
-            return autoStrippedSource.toString();
-        }
-        return source;
-    }
-
-    public static Set<String> getReferencedNames(FormulaAST ast, FormulaProperties properties) throws FormulaException {
-        // Get the list of field references
-        final Set<String> references = new HashSet<String>();
-        FormulaASTVisitor visitor = new FormulaASTVisitor() {
-            @Override
-            public void visit(FormulaAST node) throws FormulaException {
-                if (node.getType() == FormulaTokenTypes.IDENT) {
-                    // Strip off ID prefix
-                    String reference = node.getText();
-                    if (reference.startsWith(ID_PREFIX)) {
-                        reference = reference.substring(ID_PREFIX.length());
-                    }
-
-                    references.add(reference);
-                }
-            }
-        };
-
-        BaseFormulaInfoImpl.visit(ast, visitor, properties);
-
-        return references;
-    }
-
-    static boolean isEncoded(String formulaSource) {
-        return formulaSource != null && formulaSource.startsWith(FormulaInfoFactory.ENCODED_PREFIX);
-    }
-
-    static boolean isDisabled(String formulaSource) {
-        return formulaSource != null && formulaSource.contains(FormulaUtils.DISABLE_ANNOTATION);
-    }
-
     @Override
-    public boolean isDeterministic() {
+    public boolean isDeterministic()
+    {
         return formula.isDeterministic(context);
     }
 
     @Override
-    public boolean hasAIPredictionFieldReference() {
+    public boolean hasAIPredictionFieldReference()
+    {
         return formula.hasAIPredictionFieldReference(context);
     }
 
     @Override
-	public boolean hasFormatCurrencyCommand() {
+    public boolean hasFormatCurrencyCommand()
+    {
         FormatCurrencyVisitor visitor = new FormatCurrencyVisitor(getContext());
         formula.visitFormulaCommands(visitor);
         return visitor.containsCommand();
-	}
-
-	@Override
-    public boolean referenceEncryptedFields() {
-        return this.referenceEncryptedFields;
     }
-
-    @Override
-    public void validateMergeFieldsForFormulaType() throws FormulaException {
-        FormulaCommandVisitorImpl.MergeFieldValidator visitor = new FormulaCommandVisitorImpl.MergeFieldValidator(context);
-        formula.visitFormulaCommands(visitor);
-        visitor.throwIfNecessary();
-    }
-
-    private final FormulaContext context;
-    private final ContextualFormulaFieldInfo[] fieldReferences;
-    private final String source;
-    private final FormulaProperties properties;
-    private final FormulaWithSql formula;
-    private final FormulaSQLSize sqlSize;
-    private final boolean referenceEncryptedFields;
 
     // Derived properties of formulas. Indices are into the BitSet returned by
     // the generate methods.  This is extensible if you need to know if a particular
@@ -861,124 +1076,56 @@ public abstract class BaseFormulaInfoImpl implements RuntimeFormulaInfo {
 //    public static final int PRODUCES_HTML_INDEX = 0;
 //    public static final int GETS_SESSION_ID_INDEX = 1;
 
-    protected static final String ID_PREFIX = "ID:";
+    @Override
+    public boolean referenceEncryptedFields()
+    {
+        return this.referenceEncryptedFields;
+    }
 
-    private static class FormulaSQLSize {
-        private int sqlSize;
-        private int guardSize;
+    @Override
+    public void validateMergeFieldsForFormulaType() throws FormulaException
+    {
+        FormulaCommandVisitorImpl.MergeFieldValidator visitor = new FormulaCommandVisitorImpl.MergeFieldValidator(context);
+        formula.visitFormulaCommands(visitor);
+        visitor.throwIfNecessary();
+    }
 
-        public int getSqlSize() {
-            return this.sqlSize;
+    private static class LogInfo
+    {
+        public final boolean hasPolymorphicFields;
+        public final String commands;
+        public final String globalVariables;
+
+        public LogInfo(boolean hasPolymorphicFields, String commands, String globalVariables)
+        {
+            super();
+            this.hasPolymorphicFields = hasPolymorphicFields;
+            this.commands = commands;
+            this.globalVariables = globalVariables;
         }
+    }
 
-        public int getGuardSize() {
-            return this.guardSize;
-        }
+    private static class FormulaSQLSize
+    {
+        private final int sqlSize;
+        private final int guardSize;
 
-        private FormulaSQLSize(int sqlSize, int guardSize) {
+        private FormulaSQLSize(int sqlSize, int guardSize)
+        {
             this.sqlSize = sqlSize;
             this.guardSize = guardSize;
         }
 
-    }
-
-    private static BitSet generate(FormulaAST ast, List<FormulaCommand> result, FormulaContext context, FormulaProperties formulaProperties) throws FormulaException {
-        // Handle this node and its arguments
-        BitSet properties = generateOne(ast, result, context, formulaProperties);
-
-        // Handle siblings of this node
-        FormulaAST firstSibling = (FormulaAST)ast.getNextSibling();
-        if (firstSibling != null)
-            properties.or(generate(firstSibling, result, context, formulaProperties));
-        return properties;
-    }
-
-    private static BitSet generateOne(FormulaAST ast, List<FormulaCommand> result, FormulaContext context,FormulaProperties formulaProperties) throws FormulaException {
-        BitSet properties = new BitSet();
-
-        FormulaCommand command = null;
-
-        String name = ast.getText().toUpperCase();
-        if (ast.getType() != FormulaTokenTypes.TEMPLATE_STRING_LITERAL) {
-            FormulaValidationHooks.ShortCircuitBehavior scb = FormulaValidationHooks.get().parseHook_caseShortCircuit(name);
-            
-            FormulaAST current = (FormulaAST)ast.getFirstChild();
-
-            // Generate code for the arguments to this command.  But not if it is template text that just
-            // happens to match a function name
-            switch (scb) {
-            case THUNK_REST:
-                // Don't delay the first argument
-                // To make CASE conditional, add it to this branch
-                properties.or(generateOne(current, result, context, formulaProperties));
-                // Delay the rest of the arguments
-                current = (FormulaAST)current.getNextSibling();
-                while (current != null) {
-                    LinkedList<FormulaCommand> currentResult = new LinkedList<FormulaCommand>();
-                    properties.or(generateOne(current, currentResult, context, formulaProperties));
-                    result.add(new Thunk(currentResult.toArray(new FormulaCommand[currentResult.size()])));
-                    current = (FormulaAST)current.getNextSibling();
-                }
-                break;
-            case THUNK_ALL:
-                // PrevGroupVal and ParentGroupVal arguments are used at parse time only and somewhat costly to evaluate
-                // Delay all of the arguments
-                while (current != null) {
-                    LinkedList<FormulaCommand> currentResult = new LinkedList<FormulaCommand>();
-                    properties.or(generateOne(current, currentResult, context, formulaProperties));
-                    result.add(new Thunk(currentResult.toArray(new FormulaCommand[currentResult.size()])));
-                    current = (FormulaAST)current.getNextSibling();
-                }
-                break;
-            case THUNK_VLOOKUP:
-                List<FormulaCommand> vlookupCommands = new ArrayList<FormulaCommand>(3);
-                for (int i = 0; i < 3; i++) {
-                    List<FormulaCommand> tempCommands = new LinkedList<FormulaCommand>();
-                    properties.or(generateOne(current, tempCommands, context, formulaProperties));
-
-                    if (i == 2) {
-                        List<FormulaCommand> swapCommands = new LinkedList<FormulaCommand>();
-                        swapCommands.add(new Thunk(tempCommands.toArray(new FormulaCommand[tempCommands.size()])));
-                        tempCommands = swapCommands;
-                    }
-
-                    vlookupCommands.addAll(tempCommands);
-                    current = (FormulaAST)current.getNextSibling();
-                }
-
-                command = FormulaValidationHooks.get().parseHook_generateFunctionVLookup(FormulaCommandInfoRegistry.get(ast),
-                        vlookupCommands);
-                break;
-            case THUNK_PREDICT:
-                List<FormulaCommand> predictCommands = new ArrayList<>();
-                // Don't delay the first argument
-                properties.or(generateOne(current, predictCommands, context, formulaProperties));
-                // Delay the rest of the arguments
-                current = (FormulaAST)current.getNextSibling();
-                while (current != null) {
-                    LinkedList<FormulaCommand> currentResult = new LinkedList<FormulaCommand>();
-                    properties.or(generateOne(current, currentResult, context, formulaProperties));
-                    predictCommands.add(new Thunk(currentResult.toArray(new FormulaCommand[currentResult.size()])));
-                    current = (FormulaAST)current.getNextSibling();
-                }
-                command = FormulaValidationHooks.get().parseHook_generateFunctionPredict(
-                        FormulaCommandInfoRegistry.get(ast), predictCommands);
-                break;
-            case EVAL_ALL:
-                // Standard treatment
-                if (current != null) properties.or(generate(current, result, context, formulaProperties));
-            }
+        public int getSqlSize()
+        {
+            return this.sqlSize;
         }
 
-        if (command == null) {
-            command = FormulaCommandInfoRegistry.get(ast).getCommand(ast, context);
+        public int getGuardSize()
+        {
+            return this.guardSize;
         }
 
-        result.add(command);
-
-        FormulaValidationHooks.get().parseHook_validateJavascriptInCommands(ast, name, command, properties, formulaProperties);
-
-        return properties;
     }
 
 }

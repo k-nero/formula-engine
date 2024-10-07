@@ -12,6 +12,7 @@ import com.force.formula.FormulaException;
  * @author dchasman
  * @since 140
  */
-public interface FormulaASTVisitor {
+public interface FormulaASTVisitor
+{
     void visit(FormulaAST node) throws FormulaException;
 }

@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package com.force.formula.impl;
 
@@ -17,44 +17,52 @@ import java.io.IOException;
 
 /**
  * Abstract class for testing formulas with javascript and postgres
+ *
  * @author stamm
  * @since 0.1.11
  */
 @Deprecated
-public abstract class FormulaPostgreSQLTests extends FormulaGenericTests {
-	// If true, use docker for testing the postgres DB with testcontainers.org.  Otherwise, use embedded
-	// The embedded one is quicker and easier to manage.  Only difference as of Nov 2021 is an error message
-	// change in testIfNullNullIf
-	public static final boolean USE_DOCKER_FOR_DB = false;
-	public static final boolean USE_DEDICATED_DB = true;
-	
-    public FormulaPostgreSQLTests(String name) throws FileNotFoundException, ParserConfigurationException, SAXException, IOException {
+public abstract class FormulaPostgreSQLTests extends FormulaGenericTests
+{
+    // If true, use docker for testing the postgres DB with testcontainers.org.  Otherwise, use embedded
+    // The embedded one is quicker and easier to manage.  Only difference as of Nov 2021 is an error message
+    // change in testIfNullNullIf
+    public static final boolean USE_DOCKER_FOR_DB = false;
+    public static final boolean USE_DEDICATED_DB = true;
+
+    public FormulaPostgreSQLTests(String name) throws ParserConfigurationException, SAXException, IOException
+    {
         super(name);
     }
 
     @Override
-    protected void setUpTest(BaseFormulaGenericTest test) {
+    protected void setUpTest(BaseFormulaGenericTest test)
+    {
         FormulaEngine.setHooks(new FieldTestFormulaValidationHooks());
         FormulaEngine.setFactory(BaseFieldReferenceTest.TEST_FACTORY);
     }
 
 
-	@Override
-	protected boolean shouldTestSql() {
-		return true;
-	}
+    @Override
+    protected boolean shouldTestSql()
+    {
+        return true;
+    }
 
-	@Override
-	protected DbTester constructDbTester() throws IOException {
-		if (USE_DOCKER_FOR_DB) {
-			return new PostgreSQLContainerTester();
-		}
-		else if (USE_DEDICATED_DB)
-		{
-			return new DedicatedPostgresTester();
-		}
-		else {
-			return new EmbeddedPostgresTester();
-		}
-	}
+    @Override
+    protected DbTester constructDbTester() throws IOException
+    {
+        if (USE_DOCKER_FOR_DB)
+        {
+            return new PostgreSQLContainerTester();
+        }
+        else if (USE_DEDICATED_DB)
+        {
+            return new DedicatedPostgresTester();
+        }
+        else
+        {
+            return new EmbeddedPostgresTester();
+        }
+    }
 }

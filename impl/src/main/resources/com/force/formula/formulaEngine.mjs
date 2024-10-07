@@ -4,7 +4,8 @@
  *
  * import { FormulaEngine as $F } from '...'
  */
-export class FormulaEngine {
+export class FormulaEngine
+{
     /*
      * Utility functions for the Client Formula Engine
      * Equivalent to Oracle's NVL function.
@@ -12,9 +13,11 @@ export class FormulaEngine {
      * @param {Object} ifNull - returned if value is null or undefined
      * @returns {Object} value if value is not null or undefined, otherwise ifNull
      */
-    nvl(value, ifNull) {
+    nvl(value, ifNull)
+    {
         return value !== null && value !== undefined ? value : ifNull;
     }
+
     /*
      * Utility functions for the Client Formula Engine - Equivalent of AuraUtil.js
      * Null Or Empty - Return value if value is not null and not an empty string, ifNull otherwise.
@@ -22,18 +25,22 @@ export class FormulaEngine {
      * @param {Object} ifNull - returned if value is null or undefined or empty
      * @returns {Object} value if value is not null or undefined, otherwise ifNull
      */
-    noe(value, ifNull) {
-        if (value === undefined || value === null || value === '') {
+    noe(value, ifNull)
+    {
+        if (value === undefined || value === null || value === "")
+        {
             return ifNull;
         }
         return value;
     }
+
     /**
      * Checks all tests and returns true if any are null or undefined.
      * @param {List} tests - the list of values to check
      * @returns {boolean} true if any value in tests is null or undefined
      */
-    anl(tests) {
+    anl(tests)
+    {
         return Array.isArray(tests) && tests.some(val => val === null || val === undefined);
     }
 
@@ -42,8 +49,10 @@ export class FormulaEngine {
      * @param {Object} value - the object to stringify
      * @returns {String} a stringified version of value
      */
-    tostr(value) {
-        if (value === undefined || value === null || value === '') {
+    tostr(value)
+    {
+        if (value === undefined || value === null || value === "")
+        {
             return value;
         }
         return String(value);
@@ -55,12 +64,14 @@ export class FormulaEngine {
      * @param {String} value - a string value that is similar to an ISO date format.
      * @returns {Date} - a date object that may be invalid
      */
-    parseDateTime(value) {
-        if (value === undefined || value === null || value === '') {
+    parseDateTime(value)
+    {
+        if (value === undefined || value === null || value === "")
+        {
             return null;
         }
-        const d = new Date(value.trim().replace(' ', 'T') + 'Z');
-        return isNaN(d) ? new Date(value.trim() + ' GMT') : d;
+        const d = new Date(value.trim().replace(" ", "T") + "Z");
+        return isNaN(d) ? new Date(value.trim() + " GMT") : d;
     }
 
     /**
@@ -74,20 +85,25 @@ export class FormulaEngine {
      * @param {Number} months - the number of months to add to the date
      * @returns {Date} - the date with the numver of months added
      */
-    addmonths(d, months) {
-        if (d == null || d == null) {
+    addmonths(d, months)
+    {
+        if (d == null || d == null)
+        {
             return null;
         }
-        if (!months) {
+        if (!months)
+        {
             return d;
         }
         const lastDay = d.getUTCDay() === (new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 0))).getUTCDay();
         const adj = new Date(d.getTime() + (lastDay ? 86400000 : 0));
         adj.setUTCMonth(adj.getUTCMonth() + Math.trunc(months));
-        if (lastDay) {
+        if (lastDay)
+        {
             return new Date(adj.getTime() - 86400000);
         }
-        if (d.getUTCDate() !== adj.getUTCDate()) {
+        if (d.getUTCDate() !== adj.getUTCDate())
+        {
             adj.setUTCDate(0);
         }
         return adj;
@@ -98,8 +114,10 @@ export class FormulaEngine {
      * @param {Date} d - the date
      * @param {NUmber} - the ISO Week of the date
      */
-    isoweek(date) {
-        if (!date) {
+    isoweek(date)
+    {
+        if (!date)
+        {
             return date;
         }
         const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
@@ -114,8 +132,10 @@ export class FormulaEngine {
      * @param {Date} date - the date
      * @param {NUmber} - the ISO YEAR of the date
      */
-    isoyear(date) {
-        if (!date) {
+    isoyear(date)
+    {
+        if (!date)
+        {
             return date;
         }
         const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
@@ -130,14 +150,15 @@ export class FormulaEngine {
      * @param {Date} d - the date
      * @param {Number} - the day of the year
      */
-    dayofyear = function (date) {
-        if (!date) {
+    dayofyear = function(date) {
+        if (!date)
+        {
             return date;
         }
         const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
         const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
         return Math.ceil((1 + (d - yearStart)) / 86400000);
-    }
+    };
 
 
     /**
@@ -145,8 +166,10 @@ export class FormulaEngine {
      * @param {String} str - the string
      * @returns {String} - the string with the first characters of words converted to uppercase
      */
-    initcap(str) {
-        if (!str) {
+    initcap(str)
+    {
+        if (!str)
+        {
             return str;
         }
         // Init cap... Normalize and use unicode to match postgres/oracle behavior
@@ -159,8 +182,9 @@ export class FormulaEngine {
      * @param {Number} len - length to pad
      * @param {String} pad - the optional string to pad.
      */
-    lpad(str, len, pad) {
-        return !str || !len || len < 1 ? null : (len <= str.length ? str.substring(0, len) : ((Array(256).join(pad) + '').substring(0, len - str.length)) + str);
+    lpad(str, len, pad)
+    {
+        return !str || !len || len < 1 ? null : (len <= str.length ? str.substring(0, len) : ((Array(256).join(pad) + "").substring(0, len - str.length)) + str);
     }
 
     /**
@@ -168,16 +192,20 @@ export class FormulaEngine {
      * @param {Date} s - the date to format
      * @param {boolean} includeDays - whether to include days in the display
      */
-    formatduration(s, includeDays) {
-        if (isNaN(s)) { // invalid date
+    formatduration(s, includeDays)
+    {
+        if (isNaN(s))
+        { // invalid date
             return null;
         }
-        if (includeDays) {
-            return Math.trunc(s / 86400) + ':' + ('' + (Math.trunc(s / 3600) % 24)).padStart(2, '0') + ':' + ('' + (Math.trunc(s / 60) % 60)).padStart(2, '0') + ':' + ('' + Math.trunc(s % 60)).padStart(2, '0');
+        if (includeDays)
+        {
+            return Math.trunc(s / 86400) + ":" + ("" + (Math.trunc(s / 3600) % 24)).padStart(2, "0") + ":" + ("" + (Math.trunc(s / 60) % 60)).padStart(2, "0") + ":" + ("" + Math.trunc(s % 60)).padStart(2, "0");
         }
-        return ('' + Math.trunc(s / 3600)).padStart(2, '0') + ':' + ('' + (Math.trunc(s / 60) % 60)).padStart(2, '0') + ':' + ('' + Math.trunc(s % 60)).padStart(2, '0');
-    }  
+        return ("" + Math.trunc(s / 3600)).padStart(2, "0") + ":" + ("" + (Math.trunc(s / 60) % 60)).padStart(2, "0") + ":" + ("" + Math.trunc(s % 60)).padStart(2, "0");
+    }
 
     // TODO: Put Decimal and jsonpath here...
 }
+
 /** version: 0.3.0 */

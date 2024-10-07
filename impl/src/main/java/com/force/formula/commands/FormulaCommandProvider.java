@@ -1,8 +1,8 @@
 package com.force.formula.commands;
 
-import java.util.List;
-
 import com.force.formula.FormulaCommand;
+
+import java.util.List;
 
 /**
  * Normally you can just use FormulaCommandInfoProvider to plug additional functions
@@ -12,6 +12,7 @@ import com.force.formula.FormulaCommand;
  * @author a.rich
  * @since 226
  */
-public interface FormulaCommandProvider {
+public interface FormulaCommandProvider
+{
     FormulaCommand get(FormulaCommandInfo info, List<FormulaCommand> commands);
 } 

@@ -1,11 +1,5 @@
 package com.force.formula.commands;
 
-import static com.force.formula.commands.FormulaCommandInfoImpl.jsMathPkg;
-
-import java.math.BigDecimal;
-import java.math.MathContext;
-import java.math.RoundingMode;
-
 import com.force.formula.FormulaCommandType.AllowedContext;
 import com.force.formula.FormulaCommandType.SelectorSection;
 import com.force.formula.FormulaContext;
@@ -15,24 +9,35 @@ import com.force.formula.impl.JsValue;
 import com.force.formula.sql.SQLPair;
 import com.force.formula.util.BigDecimalHelper;
 
+import java.math.BigDecimal;
+import java.math.MathContext;
+import java.math.RoundingMode;
+
+import static com.force.formula.commands.FormulaCommandInfoImpl.jsMathPkg;
+
 /**
  * MCEILING = Mathematical Ceiling, which will return the integer greater than or equal to the given number,
  * instead of the excel like behavior from the original which returns the integer furthest away from zero.
+ *
  * @author stamm
  * @since 0.1.0
  */
 @AllowedContext(section = SelectorSection.MATH, isOffline = true)
-public class FunctionMCeiling extends UnaryMathCommandBehavior {
+public class FunctionMCeiling extends UnaryMathCommandBehavior
+{
     private static final long serialVersionUID = 1L;
-	private static final MathContext MC = new MathContext(BigDecimalHelper.NUMBER_PRECISION_EXTERNAL, RoundingMode.HALF_DOWN);
+    private static final MathContext MC = new MathContext(BigDecimalHelper.NUMBER_PRECISION_EXTERNAL, RoundingMode.HALF_DOWN);
 
     @Override
-    public UnaryMathCommand getCommand(FormulaCommandInfo info) {
-        return new UnaryMathCommand(info) {
+    public UnaryMathCommand getCommand(FormulaCommandInfo info)
+    {
+        return new UnaryMathCommand(info)
+        {
             private static final long serialVersionUID = 1L;
 
-			@Override
-            protected BigDecimal execute(BigDecimal value) {
+            @Override
+            protected BigDecimal execute(BigDecimal value)
+            {
                 /*
                  * Cut of the digit just past the Oracle limit.
                  * We do this in order to deal with infinite fractions like 1/3, which can be said to be inexact just at the last digit.
@@ -45,27 +50,33 @@ public class FunctionMCeiling extends UnaryMathCommandBehavior {
     }
 
     @Override
-    public SQLPair getSQL(FormulaAST node, FormulaContext context, String[] args, String[] guards) {
-        FormulaSqlHooks hooks = (FormulaSqlHooks)context.getSqlStyle();
+    public SQLPair getSQL(FormulaAST node, FormulaContext context, String[] args, String[] guards)
+    {
+        FormulaSqlHooks hooks = (FormulaSqlHooks) context.getSqlStyle();
         String ceil = hooks.isTransactSqlStyle() ? "CEILING" : "CEIL";
         int precision = hooks.getExternalPrecision();
         String sql;
-        if (precision >= 0) { // If external precision is -1 don't reound before Ceil/Floor
-            sql = ceil + "(ROUND(" + args[0] + ","+precision+"))";
-        } else {
+        if (precision >= 0)
+        { // If external precision is -1 don't reound before Ceil/Floor
+            sql = ceil + "(ROUND(" + args[0] + "," + precision + "))";
+        }
+        else
+        {
             sql = ceil + "(" + args[0] + ")";
         }
         return new SQLPair(sql, guards[0]);
     }
-    
+
     @Override
-    public JsValue getJavascript(FormulaAST node, FormulaContext context, JsValue[] args) {
+    public JsValue getJavascript(FormulaAST node, FormulaContext context, JsValue[] args)
+    {
         // See the oracle function above for the questionable implementation.
-        if (context.useHighPrecisionJs()) {
+        if (context.useHighPrecisionJs())
+        {
             // We can be sure it isn't null because we're already guarding against args[0]
-            return JsValue.forNonNullResult("("+args[0]+").toDP(18).ceil()", args);
+            return JsValue.forNonNullResult("(" + args[0] + ").toDP(18).ceil()", args);
         }
-        return JsValue.forNonNullResult("("+jsMathPkg(context)+").ceil("+args[0]+")", args);
+        return JsValue.forNonNullResult("(" + jsMathPkg(context) + ").ceil(" + args[0] + ")", args);
     }
 
 }

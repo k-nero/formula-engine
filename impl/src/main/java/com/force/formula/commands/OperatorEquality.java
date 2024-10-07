@@ -1,31 +1,16 @@
 package com.force.formula.commands;
 
+import com.force.formula.*;
+import com.force.formula.FormulaCommandType.AllowedContext;
+import com.force.formula.FormulaCommandType.SelectorSection;
+import com.force.formula.impl.*;
+import com.force.formula.parser.gen.FormulaTokenTypes;
+import com.force.formula.sql.SQLPair;
+
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.Deque;
-
-import com.force.formula.FieldSetMemberInfo;
-import com.force.formula.FormulaCommand;
-import com.force.formula.FormulaCommandType.AllowedContext;
-import com.force.formula.FormulaCommandType.SelectorSection;
-import com.force.formula.FormulaContext;
-import com.force.formula.FormulaDataType;
-import com.force.formula.FormulaDateTime;
-import com.force.formula.FormulaException;
-import com.force.formula.FormulaGeolocation;
-import com.force.formula.FormulaProperties;
-import com.force.formula.FormulaRuntimeContext;
-import com.force.formula.impl.FormulaAST;
-import com.force.formula.impl.FormulaSqlHooks;
-import com.force.formula.impl.FormulaTypeUtils;
-import com.force.formula.impl.IllegalArgumentTypeException;
-import com.force.formula.impl.JsValue;
-import com.force.formula.impl.TableAliasRegistry;
-import com.force.formula.impl.WrongArgumentTypeException;
-import com.force.formula.impl.WrongNumberOfArgumentsException;
-import com.force.formula.parser.gen.FormulaTokenTypes;
-import com.force.formula.sql.SQLPair;
 
 /**
  * Describe your class here.
@@ -34,61 +19,273 @@ import com.force.formula.sql.SQLPair;
  * @since 140
  */
 @AllowedContext(section = SelectorSection.MATH, isOffline = true)
-public class OperatorEquality extends FormulaCommandInfoImpl implements FormulaCommandValidator, FormulaCommandOptimizer {
-    public OperatorEquality(String token) {
+public class OperatorEquality extends FormulaCommandInfoImpl implements FormulaCommandValidator, FormulaCommandOptimizer
+{
+    public OperatorEquality(String token)
+    {
         super(token);
     }
 
+    /**
+     * Stolen from FunctionText
+     *
+     * @param node the node of the TEXT() function call
+     * @return if the node is TEXT() for a picklist.
+     */
+    static protected boolean isTextPicklistCase(FormulaAST node)
+    {
+        if (FormulaAST.isFunctionNode(node, "text"))
+        {
+            FormulaDataType argType = ((FormulaAST) node.getFirstChild()).getColumnType();
+            return argType != null && argType.isAnySingleEnum();
+        }
+        return false;
+    }
+
+    /**
+     * You can't natively compare dates in javascript; either you do a&gt;=b &amp;&amp; a&lt;=b, or you call getTime().  getTime() seems less awful
+     *
+     * @param context the formulaContext
+     * @param arg     the value for the type to compare
+     * @param argType the argument type
+     * @return a javascript value suitable for testing equality
+     */
+    public static String wrapJsForEquality(FormulaContext context, JsValue arg, Type argType)
+    {
+        // convert date to number for comparison so it doesn't try and compare date objects
+        if (argType == Date.class || argType == FormulaDateTime.class)
+        {
+            if (arg.couldBeNull)
+            {
+                return jsNvl2(context, arg, arg.js + ".getTime()", "null");
+            }
+            else
+            {
+                return arg.js + ".getTime()";
+            }
+        }
+        if (argType == String.class && arg.couldBeNull)
+        {
+            return jsNvl2WithGuard(context, arg, arg.js, "null", true);
+        }
+        else
+        {
+            return arg.js;
+        }
+    }
+
+    public static Boolean comparePointwise(Object lhs, Object rhs, boolean treatAsString, boolean negate)
+    {
+        return comparePointwise(lhs, rhs, treatAsString, negate, false);
+    }
+
+    public static Boolean comparePointwise(Object lhs, Object rhs, boolean treatAsString, boolean negate,
+            boolean returnNonNull)
+    {
+        if (treatAsString)
+        {
+            lhs = (lhs == null || lhs == ConstantString.NullString) ? "" : lhs;
+            rhs = (rhs == null || rhs == ConstantString.NullString) ? "" : rhs;
+            // We might have a FieldSetMember here which has to be converted to string.  Has to be special cased because we don't use the
+            // regular type check logic here...
+            // This is required for back compatibility of Fieldsets with 170.
+            if (lhs instanceof FieldSetMemberInfo)
+            {
+                lhs = ((FieldSetMemberInfo) lhs).getFieldPath();
+            }
+            if (rhs instanceof FieldSetMemberInfo)
+            {
+                rhs = ((FieldSetMemberInfo) rhs).getFieldPath();
+            }
+        }
+
+        if (returnNonNull)
+        {
+            // return T/F and not null
+            if (lhs == null)
+            {
+                boolean nullResult = rhs == null;
+                if (negate)
+                {
+                    nullResult = !nullResult;
+                }
+                return nullResult;
+            }
+        }
+        else
+        {
+            if ((lhs == null) || (rhs == null))
+            {
+                return null; // Follow Oracle three-value semantics
+            }
+        }
+
+        boolean result;
+        if (lhs instanceof BigDecimal && rhs instanceof BigDecimal)
+        {
+            result = ((BigDecimal) lhs).compareTo((BigDecimal) rhs) == 0;
+        }
+        else
+        {
+            result = lhs.equals(rhs);
+        }
+        if (negate)
+        {
+            result = !result;
+        }
+        return Boolean.valueOf(result);
+    }
+
+    public static String compareBulk(FormulaContext context, Object lhs, int lhsType, Object rhs, int rhsType, boolean treatAsString,
+            boolean negate)
+    {
+
+        if (treatAsString)
+        {
+            // If null feeds into a comparison, the result is null: that's Oracle 3-value logic.
+            // But we want to force the result to true or false so subsequent operations do
+            // the right thing. This little beauty forces null to a value that is different than
+            // the other side unless both are null. Cool eh? Note this relies on (null || 'x')
+            // being 'x'.  In postgres, it relies on concat(...)
+            FormulaSqlHooks sqlHooks = (FormulaSqlHooks) context.getSqlStyle();
+            Object saveRhs = rhs;
+
+            if (rhsType != FormulaTokenTypes.STRING_LITERAL)
+            {
+                rhs = sqlHooks.sqlNvl() + "(" + rhs + ", " + String.format(sqlHooks.sqlConcat(false), lhs, "'x'") + ")";
+            }
+            else if ("''".equals(rhs) || ("NULL".equals(rhs) && sqlHooks.isPostgresStyle()))
+            {  // see ConstantString for postgres
+                rhs = String.format(sqlHooks.sqlConcat(false), lhs, "'x'");
+            }
+
+            if (lhsType != FormulaTokenTypes.STRING_LITERAL)
+            {
+                lhs = sqlHooks.sqlNvl() + "(" + lhs + ", " + String.format(sqlHooks.sqlConcat(false), saveRhs, "'x'") + ")";
+            }
+            else if ("''".equals(lhs) || ("NULL".equals(lhs) && sqlHooks.isPostgresStyle()))
+            {
+                lhs = String.format(sqlHooks.sqlConcat(false), saveRhs, "'x'");
+            }
+
+            // Some DBs are case insensitive by default.  Others compare strings using special
+            // equality rules.  The formula engine doesn't, and uses binary comparison.
+            // This allows customizing whether the comparisons should be case sensitive.
+            lhs = sqlHooks.sqlMakeStringComparable(lhs, false);
+            rhs = sqlHooks.sqlMakeStringComparable(rhs, false);
+
+        }
+        return "(" + lhs + (negate ? "<>" : "=") + rhs + ")";
+    }
+
+    /**
+     * See compareBulk for the reasoning behind this function. Javascript behavior must match
+     * SQL and formula engine.
+     *
+     * @param context       the formulaContext
+     * @param lhs           the left hand side of the comparison
+     * @param lhsType       the TokenType of the left hand side (TODO: use antlr4)
+     * @param rhs           the right hand side of the comparison
+     * @param rhsType       the TokenType of the right hand side
+     * @param treatAsString should all values be treated as strings for equality
+     * @param negate        should this be not-equals
+     * @param highPrec      whether decimals are high precision.
+     * @param guards        the guards to use for the comparison which will be included in the JSValue
+     * @return a == or != comparison of the values
+     */
+    public static JsValue compareBulkJS(FormulaContext context, String lhs, int lhsType, String rhs, int rhsType, boolean treatAsString,
+            boolean negate, boolean highPrec, JsValue... guards)
+    {
+
+        if (treatAsString)
+        {
+            String saveRhs = rhs;
+            if (rhsType != FormulaTokenTypes.STRING_LITERAL)
+            {
+                rhs = jsNoe(context, rhs, jsNvl(context, lhs, "''") + "+'x'");
+            }
+            else if ("''".equals(rhs) || "\"\"".equals(rhs))
+            {
+                rhs = jsNvl(context, lhs, "''") + "+'x'";
+            }
+
+            if (lhsType != FormulaTokenTypes.STRING_LITERAL)
+            {
+                lhs = jsNoe(context, lhs, jsNvl(context, saveRhs, "''") + "+'x'");
+            }
+            else if ("''".equals(lhs) || "\"\"".equals(lhs))
+            {
+                lhs = jsNvl(context, saveRhs, "''") + "+'x'";
+            }
+        }
+
+        if (highPrec)
+        {
+            // Decimal(1)!=Decimal(1)... Need to use eq or neq
+            if (negate)
+            {
+                String guard = JsValue.makeGuard(guards);
+                return JsValue.generate((guard != null ? guard + "&&" : "") + "(!(" + lhs + ").eq(" + rhs + "))", null, false);
+            }
+            else
+            {
+                return JsValue.generate("(" + lhs + ").eq(" + rhs + ")", guards, false, guards);
+            }
+        }
+        if (negate)
+        {
+            return JsValue.generate("(" + lhs + ")!=(" + rhs + ")", null, false);
+        }
+        else
+        {
+            return JsValue.generate("(" + lhs + ")==(" + rhs + ")", null, false);
+        }
+    }
+
     @Override
-    public FormulaCommand getCommand(FormulaAST node, FormulaContext context) {
+    public FormulaCommand getCommand(FormulaAST node, FormulaContext context)
+    {
         return new OperatorEqualityFormulaCommand(this, getName(), treatAsString(node));
     }
 
     @Override
-    public SQLPair getSQL(FormulaAST node, FormulaContext context, String[] args, String[] guards, TableAliasRegistry registry) {
-        final FormulaAST lhs = (FormulaAST)node.getFirstChild();
-        final FormulaAST rhs = (FormulaAST)lhs.getNextSibling();
+    public SQLPair getSQL(FormulaAST node, FormulaContext context, String[] args, String[] guards, TableAliasRegistry registry)
+    {
+        final FormulaAST lhs = (FormulaAST) node.getFirstChild();
+        final FormulaAST rhs = (FormulaAST) lhs.getNextSibling();
 
         final String lhsString = wrapBoolean(args[0], lhs.getDataType(), lhs.getType());
         final String rhsString = wrapBoolean(args[1], rhs.getDataType(), rhs.getType());
 
         String sql = compareBulk(context, lhsString, lhs.getType(), rhsString, rhs.getType(), treatAsString(node),
-            "<>".equals(getName()));
+                "<>".equals(getName()));
         String guard = SQLPair.generateGuard(guards, null);
         return new SQLPair(sql, guard);
     }
 
     // replace TEXT(picklist) = "value" (or "value" = TEXT(picklist)) with ISPICKVAL(picklist, "value")
     @Override
-    public FormulaAST optimize(FormulaAST node, FormulaContext context) throws FormulaException {
-        FormulaAST lhs = (FormulaAST)node.getFirstChild();
-        FormulaAST rhs = (FormulaAST)lhs.getNextSibling();
+    public FormulaAST optimize(FormulaAST node, FormulaContext context) throws FormulaException
+    {
+        FormulaAST lhs = (FormulaAST) node.getFirstChild();
+        FormulaAST rhs = (FormulaAST) lhs.getNextSibling();
 
-        if (lhs.getType() == FormulaTokenTypes.STRING_LITERAL && isTextPicklistCase(rhs))  {
+        if (lhs.getType() == FormulaTokenTypes.STRING_LITERAL && isTextPicklistCase(rhs))
+        {
             return optimize(node, rhs, lhs, "<>".equals(getName()));
-        } else if (rhs.getType() == FormulaTokenTypes.STRING_LITERAL && isTextPicklistCase(lhs))  {
+        }
+        else if (rhs.getType() == FormulaTokenTypes.STRING_LITERAL && isTextPicklistCase(lhs))
+        {
             return optimize(node, lhs, rhs, "<>".equals(getName()));
         }
         return node;
     }
 
-    /**
-     * Stolen from FunctionText
-     * @param node the node of the TEXT() function call
-     * @return if the node is TEXT() for a picklist.
-     */
-    static protected boolean isTextPicklistCase(FormulaAST node) {
-        if (FormulaAST.isFunctionNode(node, "text")) {
-            FormulaDataType argType = ((FormulaAST)node.getFirstChild()).getColumnType();
-            return argType != null && argType.isAnySingleEnum();
-        }
-        return false;
-    }
-    
-    private FormulaAST optimize(FormulaAST ast, FormulaAST textnode, FormulaAST stringNode, boolean negate) {
+    private FormulaAST optimize(FormulaAST ast, FormulaAST textnode, FormulaAST stringNode, boolean negate)
+    {
         stringNode.setNextSibling(null);
         stringNode.setParent(null);
-        FormulaAST pickFieldNode = (FormulaAST)textnode.getFirstChild();
+        FormulaAST pickFieldNode = (FormulaAST) textnode.getFirstChild();
         pickFieldNode.setNextSibling(null);
         pickFieldNode.setParent(null);
 
@@ -101,7 +298,8 @@ public class OperatorEquality extends FormulaCommandInfoImpl implements FormulaC
         pickval.addChild(pickFieldNode);
         pickval.addChild(stringNode);
 
-        if (negate) {
+        if (negate)
+        {
             FormulaAST not = new FormulaAST("not");
             not.setType(FormulaTokenTypes.NOT);
             not.setDataType(Boolean.class);
@@ -111,229 +309,109 @@ public class OperatorEquality extends FormulaCommandInfoImpl implements FormulaC
         return ast.replace(pickval);
     }
 
-    private String wrapBoolean(String arg, Type argType, int nodeType) {
+    private String wrapBoolean(String arg, Type argType, int nodeType)
+    {
         // convert boolean back to number for comparison
-        if (argType == Boolean.class) {
+        if (argType == Boolean.class)
+        {
             if (nodeType == FormulaTokenTypes.TRUE)
+            {
                 return "1";
+            }
             else if (nodeType == FormulaTokenTypes.FALSE)
+            {
                 return "0";
+            }
             else
+            {
                 return String.format("CASE WHEN %s THEN 1 ELSE 0 END", arg);
+            }
         }
         return arg;
     }
 
-    /**
-     * You can't natively compare dates in javascript; either you do a&gt;=b &amp;&amp; a&lt;=b, or you call getTime().  getTime() seems less awful
-     * @param context the formulaContext
-     * @param arg the value for the type to compare 
-     * @param argType the argument type
-     * @return a javascript value suitable for testing equality
-     */
-    public static String wrapJsForEquality(FormulaContext context, JsValue arg, Type argType) {
-        // convert date to number for comparison so it doesn't try and compare date objects
-        if (argType == Date.class || argType == FormulaDateTime.class) {
-            if (arg.couldBeNull) {
-                return jsNvl2(context, arg, arg.js+".getTime()", "null");
-            } else {
-                return arg.js + ".getTime()";
-            }
-        }
-        if (argType == String.class && arg.couldBeNull) {
-            return jsNvl2WithGuard(context, arg, arg.js, "null", true);
-        } else {
-            return arg.js;
-        }
-    }
-    
     @Override
-    public Class<?> validate(FormulaAST node, FormulaContext context, FormulaProperties properties) throws FormulaException {
-        if (node.getNumberOfChildren() != 2) {
+    public Class<?> validate(FormulaAST node, FormulaContext context, FormulaProperties properties) throws FormulaException
+    {
+        if (node.getNumberOfChildren() != 2)
+        {
             throw new WrongNumberOfArgumentsException(node.getText(), 2, node);
         }
 
-        FormulaAST lhsNode = (FormulaAST)node.getFirstChild();
-        FormulaAST rhsNode = (FormulaAST)lhsNode.getNextSibling();
+        FormulaAST lhsNode = (FormulaAST) node.getFirstChild();
+        FormulaAST rhsNode = (FormulaAST) lhsNode.getNextSibling();
         Type lhs = lhsNode.getDataType();
         Type rhs = rhsNode.getDataType();
-        
-        if (lhs == FormulaGeolocation.class || rhs == FormulaGeolocation.class) 
-            throw new IllegalArgumentTypeException(node.getText());
-        
-        if ((lhs != Object.class) && (rhs != Object.class)
-                && (!FormulaTypeUtils.hasCommonSuperType(lhs,rhs)))
-            throw new WrongArgumentTypeException(node.getText(), new Type[] { lhs }, rhsNode);
 
-        if (lhs == RuntimeType.class || rhs == RuntimeType.class) {
+        if (lhs == FormulaGeolocation.class || rhs == FormulaGeolocation.class)
+        {
+            throw new IllegalArgumentTypeException(node.getText());
+        }
+
+        if ((lhs != Object.class) && (rhs != Object.class)
+                && (!FormulaTypeUtils.hasCommonSuperType(lhs, rhs)))
+        {
+            throw new WrongArgumentTypeException(node.getText(), new Type[]{lhs}, rhsNode);
+        }
+
+        if (lhs == RuntimeType.class || rhs == RuntimeType.class)
+        {
             return RuntimeType.class;
         }
 
         return Boolean.class;
     }
 
-    private Boolean treatAsString(FormulaAST node) {
-        FormulaAST lhsNode = ((FormulaAST)node.getFirstChild());
+    private Boolean treatAsString(FormulaAST node)
+    {
+        FormulaAST lhsNode = ((FormulaAST) node.getFirstChild());
         Type lhs = lhsNode.getDataType();
-        Type rhs = ((FormulaAST)lhsNode.getNextSibling()).getDataType();
+        Type rhs = ((FormulaAST) lhsNode.getNextSibling()).getDataType();
         // If either has unknown type, it might be a string at runtime so must
         // defer determining whether to treat as string.
-        if (lhs == RuntimeType.class || rhs == RuntimeType.class) {
+        if (lhs == RuntimeType.class || rhs == RuntimeType.class)
+        {
             return null;
         }
         return FormulaTypeUtils.isTypeText(lhs) || FormulaTypeUtils.isTypeText(rhs);
     }
 
-    public static Boolean comparePointwise(Object lhs, Object rhs, boolean treatAsString, boolean negate) {
-        return comparePointwise(lhs, rhs, treatAsString, negate, false);
-    }
-
-    public static Boolean comparePointwise(Object lhs, Object rhs, boolean treatAsString, boolean negate,
-            boolean returnNonNull) {
-        if (treatAsString) {
-            lhs = (lhs == null || lhs == ConstantString.NullString) ? "" : lhs;
-            rhs = (rhs == null || rhs == ConstantString.NullString) ? "" : rhs;
-            // We might have a FieldSetMember here which has to be converted to string.  Has to be special cased because we don't use the
-            // regular type check logic here...
-            // This is required for back compatibility of Fieldsets with 170.
-            if (lhs instanceof FieldSetMemberInfo) {
-                lhs = ((FieldSetMemberInfo)lhs).getFieldPath();
-            }
-            if (rhs instanceof FieldSetMemberInfo) {
-                rhs = ((FieldSetMemberInfo)rhs).getFieldPath();
-            }
-        }
-
-        if (returnNonNull) {
-            // return T/F and not null
-            if (lhs == null) {
-                boolean nullResult = rhs == null;
-                if (negate) nullResult = !nullResult;
-                return nullResult;
-            }
-        } else {
-            if ((lhs == null) || (rhs == null)) return null; // Follow Oracle three-value semantics
-        }
-
-        boolean result;
-        if (lhs instanceof BigDecimal && rhs instanceof BigDecimal)
-            result = ((BigDecimal)lhs).compareTo((BigDecimal)rhs) == 0;
-        else
-            result = lhs.equals(rhs);
-        if (negate)
-            result = !result;
-        return Boolean.valueOf(result);
-    }
-
-    public static String compareBulk(FormulaContext context, Object lhs, int lhsType, Object rhs, int rhsType, boolean treatAsString,
-            boolean negate) {
-
-        if (treatAsString) {
-            // If null feeds into a comparison, the result is null: that's Oracle 3-value logic.
-            // But we want to force the result to true or false so subsequent operations do
-            // the right thing. This little beauty forces null to a value that is different than
-            // the other side unless both are null. Cool eh? Note this relies on (null || 'x')
-            // being 'x'.  In postgres, it relies on concat(...)
-        	FormulaSqlHooks sqlHooks = (FormulaSqlHooks) context.getSqlStyle();
-            Object saveRhs = rhs;
-            
-            if (rhsType != FormulaTokenTypes.STRING_LITERAL) {
-                rhs = sqlHooks.sqlNvl() + "(" + rhs + ", " + String.format(sqlHooks.sqlConcat(false), lhs,  "'x'") + ")";
-            } else if ("''".equals(rhs) || ("NULL".equals(rhs) && sqlHooks.isPostgresStyle())) {  // see ConstantString for postgres
-                rhs = String.format(sqlHooks.sqlConcat(false), lhs,  "'x'");
-            }
-            
-            if (lhsType != FormulaTokenTypes.STRING_LITERAL) {
-                lhs = sqlHooks.sqlNvl() + "(" + lhs + ", " + String.format(sqlHooks.sqlConcat(false), saveRhs,  "'x'") + ")";
-            } else if ("''".equals(lhs) || ("NULL".equals(lhs) && sqlHooks.isPostgresStyle())) {
-                lhs = String.format(sqlHooks.sqlConcat(false), saveRhs,  "'x'");
-            }
-            
-            // Some DBs are case insensitive by default.  Others compare strings using special 
-            // equality rules.  The formula engine doesn't, and uses binary comparison.
-            // This allows customizing whether the comparisons should be case sensitive.
-            lhs = sqlHooks.sqlMakeStringComparable(lhs, false);
-            rhs = sqlHooks.sqlMakeStringComparable(rhs, false);
-
-        }
-        return "(" + lhs + (negate ? "<>" : "=") + rhs + ")";
-    }
-    
-    /**
-     * See compareBulk for the reasoning behind this function. Javascript behavior must match 
-     * SQL and formula engine.
-     * @param context the formulaContext
-     * @param lhs the left hand side of the comparison
-     * @param lhsType  the TokenType of the left hand side (TODO: use antlr4)
-     * @param rhs the right hand side of the comparison
-     * @param rhsType the TokenType of the right hand side
-     * @param treatAsString should all values be treated as strings for equality
-     * @param negate should this be not-equals
-     * @param highPrec whether decimals are high precision.
-     * @param guards the guards to use for the comparison which will be included in the JSValue
-     * @return a == or != comparison of the values
-     */
-    public static JsValue compareBulkJS(FormulaContext context, String lhs, int lhsType, String rhs, int rhsType, boolean treatAsString,
-            boolean negate, boolean highPrec, JsValue... guards) {
-
-        if (treatAsString) {
-            String saveRhs = rhs;
-            if (rhsType != FormulaTokenTypes.STRING_LITERAL)
-                rhs = jsNoe(context, rhs, jsNvl(context, lhs, "''") + "+'x'");
-            else if ("''".equals(rhs) || "\"\"".equals(rhs))
-            	rhs = jsNvl(context, lhs, "''") + "+'x'";
-            
-            if (lhsType != FormulaTokenTypes.STRING_LITERAL)
-                lhs = jsNoe(context, lhs, jsNvl(context, saveRhs, "''") + "+'x'");
-            else if ("''".equals(lhs) || "\"\"".equals(lhs))
-                lhs = jsNvl(context, saveRhs, "''") + "+'x'";
-        }
-        
-        if (highPrec) {
-            // Decimal(1)!=Decimal(1)... Need to use eq or neq
-            if (negate) {
-                String guard = JsValue.makeGuard(guards);
-                return JsValue.generate((guard != null ? guard + "&&" : "") + "(!(" + lhs + ").eq(" + rhs + "))", null, false);
-            } else {
-                return JsValue.generate("(" + lhs + ").eq(" + rhs + ")", guards, false, guards);
-            }
-        }
-        if (negate) {
-            return JsValue.generate("(" + lhs + ")!=(" + rhs + ")", null, false);
-        } else {
-            return JsValue.generate("(" + lhs + ")==(" + rhs + ")", null, false);
-        }
-    }
-    
     @Override
-    public JsValue getJavascript(FormulaAST node, FormulaContext context, JsValue[] args) throws FormulaException {
-        
-        final FormulaAST lhs = (FormulaAST)node.getFirstChild();
-        final FormulaAST rhs = (FormulaAST)lhs.getNextSibling();
-        
+    public JsValue getJavascript(FormulaAST node, FormulaContext context, JsValue[] args) throws FormulaException
+    {
+
+        final FormulaAST lhs = (FormulaAST) node.getFirstChild();
+        final FormulaAST rhs = (FormulaAST) lhs.getNextSibling();
+
         final String lhsString = wrapJsForEquality(context, args[0], lhs.getDataType());
         final String rhsString = wrapJsForEquality(context, args[1], rhs.getDataType());
-        
+
         // See note above...
         final boolean highPres = lhs.getDataType() == BigDecimal.class && context.useHighPrecisionJs();
-        
+
         return compareBulkJS(context, lhsString, lhs.getType(), rhsString, rhs.getType(), treatAsString(node),
                 "<>".equals(getName()), highPres, args);
     }
 }
 
-class OperatorEqualityFormulaCommand extends AbstractFormulaCommand {
+class OperatorEqualityFormulaCommand extends AbstractFormulaCommand
+{
     private static final long serialVersionUID = 1L;
-	// Note treatAsString may be null to indicate it must be runtime determined because operands have unknown
+    private final Boolean treatAsString;
+    private final String token;
+
+    // Note treatAsString may be null to indicate it must be runtime determined because operands have unknown
     // type when formula is compiled.
-    public OperatorEqualityFormulaCommand(FormulaCommandInfo info, String token, Boolean treatAsString) {
+    public OperatorEqualityFormulaCommand(FormulaCommandInfo info, String token, Boolean treatAsString)
+    {
         super(info);
         this.token = token;
         this.treatAsString = treatAsString;
     }
 
     @Override
-    public void execute(FormulaRuntimeContext context, Deque<Object> stack) {
+    public void execute(FormulaRuntimeContext context, Deque<Object> stack)
+    {
         Object rhs = stack.pop();
         Object lhs = stack.pop();
         boolean asString = treatAsString != null ? treatAsString
@@ -343,7 +421,4 @@ class OperatorEqualityFormulaCommand extends AbstractFormulaCommand {
                 shouldReturnBoolResult(context));
         stack.push(result);
     }
-
-    private final Boolean treatAsString;
-    private final String token;
 }

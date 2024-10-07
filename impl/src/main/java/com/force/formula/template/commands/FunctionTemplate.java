@@ -1,59 +1,52 @@
 package com.force.formula.template.commands;
 
+import com.force.formula.*;
+import com.force.formula.FormulaCommandType.AllowedContext;
+import com.force.formula.FormulaCommandType.SelectorSection;
+import com.force.formula.commands.AbstractFormulaCommand;
+import com.force.formula.commands.FormulaCommandInfo;
+import com.force.formula.commands.FormulaCommandInfoImpl;
+import com.force.formula.impl.*;
+import com.force.formula.sql.SQLPair;
+import com.force.formula.util.FormulaI18nUtils;
+import com.force.i18n.BaseLocalizer;
+
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Type;
 import java.util.Date;
 import java.util.Deque;
 
-import com.force.formula.FormulaCommand;
-import com.force.formula.FormulaCommandType.AllowedContext;
-import com.force.formula.FormulaCommandType.SelectorSection;
-import com.force.formula.FormulaContext;
-import com.force.formula.FormulaDateTime;
-import com.force.formula.FormulaException;
-import com.force.formula.FormulaRuntimeContext;
-import com.force.formula.GenericFormulaException;
-import com.force.formula.commands.AbstractFormulaCommand;
-import com.force.formula.commands.FormulaCommandInfo;
-import com.force.formula.commands.FormulaCommandInfoImpl;
-import com.force.formula.impl.FormulaAST;
-import com.force.formula.impl.FormulaExceptionListener;
-import com.force.formula.impl.FormulaStack;
-import com.force.formula.impl.FormulaValidationHooks;
-import com.force.formula.impl.JsValue;
-import com.force.formula.impl.TableAliasRegistry;
-import com.force.formula.impl.TemplateStaticMarkupString;
-import com.force.formula.impl.Thunk;
-import com.force.formula.sql.SQLPair;
-import com.force.formula.util.FormulaI18nUtils;
-import com.force.i18n.BaseLocalizer;
-
 /**
  * @author dchasman
  * @since 144
  */
-@AllowedContext(section=SelectorSection.ADVANCED, isSql=false,displayOnly=true,isJavascript=false)
-public class FunctionTemplate extends FormulaCommandInfoImpl {
+@AllowedContext(section = SelectorSection.ADVANCED, isSql = false, displayOnly = true, isJavascript = false)
+public class FunctionTemplate extends FormulaCommandInfoImpl
+{
 
-    public FunctionTemplate() {
-        super("TEMPLATE", String.class, new Class[] {});
+    public FunctionTemplate()
+    {
+        super("TEMPLATE", String.class, new Class[]{});
     }
 
     @Override
-    public FormulaCommand getCommand(FormulaAST node, FormulaContext context) {
+    public FormulaCommand getCommand(FormulaAST node, FormulaContext context)
+    {
         return new FunctionTemplateCommand(this);
     }
 
     @Override
-    public Type[] getArgumentTypes(FormulaAST node, FormulaContext context) {
+    public Type[] getArgumentTypes(FormulaAST node, FormulaContext context)
+    {
         Type[] argumentTypes = new Type[node.getNumberOfChildren()];
 
         // Just match the types of the passed args
         int n = 0;
-        FormulaAST child = (FormulaAST)node.getFirstChild();
-        while (child != null) {
+        FormulaAST child = (FormulaAST) node.getFirstChild();
+        while (child != null)
+        {
             argumentTypes[n++] = child.getDataType();
-            child = (FormulaAST)child.getNextSibling();
+            child = (FormulaAST) child.getNextSibling();
         }
 
         return argumentTypes;
@@ -61,24 +54,30 @@ public class FunctionTemplate extends FormulaCommandInfoImpl {
 
     @Override
     public SQLPair getSQL(FormulaAST node, FormulaContext context, String[] args, String[] guards, TableAliasRegistry registry)
-        throws FormulaException {
+            throws FormulaException
+    {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public JsValue getJavascript(FormulaAST node, FormulaContext context, JsValue[] args) throws FormulaException {
+    public JsValue getJavascript(FormulaAST node, FormulaContext context, JsValue[] args) throws FormulaException
+    {
         return new JsValue("", null, false);
     }
 }
 
-class FunctionTemplateCommand extends AbstractFormulaCommand {
+class FunctionTemplateCommand extends AbstractFormulaCommand
+{
     private static final long serialVersionUID = 1L;
-    public FunctionTemplateCommand(FormulaCommandInfo formulaCommandInfo) {
+
+    public FunctionTemplateCommand(FormulaCommandInfo formulaCommandInfo)
+    {
         super(formulaCommandInfo);
     }
 
     @Override
-    public void execute(FormulaRuntimeContext context, Deque<Object> stack) throws FormulaException {
+    public void execute(FormulaRuntimeContext context, Deque<Object> stack) throws FormulaException
+    {
         String urlEncoding = FormulaValidationHooks.get().getTemplateUrlEncoding(context);
 
         // Dethunk all of the template() arguments and evaluate each one using its own isolated stack to handle exceptions on a
@@ -88,35 +87,50 @@ class FunctionTemplateCommand extends AbstractFormulaCommand {
         // If you pass in a stack other than FormulaStack, this will probably not work.
         Object[] result = stack.toArray();
 
-        for (int n = 0; n < result.length; n++) {
+        for (int n = 0; n < result.length; n++)
+        {
             Object entry = result[n];
-            if (entry instanceof Thunk) {
-                try {
+            if (entry instanceof Thunk)
+            {
+                try
+                {
                     Deque<Object> localStack = new FormulaStack();
-                    ((Thunk)entry).executeReally(context, localStack);
+                    ((Thunk) entry).executeReally(context, localStack);
                     entry = localStack.pop();
-                } catch (Exception x) {
+                }
+                catch (Exception x)
+                {
                     entry = handleException(context, x);
                 }
             }
 
             // Handle formating of Dates and DateTimes
-            if (entry instanceof Date) {
-                entry = FormulaI18nUtils.getLocalizer().getDateFormat(BaseLocalizer.GMT).format((Date)entry);
-            } else if (entry instanceof FormulaDateTime) {
+            if (entry instanceof Date)
+            {
+                entry = FormulaI18nUtils.getLocalizer().getDateFormat(BaseLocalizer.GMT).format((Date) entry);
+            }
+            else if (entry instanceof FormulaDateTime)
+            {
                 FormulaDateTime fdt = (FormulaDateTime) entry;
-                if (fdt.getDate() != null) {
+                if (fdt.getDate() != null)
+                {
                     entry = FormulaI18nUtils.getLocalizer().getDateTimeFormat().format(fdt.getDate());
-                } else {
+                }
+                else
+                {
                     entry = "";
                 }
             }
 
             // See if we need to perform url encoding on the constituent and dynamic parts of a template
-            if ((urlEncoding != null) && (entry != null) && !(entry instanceof TemplateStaticMarkupString)){
-                try {
+            if ((urlEncoding != null) && (entry != null) && !(entry instanceof TemplateStaticMarkupString))
+            {
+                try
+                {
                     entry = FormulaValidationHooks.get().templateUrlEncodeString(entry.toString(), urlEncoding);
-                } catch (UnsupportedEncodingException x) {
+                }
+                catch (UnsupportedEncodingException x)
+                {
                     // Not much we can do about this (should never happen) - giving up
                     entry = handleException(context, x);
                 }
@@ -128,14 +142,22 @@ class FunctionTemplateCommand extends AbstractFormulaCommand {
         stack.push(result);
     }
 
-    private Object handleException(FormulaRuntimeContext context, Exception x) throws FormulaException {
-        if (context instanceof FormulaExceptionListener) {
-            return ((FormulaExceptionListener)context).onException(x);
-        } else if (x instanceof FormulaException) {
+    private Object handleException(FormulaRuntimeContext context, Exception x) throws FormulaException
+    {
+        if (context instanceof FormulaExceptionListener)
+        {
+            return ((FormulaExceptionListener) context).onException(x);
+        }
+        else if (x instanceof FormulaException)
+        {
             throw (FormulaException) x;
-        } else if (x instanceof RuntimeException) {
+        }
+        else if (x instanceof RuntimeException)
+        {
             throw (RuntimeException) x;
-        } else {
+        }
+        else
+        {
             throw new GenericFormulaException(x);
         }
     }

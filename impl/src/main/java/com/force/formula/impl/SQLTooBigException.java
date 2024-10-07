@@ -13,10 +13,12 @@ import com.force.formula.util.FormulaI18nUtils;
  * @author djacobs
  * @since 138
  */
-public class SQLTooBigException extends FormulaException {
+public class SQLTooBigException extends FormulaException
+{
     private static final long serialVersionUID = 1L;
 
-	public SQLTooBigException(int length, int maxLength) {
+    public SQLTooBigException(int length, int maxLength)
+    {
         super(FormulaI18nUtils.getLocalizer().getLabel("FormulaFieldExceptionMessages", "SQLTooBigException", length, maxLength));
     }
 }

@@ -9,10 +9,12 @@ import com.force.formula.util.FormulaI18nUtils;
  * @author ldelascurain
  * @since 160
  */
-public class FunctionIncludesWrongArgumentException extends FormulaException {
+public class FunctionIncludesWrongArgumentException extends FormulaException
+{
     private static final long serialVersionUID = 1L;
 
-	public FunctionIncludesWrongArgumentException() {
+    public FunctionIncludesWrongArgumentException()
+    {
         super(FormulaI18nUtils.getLocalizer().getLabel("FormulaFieldExceptionMessages", "FunctionIncludesWrongArgumentException"));
     }
 }

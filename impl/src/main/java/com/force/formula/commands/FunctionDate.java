@@ -1,17 +1,8 @@
 package com.force.formula.commands;
 
-import java.math.BigDecimal;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.Deque;
-
-import com.force.formula.FormulaCommand;
+import com.force.formula.*;
 import com.force.formula.FormulaCommandType.AllowedContext;
 import com.force.formula.FormulaCommandType.SelectorSection;
-import com.force.formula.FormulaContext;
-import com.force.formula.FormulaEngine;
-import com.force.formula.FormulaEvaluationException;
-import com.force.formula.FormulaRuntimeContext;
 import com.force.formula.impl.FormulaAST;
 import com.force.formula.impl.FormulaSqlHooks;
 import com.force.formula.impl.JsValue;
@@ -21,6 +12,11 @@ import com.force.formula.sql.SQLPair;
 import com.force.formula.util.FormulaI18nUtils;
 import com.force.i18n.BaseLocalizer;
 
+import java.math.BigDecimal;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.Deque;
+
 /**
  * Describe your class here.
  *
@@ -28,27 +24,31 @@ import com.force.i18n.BaseLocalizer;
  * @since 140
  */
 // This does handle leap years correctly with bug W-878810
-@AllowedContext(section=SelectorSection.DATE_TIME, isOffline=true)
-public class FunctionDate extends FormulaCommandInfoImpl {
-    public FunctionDate() {
-        super("DATE", Date.class, new Class[] { BigDecimal.class, BigDecimal.class, BigDecimal.class });
+@AllowedContext(section = SelectorSection.DATE_TIME, isOffline = true)
+public class FunctionDate extends FormulaCommandInfoImpl
+{
+    private static final int BAD_VALUE = -1;
+
+    public FunctionDate()
+    {
+        super("DATE", Date.class, new Class[]{BigDecimal.class, BigDecimal.class, BigDecimal.class});
     }
 
     @Override
-    public FormulaCommand getCommand(FormulaAST node, FormulaContext context) {
+    public FormulaCommand getCommand(FormulaAST node, FormulaContext context)
+    {
         return new FunctionDateCommand(this);
     }
 
-    private static final int BAD_VALUE = -1;
-
     @Override
-    public SQLPair getSQL(FormulaAST node, FormulaContext context, String[] args, String[] guards, TableAliasRegistry registry) {
-    	FormulaSqlHooks hooks = getSqlHooks(context);
-    	FormulaAST yearNode = (FormulaAST)node.getFirstChild();
+    public SQLPair getSQL(FormulaAST node, FormulaContext context, String[] args, String[] guards, TableAliasRegistry registry)
+    {
+        FormulaSqlHooks hooks = getSqlHooks(context);
+        FormulaAST yearNode = (FormulaAST) node.getFirstChild();
         int yearValue = getInt(yearNode);
-        FormulaAST monthNode = (FormulaAST)yearNode.getNextSibling();
+        FormulaAST monthNode = (FormulaAST) yearNode.getNextSibling();
         int monthValue = getInt(monthNode);
-        FormulaAST dayNode = (FormulaAST)monthNode.getNextSibling();
+        FormulaAST dayNode = (FormulaAST) monthNode.getNextSibling();
         int dayValue = getInt(dayNode);
 
         String year = (yearValue != BAD_VALUE) ? String.valueOf(yearValue) : String.format(getSqlHooks(context).sqlToChar(), "FLOOR(" + args[0] + ")");
@@ -58,22 +58,28 @@ public class FunctionDate extends FormulaCommandInfoImpl {
 
         String nullBits = "";
         boolean yearCanBeNull = yearValue == BAD_VALUE && yearNode.canBeNull();
-        if (yearCanBeNull) {
+        if (yearCanBeNull)
+        {
             nullBits = "WHEN " + args[0] + " IS NULL THEN NULL ";
         }
         boolean monthCanBeNull = monthValue == BAD_VALUE && monthNode.canBeNull();
-        if (monthCanBeNull) {
+        if (monthCanBeNull)
+        {
             nullBits = nullBits + "WHEN " + args[1] + " IS NULL THEN NULL ";
         }
         boolean dayCanBeNull = dayValue == BAD_VALUE && dayNode.canBeNull();
-        if (dayCanBeNull) {
+        if (dayCanBeNull)
+        {
             nullBits = nullBits + "WHEN " + args[2] + " IS NULL THEN NULL ";
         }
 
         String sql;
-        if ("".equals(nullBits)) {
+        if ("".equals(nullBits))
+        {
             sql = date;
-        } else {
+        }
+        else
+        {
             sql = "CASE " + nullBits + "ELSE " + date + " END";
         }
         String guard = SQLPair.generateGuard(
@@ -83,117 +89,178 @@ public class FunctionDate extends FormulaCommandInfoImpl {
         return new SQLPair(sql, guard);
     }
 
-    private int getInt(FormulaAST currentNode) {
+    private int getInt(FormulaAST currentNode)
+    {
         if (currentNode.getType() != FormulaTokenTypes.NUMBER)
+        {
             return BAD_VALUE;
-        try {
+        }
+        try
+        {
             return Integer.parseInt(currentNode.getText());
         }
-        catch (NumberFormatException e) {
+        catch (NumberFormatException e)
+        {
             return BAD_VALUE;
         }
     }
 
     private String errorCondition(FormulaSqlHooks hooks, String[] args, int yearValue, boolean yearCanBeNull, int monthValue,
-            boolean monthCanBeNull, int dayValue, boolean dayCanBeNull) {
+            boolean monthCanBeNull, int dayValue, boolean dayCanBeNull)
+    {
         String result = null;
-        if (yearValue != BAD_VALUE) {
-            if ((yearValue < 1) || (yearValue > 9999)) {
+        if (yearValue != BAD_VALUE)
+        {
+            if ((yearValue < 1) || (yearValue > 9999))
+            {
                 return "1=1";
             }
-        } else {
+        }
+        else
+        {
             result = args[0] + " is null OR " + args[0] + "< 1 OR " + args[0] + "> 9999";
         }
-        if (monthValue != BAD_VALUE) {
-            if ((monthValue < 1) || (monthValue > 12)) {
+        if (monthValue != BAD_VALUE)
+        {
+            if ((monthValue < 1) || (monthValue > 12))
+            {
                 return "1=1";
             }
-        } else {
-            String month = args[1] + " is null  OR FLOOR(" +args[1] + ") NOT IN (1,2,3,4,5,6,7,8,9,10,11,12)";
-            if (result == null) {
+        }
+        else
+        {
+            String month = args[1] + " is null  OR FLOOR(" + args[1] + ") NOT IN (1,2,3,4,5,6,7,8,9,10,11,12)";
+            if (result == null)
+            {
                 result = month;
-            } else {
+            }
+            else
+            {
                 result = result + " OR " + month;
             }
         }
-        if (dayValue != BAD_VALUE) {
-            if ((dayValue < 1) || (dayValue > 31)) {
+        if (dayValue != BAD_VALUE)
+        {
+            if ((dayValue < 1) || (dayValue > 31))
+            {
                 return "1=1";
             }
-        } else {
+        }
+        else
+        {
             String day = args[2] + " is null OR " + args[2] + "< 1 OR " + args[2] + " >= 32";
-            if (result == null) {
+            if (result == null)
+            {
                 result = day;
-            } else {
+            }
+            else
+            {
                 result = result + " OR " + day;
             }
         }
-        if ((monthValue == BAD_VALUE) && (dayValue == BAD_VALUE)) {
+        if ((monthValue == BAD_VALUE) && (dayValue == BAD_VALUE))
+        {
             result = result + " OR " + getValidDayInMonthSQL(hooks, args, yearValue, monthValue, dayValue);
-        } else if ((monthValue != BAD_VALUE) && (dayValue == BAD_VALUE)) {
+        }
+        else if ((monthValue != BAD_VALUE) && (dayValue == BAD_VALUE))
+        {
             if ((monthValue == 4) || (monthValue == 6) || (monthValue == 9) || (monthValue == 11))
+            {
                 result = result + " OR " + args[2] + " >= 31";
-            else if (monthValue == 2){
-                if(yearValue == BAD_VALUE){
+            }
+            else if (monthValue == 2)
+            {
+                if (yearValue == BAD_VALUE)
+                {
                     result = result + " OR " + getValidDayInMonthSQL(hooks, args, yearValue, monthValue, dayValue);
-                }else{
-                  result = result + " OR " + args[2] + " >= " + (getFebruaryLastDay(yearValue)+1);
                 }
-            }
-        } else if ((monthValue == BAD_VALUE) && (dayValue != BAD_VALUE)) {
-            if (dayValue > 30)
-                result = result + " OR FLOOR(" + args[1] + ") IN (4,6,9,11)";
-            if(yearValue == BAD_VALUE){
-                result = result + " OR " + getValidDayInMonthSQL(hooks, args, yearValue, monthValue, dayValue);
-            }else{
-                if (dayValue > getFebruaryLastDay(yearValue))
-                    result = result + " OR FLOOR(" + args[1] + ")=2";
-            }
-
-        } else {
-            if (((monthValue == 4) || (monthValue == 6) || (monthValue == 9) || (monthValue == 11)) && (dayValue > 30))
-                return "1=1";
-            else if ((monthValue == 2) && (dayValue > 28)){
-                if(yearValue == BAD_VALUE){
-                    result = result + " OR " + getValidDayInMonthSQL(hooks, args, yearValue, monthValue, dayValue);
-                }else{
-                    if (dayValue > getFebruaryLastDay(yearValue))
-                      return "1=1";
+                else
+                {
+                    result = result + " OR " + args[2] + " >= " + (getFebruaryLastDay(yearValue) + 1);
                 }
             }
         }
-        if ((yearCanBeNull || monthCanBeNull || dayCanBeNull)) {
+        else if ((monthValue == BAD_VALUE) && (dayValue != BAD_VALUE))
+        {
+            if (dayValue > 30)
+            {
+                result = result + " OR FLOOR(" + args[1] + ") IN (4,6,9,11)";
+            }
+            if (yearValue == BAD_VALUE)
+            {
+                result = result + " OR " + getValidDayInMonthSQL(hooks, args, yearValue, monthValue, dayValue);
+            }
+            else
+            {
+                if (dayValue > getFebruaryLastDay(yearValue))
+                {
+                    result = result + " OR FLOOR(" + args[1] + ")=2";
+                }
+            }
+
+        }
+        else
+        {
+            if (((monthValue == 4) || (monthValue == 6) || (monthValue == 9) || (monthValue == 11)) && (dayValue > 30))
+            {
+                return "1=1";
+            }
+            else if ((monthValue == 2) && (dayValue > 28))
+            {
+                if (yearValue == BAD_VALUE)
+                {
+                    result = result + " OR " + getValidDayInMonthSQL(hooks, args, yearValue, monthValue, dayValue);
+                }
+                else
+                {
+                    if (dayValue > getFebruaryLastDay(yearValue))
+                    {
+                        return "1=1";
+                    }
+                }
+            }
+        }
+        if ((yearCanBeNull || monthCanBeNull || dayCanBeNull))
+        {
             String nullChecks = "";
             if (yearCanBeNull)
+            {
                 nullChecks = nullChecks + args[0] + " IS NULL ";
+            }
             if (monthCanBeNull)
+            {
                 nullChecks = nullChecks + (nullChecks.length() > 0 ? "OR " : "") + args[1] + " IS NULL ";
+            }
             if (dayCanBeNull)
+            {
                 nullChecks = nullChecks + (nullChecks.length() > 0 ? "OR " : "") + args[2] + " IS NULL ";
+            }
             result = "NOT (" + nullChecks + ") AND (" + result + ")";
         }
         return result;
     }
 
-    private String getValidDayInMonthSQL(FormulaSqlHooks hooks, String[] args, int yearValue, int monthValue, int dayValue) {    	
-        String toDateSQL = hooks.sqlDateFromYearAndMonth(yearValue == BAD_VALUE ? "FLOOR(" + args[0] + ")" : String.valueOf(yearValue), 
+    private String getValidDayInMonthSQL(FormulaSqlHooks hooks, String[] args, int yearValue, int monthValue, int dayValue)
+    {
+        String toDateSQL = hooks.sqlDateFromYearAndMonth(yearValue == BAD_VALUE ? "FLOOR(" + args[0] + ")" : String.valueOf(yearValue),
                 monthValue == BAD_VALUE ? "FLOOR(" + args[1] + ")" : String.valueOf(monthValue));
         String lastDaySQL = String.format(hooks.sqlLastDayOfMonth(), toDateSQL);
-        
-        return " " + (dayValue == BAD_VALUE ? args[2]: dayValue) + " >= " + lastDaySQL + "+1 ";
+
+        return " " + (dayValue == BAD_VALUE ? args[2] : dayValue) + " >= " + lastDaySQL + "+1 ";
     }
 
-    private int getFebruaryLastDay(int year){
-       return isLeapYear(year) ? 29 : 28;
+    private int getFebruaryLastDay(int year)
+    {
+        return isLeapYear(year) ? 29 : 28;
     }
 
-    private boolean isLeapYear(int  year){
-        if (year % 4 == 0) {
-            if (year % 100 == 0) {
-                if (year % 400 == 0) {
-                    return true;
-                }
-                return false;
+    private boolean isLeapYear(int year)
+    {
+        if (year % 4 == 0)
+        {
+            if (year % 100 == 0)
+            {
+                return year % 400 == 0;
             }
             return true;
         }
@@ -201,33 +268,44 @@ public class FunctionDate extends FormulaCommandInfoImpl {
     }
 
     @Override
-    public JsValue getJavascript(FormulaAST node, FormulaContext context, JsValue[] args) {
-        if (context.useHighPrecisionJs()) {
-            return JsValue.forNonNullResult("new Date(Date.UTC("+args[0] + ".toNumber()," + args[1] + ".toNumber()-1," + args[2] + ".toNumber()))", args);            
+    public JsValue getJavascript(FormulaAST node, FormulaContext context, JsValue[] args)
+    {
+        if (context.useHighPrecisionJs())
+        {
+            return JsValue.forNonNullResult("new Date(Date.UTC(" + args[0] + ".toNumber()," + args[1] + ".toNumber()-1," + args[2] + ".toNumber()))", args);
         }
-        return JsValue.forNonNullResult("new Date(Date.UTC("+args[0] + "," + args[1] + "-1," + args[2] + "))", args);
+        return JsValue.forNonNullResult("new Date(Date.UTC(" + args[0] + "," + args[1] + "-1," + args[2] + "))", args);
     }
 }
 
-class FunctionDateCommand extends AbstractFormulaCommand {
+class FunctionDateCommand extends AbstractFormulaCommand
+{
     private static final long serialVersionUID = 1L;
 
-	public FunctionDateCommand(FormulaCommandInfo formulaCommandInfo) {
+    public FunctionDateCommand(FormulaCommandInfo formulaCommandInfo)
+    {
         super(formulaCommandInfo);
     }
 
     @Override
-    public void execute(FormulaRuntimeContext context, Deque<Object> stack) {
+    public void execute(FormulaRuntimeContext context, Deque<Object> stack)
+    {
         BigDecimal day = checkNumberType(stack.pop());
         BigDecimal month = checkNumberType(stack.pop());
         BigDecimal year = checkNumberType(stack.pop());
         if ((day == null) || (month == null) || (year == null) || FormulaEngine.getHooks().isFormulaContainerCompiling())
+        {
             stack.push(null);
-        else {
+        }
+        else
+        {
             int y = year.intValue();
             if ((y < 1) || (y > 9999))
+            {
                 throw new FormulaEvaluationException("Year out of range in DATE() function");
-            try {
+            }
+            try
+            {
                 Calendar c = FormulaI18nUtils.getLocalizer().getCalendar(BaseLocalizer.GMT);
                 c.clear();
                 c.setLenient(false);
@@ -235,7 +313,9 @@ class FunctionDateCommand extends AbstractFormulaCommand {
                 int d = day.intValue();
                 c.set(y, m - 1, d); // Months are zero-based in Java Calenders
                 stack.push(c.getTime());
-            } catch (IllegalArgumentException x) {
+            }
+            catch (IllegalArgumentException x)
+            {
                 throw new FormulaEvaluationException("Month or Day out of range in DATE() function"); // NOPMD
             }
         }

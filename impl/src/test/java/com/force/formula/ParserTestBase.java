@@ -1,10 +1,8 @@
 package com.force.formula;
 
-import org.junit.Assert;
-
-import com.force.formula.impl.FormulaUtils;
-
 import antlr.collections.AST;
+import com.force.formula.impl.FormulaUtils;
+import org.junit.Assert;
 
 /**
  * Describe your class here.
@@ -12,13 +10,16 @@ import antlr.collections.AST;
  * @author dchasman
  * @since 140
  */
-public abstract class ParserTestBase extends FormulaTestBase {
+public abstract class ParserTestBase extends FormulaTestBase
+{
 
-    public ParserTestBase(String name) {
+    public ParserTestBase(String name)
+    {
         super(name);
     }
 
-    protected void parseTest(String expression, String expected) throws FormulaException {
+    protected void parseTest(String expression, String expected) throws FormulaException
+    {
         AST ast;
 
         ast = parse(expression, false);
@@ -28,19 +29,22 @@ public abstract class ParserTestBase extends FormulaTestBase {
         Assert.assertEquals("Test failed for ANTLR4", expected, ast.toStringTree());
     }
 
-    protected AST parse(String expression, boolean useANTLR4) throws FormulaException {
+    protected AST parse(String expression, boolean useANTLR4) throws FormulaException
+    {
         return useANTLR4 ? parseWithANTLR4(expression) : parseWithANTLR2(expression);
     }
 
-    protected AST parseWithANTLR2(String expression) throws FormulaException {
+    protected AST parseWithANTLR2(String expression) throws FormulaException
+    {
         FormulaProperties properties = new FormulaProperties();
         return FormulaUtils.parseWithANTLR2(expression, properties).getFirstChild();
     }
 
-    protected AST parseWithANTLR4(String expression) throws FormulaException {
+    protected AST parseWithANTLR4(String expression) throws FormulaException
+    {
         FormulaProperties properties = new FormulaProperties();
         return FormulaUtils.parseWithANTLR4(expression, properties).getFirstChild();
     }
-   
+
 
 }

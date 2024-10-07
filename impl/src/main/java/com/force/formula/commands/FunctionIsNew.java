@@ -1,57 +1,67 @@
 package com.force.formula.commands;
 
 
-import java.util.Deque;
-
 import com.force.formula.*;
 import com.force.formula.FormulaCommandType.AllowedContext;
 import com.force.formula.FormulaCommandType.SelectorSection;
-import com.force.formula.impl.*;
+import com.force.formula.impl.FormulaAST;
+import com.force.formula.impl.JsValue;
+import com.force.formula.impl.TableAliasRegistry;
 import com.force.formula.sql.SQLPair;
 
+import java.util.Deque;
+
 /**
- * 
  * @author dchasman
  * @since 144
  */
-@AllowedContext(section=SelectorSection.LOGICAL,isSql = false, changeOnly=true,nonFlowOnly=true,isJavascript=false)
-public class FunctionIsNew extends FormulaCommandInfoImpl {
-    public FunctionIsNew() {
-        super("ISNEW", Boolean.class, new Class[] {});
+@AllowedContext(section = SelectorSection.LOGICAL, isSql = false, changeOnly = true, nonFlowOnly = true, isJavascript = false)
+public class FunctionIsNew extends FormulaCommandInfoImpl
+{
+    public FunctionIsNew()
+    {
+        super("ISNEW", Boolean.class, new Class[]{});
     }
 
     @Override
     public FormulaCommand getCommand(FormulaAST node, FormulaContext context) throws InvalidFieldReferenceException,
-        UnsupportedTypeException {
+            UnsupportedTypeException
+    {
         return new FunctionIsNewCommand(this);
     }
 
     @Override
     public SQLPair getSQL(FormulaAST node, FormulaContext context, String[] args, String[] guards, TableAliasRegistry registry)
-        throws InvalidFieldReferenceException, UnsupportedTypeException {
+            throws InvalidFieldReferenceException, UnsupportedTypeException
+    {
         throw new UnsupportedOperationException();
     }
-    
+
     @Override
-    public JsValue getJavascript(FormulaAST node, FormulaContext context, JsValue[] args) throws FormulaException {
+    public JsValue getJavascript(FormulaAST node, FormulaContext context, JsValue[] args) throws FormulaException
+    {
         return new JsValue("record.isNew", null, false);
     }
 }
 
-class FunctionIsNewCommand extends AbstractFormulaCommand {
+class FunctionIsNewCommand extends AbstractFormulaCommand
+{
     private static final long serialVersionUID = 1L;
 
-	public FunctionIsNewCommand(FormulaCommandInfo info) {
+    public FunctionIsNewCommand(FormulaCommandInfo info)
+    {
         super(info);
     }
 
     @Override
-    public void execute(FormulaRuntimeContext context, Deque<Object> stack) {
+    public void execute(FormulaRuntimeContext context, Deque<Object> stack)
+    {
         stack.push(context.isNew());
     }
 
     @Override
-    public boolean isDeterministic(FormulaContext formulaContext) {
+    public boolean isDeterministic(FormulaContext formulaContext)
+    {
         return false;
     }
 }
