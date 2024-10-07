@@ -172,8 +172,8 @@ public abstract class BaseFormulaInfoImpl implements RuntimeFormulaInfo
                             throw new JSTooBigException(javascript.js.length(), true);
                         }
                     }
-                    catch (JSTooBigException e)
-                    { // NOPMD
+                    catch (JSTooBigException e) // NOPMD
+                    {
                         // Log formulas that have been stopped mid-generation.
                         LogInfo logInfo = getLogInfo(astRoot, properties);
                         FormulaValidationHooks.get().parseHook_logOfflineFormula(start, e.getSize(), e.isFinished(),
@@ -437,8 +437,8 @@ public abstract class BaseFormulaInfoImpl implements RuntimeFormulaInfo
                     throw new RuntimeException("Unknown constant type");
                 }
             }
-            catch (Exception x)
-            {  // NOPMD
+            catch (Exception x)// NOPMD
+            {
                 // there was an error... too bad... do not optimize anything
             }
         }
@@ -792,8 +792,8 @@ public abstract class BaseFormulaInfoImpl implements RuntimeFormulaInfo
                 }
             }
         }
-        catch (Exception e)
-        { // NOPMD
+        catch (Exception e) // NOPMD
+        {
             // We are logging a failed formula. Don't gack because of exceptions here.
         }
     }

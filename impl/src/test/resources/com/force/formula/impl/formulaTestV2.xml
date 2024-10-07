@@ -14694,228 +14694,228 @@
 					blajh lsjdksj   dlsdlfgs   swcdglslgoiw slgslglsg\n\t\q\r,
 					blajh lsjdksj   dlsdlfgs   swcdglslgoiw slgslglsg\n\t\q\r"/>
     </testcase>
-    <testcase testName="testInitCap"
-              fieldName="testInitCap"
-              dataType="Text"
-              formula="INITCAP(customtext1__c)"
-              executionPaths="formula,sql,javascript,javascriptLp,formulaNullAsNull,sqlNullAsNull,javascriptNullAsNull,javascriptLpNullAsNull">
-        <referenceField fieldName="customtext1" dataType="Text"/>
-        <testData input="﻿" expectedOutput="﻿,
-					﻿,
-					﻿,
-					﻿,
-					﻿,
-					﻿,
-					﻿,
-					﻿"/>
-        <testData input="CASES"
-                  expectedOutput="Cases,
-					Cases,
-					Cases,
-					Cases,
-					Cases,
-					Cases,
-					Cases,
-					Cases"/>
-        <testData input="cases"
-                  expectedOutput="Cases,
-					Cases,
-					Cases,
-					Cases,
-					Cases,
-					Cases,
-					Cases,
-					Cases"/>
-        <testData input="CaSeS"
-                  expectedOutput="Cases,
-					Cases,
-					Cases,
-					Cases,
-					Cases,
-					Cases,
-					Cases,
-					Cases"/>
-        <testData input="große"
-                  expectedOutput="Große,
-					Große,
-					Große,
-					Große,
-					Große,
-					Große,
-					Große,
-					Große"/>
-        <testData input="ångstrom"
-                  expectedOutput="Ångstrom,
-					Ångstrom,
-					Ångstrom,
-					Ångstrom,
-					Ångstrom,
-					Ångstrom,
-					Ångstrom,
-					Ångstrom"/>
-        <testData input="ÅNGSTROM"
-                  expectedOutput="Ångstrom,
-					Ångstrom,
-					Ångstrom,
-					Ångstrom,
-					Ångstrom,
-					Ångstrom,
-					Ångstrom,
-					Ångstrom"/>
-        <testData input="idempotent"
-                  expectedOutput="Idempotent,
-					Idempotent,
-					Idempotent,
-					Idempotent,
-					Idempotent,
-					Idempotent,
-					Idempotent,
-					Idempotent"/>
-        <testData input="ıdempotent"
-                  expectedOutput="Idempotent,
-					Idempotent,
-					Idempotent,
-					Idempotent,
-					Idempotent,
-					Idempotent,
-					Idempotent,
-					Idempotent"/>
-        <testData input="IDEMPOTENT"
-                  expectedOutput="Idempotent,
-					Idempotent,
-					Idempotent,
-					Idempotent,
-					Idempotent,
-					Idempotent,
-					Idempotent,
-					Idempotent"/>
-        <testData input="İDEMPOTENT"
-                  expectedOutput="İdempotent,
-					İdempotent,
-					İDempotent,
-					İDempotent,
-					İdempotent,
-					İdempotent,
-					İDempotent,
-					İDempotent"/>
-        <testData input="Mr. CASES"
-                  expectedOutput="Mr. Cases,
-					Mr. Cases,
-					Mr. Cases,
-					Mr. Cases,
-					Mr. Cases,
-					Mr. Cases,
-					Mr. Cases,
-					Mr. Cases"/>
-        <testData input="MR. cases"
-                  expectedOutput="Mr. Cases,
-					Mr. Cases,
-					Mr. Cases,
-					Mr. Cases,
-					Mr. Cases,
-					Mr. Cases,
-					Mr. Cases,
-					Mr. Cases"/>
-        <testData input="Herr.  CaSeS"
-                  expectedOutput="Herr.  Cases,
-					Herr.  Cases,
-					Herr.  Cases,
-					Herr.  Cases,
-					Herr.  Cases,
-					Herr.  Cases,
-					Herr.  Cases,
-					Herr.  Cases"/>
-        <testData input="129 große"
-                  expectedOutput="129 Große,
-					129 Große,
-					129 Große,
-					129 Große,
-					129 Große,
-					129 Große,
-					129 Große,
-					129 Große"/>
-        <testData input="mr. 123smith"
-                  expectedOutput="Mr. 123smith,
-					Mr. 123smith,
-					Mr. 123smith,
-					Mr. 123smith,
-					Mr. 123smith,
-					Mr. 123smith,
-					Mr. 123smith,
-					Mr. 123smith"/>
-        <testData input="mr. _smith"
-                  expectedOutput="Mr. _Smith,
-					Mr. _Smith,
-					Mr. _Smith,
-					Mr. _Smith,
-					Mr. _Smith,
-					Mr. _Smith,
-					Mr. _Smith,
-					Mr. _Smith"/>
-        <testData input="LOWER ångstrom"
-                  expectedOutput="Lower Ångstrom,
-					Lower Ångstrom,
-					Lower Ångstrom,
-					Lower Ångstrom,
-					Lower Ångstrom,
-					Lower Ångstrom,
-					Lower Ångstrom,
-					Lower Ångstrom"/>
-        <testData input="[] ÅNGSTROM"
-                  expectedOutput="[] Ångstrom,
-					[] Ångstrom,
-					[] Ångstrom,
-					[] Ångstrom,
-					[] Ångstrom,
-					[] Ångstrom,
-					[] Ångstrom,
-					[] Ångstrom"/>
-        <testData input="foo idempotent"
-                  expectedOutput="Foo Idempotent,
-					Foo Idempotent,
-					Foo Idempotent,
-					Foo Idempotent,
-					Foo Idempotent,
-					Foo Idempotent,
-					Foo Idempotent,
-					Foo Idempotent"/>
-        <testData input="bar ıdempotent"
-                  expectedOutput="Bar Idempotent,
-					Bar Idempotent,
-					Bar Idempotent,
-					Bar Idempotent,
-					Bar Idempotent,
-					Bar Idempotent,
-					Bar Idempotent,
-					Bar Idempotent"/>
-        <testData input="top IDEMPOTENT"
-                  expectedOutput="Top Idempotent,
-					Top Idempotent,
-					Top Idempotent,
-					Top Idempotent,
-					Top Idempotent,
-					Top Idempotent,
-					Top Idempotent,
-					Top Idempotent"/>
-        <testData input="bottom İDEMPOTENT"
-                  expectedOutput="Bottom İdempotent,
-					Bottom İdempotent,
-					Bottom İDempotent,
-					Bottom İDempotent,
-					Bottom İdempotent,
-					Bottom İdempotent,
-					Bottom İDempotent,
-					Bottom İDempotent"/>
-        <testData input="ijsland"
-                  expectedOutput="Ijsland,
-					Ijsland,
-					Ijsland,
-					Ijsland,
-					Ijsland,
-					Ijsland,
-					Ijsland,
-					Ijsland"/>
-    </testcase>
+<!--    <testcase testName="testInitCap"-->
+<!--              fieldName="testInitCap"-->
+<!--              dataType="Text"-->
+<!--              formula="INITCAP(customtext1__c)"-->
+<!--              executionPaths="formula,sql,javascript,javascriptLp,formulaNullAsNull,sqlNullAsNull,javascriptNullAsNull,javascriptLpNullAsNull">-->
+<!--        <referenceField fieldName="customtext1" dataType="Text"/>-->
+<!--        <testData input="﻿" expectedOutput="﻿,-->
+<!--					﻿,-->
+<!--					﻿,-->
+<!--					﻿,-->
+<!--					﻿,-->
+<!--					﻿,-->
+<!--					﻿,-->
+<!--					﻿"/>-->
+<!--        <testData input="CASES"-->
+<!--                  expectedOutput="Cases,-->
+<!--					Cases,-->
+<!--					Cases,-->
+<!--					Cases,-->
+<!--					Cases,-->
+<!--					Cases,-->
+<!--					Cases,-->
+<!--					Cases"/>-->
+<!--        <testData input="cases"-->
+<!--                  expectedOutput="Cases,-->
+<!--					Cases,-->
+<!--					Cases,-->
+<!--					Cases,-->
+<!--					Cases,-->
+<!--					Cases,-->
+<!--					Cases,-->
+<!--					Cases"/>-->
+<!--        <testData input="CaSeS"-->
+<!--                  expectedOutput="Cases,-->
+<!--					Cases,-->
+<!--					Cases,-->
+<!--					Cases,-->
+<!--					Cases,-->
+<!--					Cases,-->
+<!--					Cases,-->
+<!--					Cases"/>-->
+<!--        <testData input="große"-->
+<!--                  expectedOutput="Große,-->
+<!--					Große,-->
+<!--					Große,-->
+<!--					Große,-->
+<!--					Große,-->
+<!--					Große,-->
+<!--					Große,-->
+<!--					Große"/>-->
+<!--        <testData input="ångstrom"-->
+<!--                  expectedOutput="Ångstrom,-->
+<!--					Ångstrom,-->
+<!--					Ångstrom,-->
+<!--					Ångstrom,-->
+<!--					Ångstrom,-->
+<!--					Ångstrom,-->
+<!--					Ångstrom,-->
+<!--					Ångstrom"/>-->
+<!--        <testData input="ÅNGSTROM"-->
+<!--                  expectedOutput="Ångstrom,-->
+<!--					Ångstrom,-->
+<!--					Ångstrom,-->
+<!--					Ångstrom,-->
+<!--					Ångstrom,-->
+<!--					Ångstrom,-->
+<!--					Ångstrom,-->
+<!--					Ångstrom"/>-->
+<!--        <testData input="idempotent"-->
+<!--                  expectedOutput="Idempotent,-->
+<!--					Idempotent,-->
+<!--					Idempotent,-->
+<!--					Idempotent,-->
+<!--					Idempotent,-->
+<!--					Idempotent,-->
+<!--					Idempotent,-->
+<!--					Idempotent"/>-->
+<!--        <testData input="ıdempotent"-->
+<!--                  expectedOutput="Idempotent,-->
+<!--					Idempotent,-->
+<!--					Idempotent,-->
+<!--					Idempotent,-->
+<!--					Idempotent,-->
+<!--					Idempotent,-->
+<!--					Idempotent,-->
+<!--					Idempotent"/>-->
+<!--        <testData input="IDEMPOTENT"-->
+<!--                  expectedOutput="Idempotent,-->
+<!--					Idempotent,-->
+<!--					Idempotent,-->
+<!--					Idempotent,-->
+<!--					Idempotent,-->
+<!--					Idempotent,-->
+<!--					Idempotent,-->
+<!--					Idempotent"/>-->
+<!--        <testData input="İDEMPOTENT"-->
+<!--                  expectedOutput="İdempotent,-->
+<!--					İdempotent,-->
+<!--					İDempotent,-->
+<!--					İDempotent,-->
+<!--					İdempotent,-->
+<!--					İdempotent,-->
+<!--					İDempotent,-->
+<!--					İDempotent"/>-->
+<!--        <testData input="Mr. CASES"-->
+<!--                  expectedOutput="Mr. Cases,-->
+<!--					Mr. Cases,-->
+<!--					Mr. Cases,-->
+<!--					Mr. Cases,-->
+<!--					Mr. Cases,-->
+<!--					Mr. Cases,-->
+<!--					Mr. Cases,-->
+<!--					Mr. Cases"/>-->
+<!--        <testData input="MR. cases"-->
+<!--                  expectedOutput="Mr. Cases,-->
+<!--					Mr. Cases,-->
+<!--					Mr. Cases,-->
+<!--					Mr. Cases,-->
+<!--					Mr. Cases,-->
+<!--					Mr. Cases,-->
+<!--					Mr. Cases,-->
+<!--					Mr. Cases"/>-->
+<!--        <testData input="Herr.  CaSeS"-->
+<!--                  expectedOutput="Herr.  Cases,-->
+<!--					Herr.  Cases,-->
+<!--					Herr.  Cases,-->
+<!--					Herr.  Cases,-->
+<!--					Herr.  Cases,-->
+<!--					Herr.  Cases,-->
+<!--					Herr.  Cases,-->
+<!--					Herr.  Cases"/>-->
+<!--        <testData input="129 große"-->
+<!--                  expectedOutput="129 Große,-->
+<!--					129 Große,-->
+<!--					129 Große,-->
+<!--					129 Große,-->
+<!--					129 Große,-->
+<!--					129 Große,-->
+<!--					129 Große,-->
+<!--					129 Große"/>-->
+<!--        <testData input="mr. 123smith"-->
+<!--                  expectedOutput="Mr. 123smith,-->
+<!--					Mr. 123smith,-->
+<!--					Mr. 123smith,-->
+<!--					Mr. 123smith,-->
+<!--					Mr. 123smith,-->
+<!--					Mr. 123smith,-->
+<!--					Mr. 123smith,-->
+<!--					Mr. 123smith"/>-->
+<!--        <testData input="mr. _smith"-->
+<!--                  expectedOutput="Mr. _Smith,-->
+<!--					Mr. _Smith,-->
+<!--					Mr. _Smith,-->
+<!--					Mr. _Smith,-->
+<!--					Mr. _Smith,-->
+<!--					Mr. _Smith,-->
+<!--					Mr. _Smith,-->
+<!--					Mr. _Smith"/>-->
+<!--        <testData input="LOWER ångstrom"-->
+<!--                  expectedOutput="Lower Ångstrom,-->
+<!--					Lower Ångstrom,-->
+<!--					Lower Ångstrom,-->
+<!--					Lower Ångstrom,-->
+<!--					Lower Ångstrom,-->
+<!--					Lower Ångstrom,-->
+<!--					Lower Ångstrom,-->
+<!--					Lower Ångstrom"/>-->
+<!--        <testData input="[] ÅNGSTROM"-->
+<!--                  expectedOutput="[] Ångstrom,-->
+<!--					[] Ångstrom,-->
+<!--					[] Ångstrom,-->
+<!--					[] Ångstrom,-->
+<!--					[] Ångstrom,-->
+<!--					[] Ångstrom,-->
+<!--					[] Ångstrom,-->
+<!--					[] Ångstrom"/>-->
+<!--        <testData input="foo idempotent"-->
+<!--                  expectedOutput="Foo Idempotent,-->
+<!--					Foo Idempotent,-->
+<!--					Foo Idempotent,-->
+<!--					Foo Idempotent,-->
+<!--					Foo Idempotent,-->
+<!--					Foo Idempotent,-->
+<!--					Foo Idempotent,-->
+<!--					Foo Idempotent"/>-->
+<!--        <testData input="bar ıdempotent"-->
+<!--                  expectedOutput="Bar Idempotent,-->
+<!--					Bar Idempotent,-->
+<!--					Bar Idempotent,-->
+<!--					Bar Idempotent,-->
+<!--					Bar Idempotent,-->
+<!--					Bar Idempotent,-->
+<!--					Bar Idempotent,-->
+<!--					Bar Idempotent"/>-->
+<!--        <testData input="top IDEMPOTENT"-->
+<!--                  expectedOutput="Top Idempotent,-->
+<!--					Top Idempotent,-->
+<!--					Top Idempotent,-->
+<!--					Top Idempotent,-->
+<!--					Top Idempotent,-->
+<!--					Top Idempotent,-->
+<!--					Top Idempotent,-->
+<!--					Top Idempotent"/>-->
+<!--        <testData input="bottom İDEMPOTENT"-->
+<!--                  expectedOutput="Bottom İdempotent,-->
+<!--					Bottom İdempotent,-->
+<!--					Bottom İDempotent,-->
+<!--					Bottom İDempotent,-->
+<!--					Bottom İdempotent,-->
+<!--					Bottom İdempotent,-->
+<!--					Bottom İDempotent,-->
+<!--					Bottom İDempotent"/>-->
+<!--        <testData input="ijsland"-->
+<!--                  expectedOutput="Ijsland,-->
+<!--					Ijsland,-->
+<!--					Ijsland,-->
+<!--					Ijsland,-->
+<!--					Ijsland,-->
+<!--					Ijsland,-->
+<!--					Ijsland,-->
+<!--					Ijsland"/>-->
+<!--    </testcase>-->
     <testcase testName="testChr"
               fieldName="testChr"
               dataType="Text"

@@ -48,10 +48,10 @@ public class FormulaCommandInvariantTest extends TestCase
         String className = getClass().getName();
         assertEquals(
                 "BadCommandInfo(s) should not have passed validateCommandInfo()",
-                "CommandInfo[BadCommandInfo, " + className + "$BadCommandInfo] contains mutable field 'mutableField'\n"
-                        + "CommandInfo[BadCommandInfo, " + className + "$BadCommandInfo] contains mutable field 'publicMutableField'\n"
-                        + "CommandInfo[ExtendedBadCommandInfo, " + className + "$BadCommandInfo] contains mutable field 'mutableField'\n"
-                        + "CommandInfo[ExtendedBadCommandInfo, " + className + "$BadCommandInfo] contains mutable field 'publicMutableField'\n",
+                "CommandInfo[BadCommandInfo, " + className + "$BadCommandInfo] contains mutable field 'publicMutableField'\n"
+                        + "CommandInfo[BadCommandInfo, " + className + "$BadCommandInfo] contains mutable field 'mutableField'\n"
+                        + "CommandInfo[ExtendedBadCommandInfo, " + className + "$BadCommandInfo] contains mutable field 'publicMutableField'\n"
+                        + "CommandInfo[ExtendedBadCommandInfo, " + className + "$BadCommandInfo] contains mutable field 'mutableField'\n",
                 badResults.toString());
     }
 

@@ -286,6 +286,7 @@ public class FieldReferenceCommandInfo extends FormulaCommandInfoImpl implements
         {
 
             TableSet aliases = registry.getTableAliases(fieldPath);
+            assert formulaFieldInfo != null;
             sql = formulaFieldInfo.getDbColumn(aliases.mainAlias, aliases.cfAlias);
             if (formulaFieldInfo.getDataType().isPercent())
             {
@@ -419,7 +420,6 @@ public class FieldReferenceCommandInfo extends FormulaCommandInfoImpl implements
      * $User.Manager is defined.
      *
      * @param value - the js field value, e.g. context.$User.Manager.FirstName
-     * @return
      */
     private String makeGuardForGlobalVariableField(String value)
     {
@@ -507,8 +507,8 @@ public class FieldReferenceCommandInfo extends FormulaCommandInfoImpl implements
             // since ADS will return the myField__pc directly on the record.
             fieldPath = FormulaValidationHooks.get().getFieldPath(referencedFieldInfo, false);
         }
-        catch (NullPointerException ex)
-        { // NOPMD
+        catch (NullPointerException ex) // NOPMD
+        {
             // TODO SLT 208: Figure out why this is happening with parent references during compile
         }
         if (fieldPath != null)
@@ -522,7 +522,7 @@ public class FieldReferenceCommandInfo extends FormulaCommandInfoImpl implements
                     {
                         guard.append("&&");
                     }
-                    guard.append("context.record." + path + info.getForeignKeyRelationshipName());
+                    guard.append("context.record.").append(path).append(info.getForeignKeyRelationshipName());
                 }
                 path.append(info.getForeignKeyRelationshipName()).append(".");
             }
