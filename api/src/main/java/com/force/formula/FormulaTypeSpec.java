@@ -14,49 +14,56 @@ package com.force.formula;
  * @author aroyfaderman
  * @since 186
  */
-public interface FormulaTypeSpec {
+public interface FormulaTypeSpec
+{
     /**
      * @return the maximum length of the field containing the encoded value
      */
     int getMaxLength();
-    
+
     /**
      * @return a display suitable for putting in errors
      */
     String getDisplay();
-    
+
     /**
      * @return the default properties to use with this FormulaType
      */
     FormulaProperties getDefaultProperties();
-    
-    default boolean isTemplate() {
+
+    default boolean isTemplate()
+    {
         return false;
     }
-   
+
     // Set to true if encrypted fields should be returned as text
-    default boolean allowsLegacyEncryptedFields() {
+    default boolean allowsLegacyEncryptedFields()
+    {
         return false;
     }
-    
+
     // Max depth of the AST tree
-    default int getMaxTreeDepth() {
+    default int getMaxTreeDepth()
+    {
         return 10;
     }
-           
+
     /**
-     * @return whether this formula type supports picklists.  
+     * @return whether this formula type supports picklists.
      */
-    default boolean allowPicklistTextConversion() {
+    default boolean allowPicklistTextConversion()
+    {
         return true;
     }
-    
+
     // Salesforce specific stuff
+
     /**
      * @return true if sobjectrow self referencing is allowed ("this").
      */
-    default boolean allowSObjectRowReference() {
+    default boolean allowSObjectRowReference()
+    {
         return false;
     }
-    
+
 }

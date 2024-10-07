@@ -3,13 +3,11 @@
  */
 package com.force.formula.util;
 
-import java.util.*;
-
+import com.force.formula.util.FormulaTextUtil.TrieMatcher;
+import junit.framework.TestCase;
 import org.junit.Assert;
 
-import com.force.formula.util.FormulaTextUtil.TrieMatcher;
-
-import junit.framework.TestCase;
+import java.util.*;
 
 /**
  * Unit tests for FormulaTextUtil.
@@ -17,63 +15,70 @@ import junit.framework.TestCase;
  * @author davem
  * @since 132
  */
-public class FormulaTextUtilTest extends TestCase {
+public class FormulaTextUtilTest extends TestCase
+{
     private final static String BASICLATIN = "This is F0obar";
     private final static String NONLATIN = "\u3042\u3044\u3046\u65E5\u672C\u8A9E";
     private final static String SUPPLEMENTARY = "\uD844\uDE3D\uD842\uDFB7\uD83D\uDD25\uD83D\uDCE4\uD83C\uDDEF\uD83C\uDDF5";
     private final static String SUPPLEMENTARY_DEC = "&#135741;&#134071;&#128293;&#128228;&#127471;&#127477;";
     private final static String MIXED = BASICLATIN + NONLATIN + SUPPLEMENTARY;
 
-    public FormulaTextUtilTest(String name) {
+    public FormulaTextUtilTest(String name)
+    {
         super(name);
     }
 
-    public void testEscapeInput() {
+    public void testEscapeInput()
+    {
         Assert.assertEquals("This &lt;&gt;&amp;&quot;&copy;", FormulaTextUtil.escapeToHtml("This <>&\"©", false));
         Assert.assertEquals("This &amp;amp;", FormulaTextUtil.escapeToHtml("This &amp;", false));
     }
 
 
-    public void testEscapeOutput() {
+    public void testEscapeOutput()
+    {
         Assert.assertEquals("This &lt;&gt;&amp;&quot;&#39;&copy;\n", FormulaTextUtil.escapeToHtml("This <>&\"'©\n", false));
         Assert.assertEquals("This &lt;&gt;&amp;&quot;&#39;&copy;<br>", FormulaTextUtil.escapeToHtml("This <>&\"'©\n", true));
     }
 
-    public void testReplaceSimple() {
+    public void testReplaceSimple()
+    {
         Assert.assertEquals("Some 123Xata with XX'sX", FormulaTextUtil.replaceSimple("Some 123data with dd'sd", "d", "X"));
         Assert.assertEquals("Some 123data with X's", FormulaTextUtil.replaceSimple("Some 123data with dd's", "dd", "X"));
-        Assert.assertEquals("Some 123XYtY with Z's", FormulaTextUtil.replaceSimple("Some 123data with dd's", new String[] {
-            "dd", "d", "a" }, new String[] { "Z", "X", "Y" }));
-        Assert.assertEquals("some 123data with dd'S", FormulaTextUtil.replaceSimple("Some 123data with dd's", new String[] {
-            "S", "s" }, new String[] { "s", "S" }));
+        Assert.assertEquals("Some 123XYtY with Z's", FormulaTextUtil.replaceSimple("Some 123data with dd's", new String[]{
+                "dd", "d", "a"}, new String[]{"Z", "X", "Y"}));
+        Assert.assertEquals("some 123data with dd'S", FormulaTextUtil.replaceSimple("Some 123data with dd's", new String[]{
+                "S", "s"}, new String[]{"s", "S"}));
         Assert.assertEquals("Something completely different", FormulaTextUtil.replaceSimple("Some 123data with dd's",
-            new String[] { "Some 123data with dd's" }, new String[] { "Something completely different" }));
+                new String[]{"Some 123data with dd's"}, new String[]{"Something completely different"}));
         Assert.assertEquals("", FormulaTextUtil.replaceSimple("", "dd", "X"));
         Assert.assertNull(FormulaTextUtil.replaceSimple(null, "dd", "X"));
-        
+
         Assert.assertEquals("foo", FormulaTextUtil.replaceSimple("foo", "x", "y"));
         // The next line is to replicate questionable "REPLACE" behavior in "SUBSITUTE"
         Assert.assertEquals("nulloo", FormulaTextUtil.replaceSimple("foo", "f", null));
     }
 
-    public void testReplaceSimple_WithArrays() {
+    public void testReplaceSimple_WithArrays()
+    {
         Assert.assertEquals("Some 123XYtY with Z's", FormulaTextUtil.replaceMultiple("Some 123data with dd's", TrieMatcher
-            .compile(new String[] { "dd", "d", "a" }, new String[] { "Z", "X", "Y" })));
+                .compile(new String[]{"dd", "d", "a"}, new String[]{"Z", "X", "Y"})));
         Assert.assertEquals("some 123data with dd'S", FormulaTextUtil.replaceMultiple("Some 123data with dd's", TrieMatcher
-            .compile(new String[] { "S", "s" }, new String[] { "s", "S" })));
+                .compile(new String[]{"S", "s"}, new String[]{"s", "S"})));
         Assert.assertEquals("Something completely different", FormulaTextUtil.replaceMultiple("Some 123data with dd's",
-            TrieMatcher.compile(new String[] { "Some 123data with dd's" },
-                new String[] { "Something completely different" })));
-        Assert.assertEquals("", FormulaTextUtil.replaceMultiple("", TrieMatcher.compile(new String[] { "dd", "xxx" },
-            new String[] { "X", "Y" })));
-        Assert.assertNull(FormulaTextUtil.replaceMultiple(null, TrieMatcher.compile(new String[] { "dd", "xxx" },
-            new String[] { "X", "Y" })));
+                TrieMatcher.compile(new String[]{"Some 123data with dd's"},
+                        new String[]{"Something completely different"})));
+        Assert.assertEquals("", FormulaTextUtil.replaceMultiple("", TrieMatcher.compile(new String[]{"dd", "xxx"},
+                new String[]{"X", "Y"})));
+        Assert.assertNull(FormulaTextUtil.replaceMultiple(null, TrieMatcher.compile(new String[]{"dd", "xxx"},
+                new String[]{"X", "Y"})));
 
         Assert.assertEquals(FormulaTextUtil.replaceSimple("KOliver is a test nazi", "nazi", "dork"), FormulaTextUtil.replaceMultiple(
-            "KOliver is a test nazi", TrieMatcher.compile(new String[] { "nazi" }, new String[] { "dork" })));
+                "KOliver is a test nazi", TrieMatcher.compile(new String[]{"nazi"}, new String[]{"dork"})));
     }
 
-    public void testEscapeForJavascriptString() throws Exception {
+    public void testEscapeForJavascriptString() throws Exception
+    {
         Assert.assertEquals("This is a test", FormulaTextUtil.escapeForJavascriptString("This is a test"));
         Assert.assertEquals("This \\'is a test", FormulaTextUtil.escapeForJavascriptString("This 'is a test"));
         Assert.assertEquals("This \\\\is a test", FormulaTextUtil.escapeForJavascriptString("This \\is a test"));
@@ -89,7 +94,8 @@ public class FormulaTextUtilTest extends TestCase {
         Assert.assertEquals(MIXED, FormulaTextUtil.escapeForJavascriptString(MIXED));
     }
 
-    public void testIsNullEmptyOrWhitespace() throws Exception {
+    public void testIsNullEmptyOrWhitespace() throws Exception
+    {
         Assert.assertTrue(FormulaTextUtil.isNullEmptyOrWhitespace(null));
         Assert.assertTrue(FormulaTextUtil.isNullEmptyOrWhitespace(""));
         Assert.assertTrue(FormulaTextUtil.isNullEmptyOrWhitespace(" "));
@@ -100,7 +106,8 @@ public class FormulaTextUtilTest extends TestCase {
         Assert.assertFalse(FormulaTextUtil.isNullEmptyOrWhitespace(" \u3000A A\r\n\t\u3000"));
     }
 
-    public void testPrettyPrintMap() {
+    public void testPrettyPrintMap()
+    {
         Map<String, String> m = new TreeMap<String, String>();
         m.put("x", "y");
         m.put("a", "b");
@@ -109,7 +116,8 @@ public class FormulaTextUtilTest extends TestCase {
         Assert.assertEquals("", FormulaTextUtil.prettyPrintMap(new HashMap<>()));
     }
 
-    public void testCollectionToStringEnclosed() {
+    public void testCollectionToStringEnclosed()
+    {
         List<String> s1 = new ArrayList<String>();
         s1.add("a");
         List<String> s2 = new ArrayList<String>();
@@ -144,7 +152,8 @@ public class FormulaTextUtilTest extends TestCase {
         Assert.assertEquals("_a_and_b_and_c", FormulaTextUtil.collectionToStringEnclosed(s3, "_and", "_", ""));
     }
 
-    public void testEscapeToXml() throws Exception {
+    public void testEscapeToXml() throws Exception
+    {
         Assert.assertNull(FormulaTextUtil.escapeToXml(null));
         Assert.assertNotNull(FormulaTextUtil.escapeToXml(null, false, true));
         Assert.assertNotNull(FormulaTextUtil.escapeToXml(null, true, true));
@@ -155,30 +164,32 @@ public class FormulaTextUtilTest extends TestCase {
         Assert.assertEquals("This &lt;&gt;&amp;&quot;", FormulaTextUtil.escapeToXml("This <>&\""));
         Assert.assertEquals("This &lt;&gt;  &amp; &quot; ", FormulaTextUtil.escapeToXml("This <>\r\n&\r\"\n"));
         Assert
-            .assertEquals("This &lt;&gt;\r\n&amp;\r&quot;\n", FormulaTextUtil.escapeToXml("This <>\r\n&\r\"\n", true, false));
-        Assert.assertEquals("This \'&lt;&gt;\r\n&amp;\r&quot;\n", FormulaTextUtil.escapeToXml("This \'<>\r\n&\r\"\n", true,
-            false));
-        Assert.assertEquals("This &apos;&lt;&gt;\r\n&amp;\r&quot;\n", FormulaTextUtil.escapeToXml("This \'<>\r\n&\r\"\n",
-            true, false, true));
+                .assertEquals("This &lt;&gt;\r\n&amp;\r&quot;\n", FormulaTextUtil.escapeToXml("This <>\r\n&\r\"\n", true, false));
+        Assert.assertEquals("This '&lt;&gt;\r\n&amp;\r&quot;\n", FormulaTextUtil.escapeToXml("This '<>\r\n&\r\"\n", true,
+                false));
+        Assert.assertEquals("This &apos;&lt;&gt;\r\n&amp;\r&quot;\n", FormulaTextUtil.escapeToXml("This '<>\r\n&\r\"\n",
+                true, false, true));
         Assert.assertEquals(BASICLATIN, FormulaTextUtil.escapeToXml(BASICLATIN, true, false));
         Assert.assertEquals(NONLATIN, FormulaTextUtil.escapeToXml(NONLATIN, true, false));
         Assert.assertEquals(SUPPLEMENTARY_DEC, FormulaTextUtil.escapeToXml(SUPPLEMENTARY, true, false));
     }
 
-    public void testIsIsoControlOrOddUnicode() throws Exception {
+    public void testIsIsoControlOrOddUnicode() throws Exception
+    {
         Assert.assertFalse(FormulaTextUtil.isIsoControlOrOddUnicode(' '));
         // I'd love to add more tests here, but I don't know what an example
         // high/low surrogate char looks like...
     }
 
-    public void testEscapeToHtml() {
+    public void testEscapeToHtml()
+    {
         assertEquals("\n", FormulaTextUtil.escapeToHtml("\n"));
         assertEquals("<br>", FormulaTextUtil.escapeToHtml("\n", true));
         assertEquals("&lt;", FormulaTextUtil.escapeToHtml("<"));
         assertEquals("&gt;", FormulaTextUtil.escapeToHtml(">"));
         assertEquals("&amp;", FormulaTextUtil.escapeToHtml("&"));
         assertEquals("&quot;", FormulaTextUtil.escapeToHtml("\""));
-        assertEquals("&#39;", FormulaTextUtil.escapeToHtml("\'"));
+        assertEquals("&#39;", FormulaTextUtil.escapeToHtml("'"));
         assertEquals("<br>", FormulaTextUtil.escapeToHtml("\u2028"));
         assertEquals("<p>", FormulaTextUtil.escapeToHtml("\u2029"));
         assertEquals("&copy;", FormulaTextUtil.escapeToHtml("\u00a9"));
@@ -187,8 +198,9 @@ public class FormulaTextUtilTest extends TestCase {
         assertEquals(NONLATIN, FormulaTextUtil.escapeToHtml(NONLATIN)); // not escaped
         assertEquals(SUPPLEMENTARY_DEC, FormulaTextUtil.escapeToHtml(SUPPLEMENTARY)); //escaped
     }
-    
-    public void testCodepointToCharRefDec() {
+
+    public void testCodepointToCharRefDec()
+    {
         assertEquals("&#1;", FormulaTextUtil.codepointToCharRefDec(0x1));
         assertEquals("&#15;", FormulaTextUtil.codepointToCharRefDec(0xF));
         assertEquals("&#16;", FormulaTextUtil.codepointToCharRefDec(0x10));
@@ -200,9 +212,10 @@ public class FormulaTextUtilTest extends TestCase {
         assertEquals("", FormulaTextUtil.codepointToCharRefDec(0x110000));
         assertEquals("", FormulaTextUtil.codepointToCharRefDec(-0x1));
     }
-    
-    public void testRemoveEnclosingQuotes() {
-        assertEquals(null, FormulaTextUtil.removeEnclosingQuotes(null));
+
+    public void testRemoveEnclosingQuotes()
+    {
+        assertNull(FormulaTextUtil.removeEnclosingQuotes(null));
         assertEquals("", FormulaTextUtil.removeEnclosingQuotes(""));
         assertEquals("''", FormulaTextUtil.removeEnclosingQuotes("''"));
         assertEquals("\"\"", FormulaTextUtil.removeEnclosingQuotes("\"\""));
@@ -216,52 +229,56 @@ public class FormulaTextUtilTest extends TestCase {
         assertEquals("AFooA", FormulaTextUtil.removeEnclosingQuotes("AFooA"));
 
     }
-    
-    public void testFormulaTrim() {
-    	assertEquals(null, FormulaTextUtil.formulaTrim(""));
-    	assertEquals(null, FormulaTextUtil.formulaTrim("       "));
+
+    public void testFormulaTrim()
+    {
+        assertNull(FormulaTextUtil.formulaTrim(""));
+        assertNull(FormulaTextUtil.formulaTrim("       "));
         assertEquals("'Foo'", FormulaTextUtil.formulaTrim("'Foo' "));
         assertEquals("'Foo'", FormulaTextUtil.formulaTrim(" 'Foo'"));
-    	assertEquals("abc", FormulaTextUtil.formulaTrim("   abc    "));
-    }
-    
-    public void testStringAreEqualNullIsEmpty() {
-    	assertTrue(FormulaTextUtil.stringsAreEqualNullIsEmpty("", null));
-    	assertTrue(FormulaTextUtil.stringsAreEqualNullIsEmpty(null, ""));
-    	assertTrue(FormulaTextUtil.stringsAreEqualNullIsEmpty(null, null));
-    	assertTrue(FormulaTextUtil.stringsAreEqualNullIsEmpty("", ""));
-    	assertFalse(FormulaTextUtil.stringsAreEqualNullIsEmpty(null, "a"));
-    	assertFalse(FormulaTextUtil.stringsAreEqualNullIsEmpty("a", null));
+        assertEquals("abc", FormulaTextUtil.formulaTrim("   abc    "));
     }
 
-    public void testStringArraysAreEqualNullIsEmpty() {
-    	assertTrue(FormulaTextUtil.stringArraysAreEqualNullIsEmpty(null, null));
-    	assertFalse(FormulaTextUtil.stringArraysAreEqualNullIsEmpty(new String[0], null));
-    	assertTrue(FormulaTextUtil.stringArraysAreEqualNullIsEmpty(new String[0], new String[0]));
-    	assertTrue(FormulaTextUtil.stringArraysAreEqualNullIsEmpty(new String[] {null}, new String[] {null}));
-    	assertTrue(FormulaTextUtil.stringArraysAreEqualNullIsEmpty(new String[] {null}, new String[] {""}));
-    	assertTrue(FormulaTextUtil.stringArraysAreEqualNullIsEmpty(new String[] {""}, new String[] {null}));
-    	assertFalse(FormulaTextUtil.stringArraysAreEqualNullIsEmpty(new String[] {"a"}, new String[] {"b"}));
+    public void testStringAreEqualNullIsEmpty()
+    {
+        assertTrue(FormulaTextUtil.stringsAreEqualNullIsEmpty("", null));
+        assertTrue(FormulaTextUtil.stringsAreEqualNullIsEmpty(null, ""));
+        assertTrue(FormulaTextUtil.stringsAreEqualNullIsEmpty(null, null));
+        assertTrue(FormulaTextUtil.stringsAreEqualNullIsEmpty("", ""));
+        assertFalse(FormulaTextUtil.stringsAreEqualNullIsEmpty(null, "a"));
+        assertFalse(FormulaTextUtil.stringsAreEqualNullIsEmpty("a", null));
     }
-    
-    public void testFormulaInitCap() {
-    	assertEquals(null, FormulaTextUtil.formulaInitCap(null, false));
-    	assertEquals("", FormulaTextUtil.formulaInitCap("", false));
-    	assertEquals("       ", FormulaTextUtil.formulaInitCap("       ", false));
+
+    public void testStringArraysAreEqualNullIsEmpty()
+    {
+        assertTrue(FormulaTextUtil.stringArraysAreEqualNullIsEmpty(null, null));
+        assertFalse(FormulaTextUtil.stringArraysAreEqualNullIsEmpty(new String[0], null));
+        assertTrue(FormulaTextUtil.stringArraysAreEqualNullIsEmpty(new String[0], new String[0]));
+        assertTrue(FormulaTextUtil.stringArraysAreEqualNullIsEmpty(new String[]{null}, new String[]{null}));
+        assertTrue(FormulaTextUtil.stringArraysAreEqualNullIsEmpty(new String[]{null}, new String[]{""}));
+        assertTrue(FormulaTextUtil.stringArraysAreEqualNullIsEmpty(new String[]{""}, new String[]{null}));
+        assertFalse(FormulaTextUtil.stringArraysAreEqualNullIsEmpty(new String[]{"a"}, new String[]{"b"}));
+    }
+
+    public void testFormulaInitCap()
+    {
+        assertNull(FormulaTextUtil.formulaInitCap(null, false));
+        assertEquals("", FormulaTextUtil.formulaInitCap("", false));
+        assertEquals("       ", FormulaTextUtil.formulaInitCap("       ", false));
         assertEquals("Mr. Smith", FormulaTextUtil.formulaInitCap("MR. SMITH", false));
         assertEquals("Mr. Smith", FormulaTextUtil.formulaInitCap("mr. smith", false));
         assertEquals("Mr.\nSmith", FormulaTextUtil.formulaInitCap("mr.\nsmith", false));
         assertEquals("Mr.\n123smith", FormulaTextUtil.formulaInitCap("mr.\n123smith", false));
         assertEquals("Mr.\n\u00c4smith", FormulaTextUtil.formulaInitCap("mr.\n\u00e4smith", false));  // Capitalize ä to Ä
-        
-    	assertEquals(null, FormulaTextUtil.formulaInitCap(null, true));
-    	assertEquals("", FormulaTextUtil.formulaInitCap("", true));
-    	assertEquals("       ", FormulaTextUtil.formulaInitCap("       ", true));
+
+        assertNull(FormulaTextUtil.formulaInitCap(null, true));
+        assertEquals("", FormulaTextUtil.formulaInitCap("", true));
+        assertEquals("       ", FormulaTextUtil.formulaInitCap("       ", true));
         assertEquals("Mr. Smith", FormulaTextUtil.formulaInitCap("MR. SMITH", true));
         assertEquals("Mr. Smith", FormulaTextUtil.formulaInitCap("mr. smith", true));
         assertEquals("Mr.\nSmith", FormulaTextUtil.formulaInitCap("mr.\nsmith", true));
         assertEquals("Mr.\n123smith", FormulaTextUtil.formulaInitCap("mr.\n123smith", true));
         assertEquals("Mr.\n\u00e4Smith", FormulaTextUtil.formulaInitCap("mr.\n\u00e4smith", true));
     }
-    
+
 }

@@ -1,12 +1,5 @@
 package com.force.formula.util;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.regex.Pattern;
-
 import com.force.i18n.commons.text.DeferredStringBuilder;
 import com.force.i18n.commons.util.collection.IntHashMap;
 import com.google.common.base.CharMatcher;
@@ -14,22 +7,22 @@ import com.google.common.base.Joiner;
 import com.google.common.escape.Escaper;
 import com.google.common.escape.Escapers;
 import com.google.errorprone.annotations.Immutable;
-
 import jakarta.annotation.Nullable;
+
+import java.util.*;
+import java.util.regex.Pattern;
 
 
 /**
  * A package of generic text utility functions.
- *
+ * <p>
  * This is old enough that it was mostly implemented at salesforce, but replacements have been found
  *
- * @author davem,pnakada,jjordano,et. al.
+ * @author davem, pnakada, jjordano, et. al.
  * @since the beginning
  */
-public final class FormulaTextUtil {
-
-    private FormulaTextUtil() {}
-
+public final class FormulaTextUtil
+{
 
     private static final Escaper FORMULA_SEARCH_REPLACE = Escapers.builder()
             .addEscape('\\', "\\\\")
@@ -38,11 +31,19 @@ public final class FormulaTextUtil {
             .addEscape('\n', "\\n")
             .addEscape('\t', "\\t")
             .build();
+    private static final String[] JS_IN = new String[]{"\\", "'", "\n", "\r", "\"", "!--", "<", ">", "\u2028", "\u2029", "\u0000", "/*", "*/", "*", "&#39;"};
+    private static final String[] JS_OUT = new String[]{"\\\\", "\\'", "\\n", "\\r", "\\\"", "\\!--", "\\u003C", "\\u003E", "\\n", "\\u2029", "", "\\/\\*", "\\*\\/", "\\*", "\\&#39;"};
+    private static final TrieMatcher JS_SEARCH_REPLACE = TrieMatcher.compile(JS_IN, JS_OUT);
+    private static final Pattern NUMERIC_PATTERN = Pattern.compile("[-+]?\\d*\\.?\\d+");
 
-    public static String escapeForFormulaString(String in) {
-        return FORMULA_SEARCH_REPLACE.escape(in);
+    private FormulaTextUtil()
+    {
     }
 
+    public static String escapeForFormulaString(String in)
+    {
+        return FORMULA_SEARCH_REPLACE.escape(in);
+    }
 
     /**
      * Escape output being sent to the user to be safe in HTML. Replaces &lt; &gt; &amp; &quot; etc. with their HTML escape
@@ -56,10 +57,12 @@ public final class FormulaTextUtil {
      * The convention in the app is that all escaping is done at output time by Elements
      * and output should go through elements when possible. If you are using this method, you should think
      * carefully about what you are doing and decide if it's truly necessary to bypass elements.
+     *
      * @param value the value to escape, possibly null
      * @return the value escaped to HTML, returning non null result
      */
-    public static String escapeToHtmlNoNulls(String value) {
+    public static String escapeToHtmlNoNulls(String value)
+    {
         return value != null ? escapeToHtml(value) : "";
     }
 
@@ -75,10 +78,12 @@ public final class FormulaTextUtil {
      * The convention in the app is that all escaping is done at output time by Elements
      * and output should go through elements when possible. If you are using this method, you should think
      * carefully about what you are doing and decide if it's truly necessary to bypass elements.
+     *
      * @param value the value to escape
      * @return the value escaped to HTML
      */
-    public static String escapeToHtml(String value) {
+    public static String escapeToHtml(String value)
+    {
         return escapeToHtml(value, false);
     }
 
@@ -94,47 +99,75 @@ public final class FormulaTextUtil {
      * The convention in the app is that all escaping is done at output time by Elements
      * and output should go through elements when possible. If you are using this method, you should think
      * carefully about what you are doing and decide if it's truly necessary to bypass elements.
-     * @param value the string to escape with HTML tags converted to entities.
+     *
+     * @param value         the string to escape with HTML tags converted to entities.
      * @param escapeNewline should newlines be escaped to &lt;BR&gt;
      * @return the value escaped
      */
-    public static String escapeToHtml(String value, boolean escapeNewline) {
-        if (value == null || value.length() == 0) {
+    public static String escapeToHtml(String value, boolean escapeNewline)
+    {
+        if (value == null || value.length() == 0)
+        {
             return value;
         }
         DeferredStringBuilder buf = new DeferredStringBuilder(value);
         // Optimized version of appendEscapedOutput where we can use appendQuicklyForEscapingWithoutSkips
         final int length = value.length();
-        for (int i = 0; i < length; i++) {
+        for (int i = 0; i < length; i++)
+        {
             char c = value.charAt(i);
             // TODO: Is this switch statement faster than an IntHashMap or CharEscaper?  I'm guessing it is.
-            switch (c) {
-            case '\n':  if (escapeNewline) {
-                buf.append("<br>");
-            } else {
-                buf.appendQuicklyForEscapingWithoutSkips(c);
-            } break;
-            case '<':   buf.append("&lt;"); break;
-            case '>':   buf.append("&gt;"); break;
-            case '&':   buf.appendAsDifferent("&amp;"); break;
-            case '"':   buf.append("&quot;"); break;
-            case '\'':   buf.append("&#39;"); break;
-            case '\u2028':   buf.append("<br>"); break;
-            case '\u2029':   buf.append("<p>"); break;
-            case '\u00a9':   buf.append("&copy;"); break;  // ©
-            default:
-                if (Character.isHighSurrogate(c) && (i + 1) < length && Character.isSurrogatePair(c, value.charAt(i + 1))) {
-                    // Old browsers prefer decimal entity
-                    buf.append(codepointToCharRefDec(Character.codePointAt(value, i)));
-                    i++;
-                } else {
-                    buf.appendQuicklyForEscapingWithoutSkips(c);
-                }
+            switch (c)
+            {
+                case '\n':
+                    if (escapeNewline)
+                    {
+                        buf.append("<br>");
+                    }
+                    else
+                    {
+                        buf.appendQuicklyForEscapingWithoutSkips(c);
+                    }
+                    break;
+                case '<':
+                    buf.append("&lt;");
+                    break;
+                case '>':
+                    buf.append("&gt;");
+                    break;
+                case '&':
+                    buf.appendAsDifferent("&amp;");
+                    break;
+                case '"':
+                    buf.append("&quot;");
+                    break;
+                case '\'':
+                    buf.append("&#39;");
+                    break;
+                case '\u2028':
+                    buf.append("<br>");
+                    break;
+                case '\u2029':
+                    buf.append("<p>");
+                    break;
+                case '\u00a9':
+                    buf.append("&copy;");
+                    break;  // ©
+                default:
+                    if (Character.isHighSurrogate(c) && (i + 1) < length && Character.isSurrogatePair(c, value.charAt(i + 1)))
+                    {
+                        // Old browsers prefer decimal entity
+                        buf.append(codepointToCharRefDec(Character.codePointAt(value, i)));
+                        i++;
+                    }
+                    else
+                    {
+                        buf.appendQuicklyForEscapingWithoutSkips(c);
+                    }
             }
         }
         return buf.toString();
     }
-
 
     /**
      * Generate the decimal XML character reference for specified Unicode code point.
@@ -144,37 +177,39 @@ public final class FormulaTextUtil {
      * @param codepoint Code point
      * @return Character reference in decimal format
      */
-    public static String codepointToCharRefDec(int codepoint) {
-        if (Character.isValidCodePoint(codepoint)) {
+    public static String codepointToCharRefDec(int codepoint)
+    {
+        if (Character.isValidCodePoint(codepoint))
+        {
             return "&#" + Integer.toUnsignedString(codepoint, 10) + ";";
         }
         return ""; // TODO: Should we throw new IllegalArgumentException("Invalid codepoint"); ?
     }
 
-
     /**
-     * @param c the collection
-     * @param delim
-     *        what delimiter to use in between collection elements.
-     * @param start
-     *        what text to use at the beginning of each element
-     * @param end
-     *        what text to use at the end of each element
+     * @param c     the collection
+     * @param delim what delimiter to use in between collection elements.
+     * @param start what text to use at the beginning of each element
+     * @param end   what text to use at the end of each element
      * @return a &lt;delim&gt;-separated string from the contents of the given collection where each member is enclosed
-     *         between &lt;beginChar&gt; and &lt;endChar&gt;
+     * between &lt;beginChar&gt; and &lt;endChar&gt;
      */
-    public static String collectionToStringEnclosed(Iterable<?> c, String delim, String start, String end) {
-        if (c == null) {
+    public static String collectionToStringEnclosed(Iterable<?> c, String delim, String start, String end)
+    {
+        if (c == null)
+        {
             return null;
         }
         StringBuilder sb = new StringBuilder();
-        String mid = new StringBuilder().append(end).append(delim).append(start).toString();
+        String mid = end + delim + start;
         int count = 0;
-        for (Object o : c) {
+        for (Object o : c)
+        {
             sb.append(sb.length() == 0 ? start : mid).append(o);
             count++;
         }
-        if (count > 0) {
+        if (count > 0)
+        {
             sb.append(end);
         }
         return sb.toString();
@@ -183,45 +218,53 @@ public final class FormulaTextUtil {
     /**
      * Note, if you are going to search/replace for the same set of source and target many times, you can get a
      * performance win by using the form of this call that takes a TrieMatcher instead.
-     * @param s the string to replace
-     * @param src the parallel array of strings to search for
-     * @param target the parallel array of string to replace with
      *
+     * @param s      the string to replace
+     * @param src    the parallel array of strings to search for
+     * @param target the parallel array of string to replace with
      * @return the replacement of all occurrences of src[i] with target[i] in s. Src and target are not regex's so this
-     *         uses simple searching with indexOf()
+     * uses simple searching with indexOf()
      * @see #replaceMultiple(String, TrieMatcher)
      */
-    public static String replaceSimple(String s, String[] src, String[] target) {
+    public static String replaceSimple(String s, String[] src, String[] target)
+    {
         assert src != null && target != null && src.length > 0 && src.length == target.length;
-        if (src.length == 1 && src[0].length() == 1) {
+        if (src.length == 1 && src[0].length() == 1)
+        {
             return CharMatcher.is(src[0].charAt(0)).replaceFrom(s, target[0]);
         }
-        if (s == null) {
+        if (s == null)
+        {
             return null;
         }
         StringBuilder sb = new StringBuilder(s.length());
         int pos = 0;
         int limit = s.length();
         int lastMatch = 0;
-        while (pos < limit) {
+        while (pos < limit)
+        {
             boolean matched = false;
-            for (int i = 0; i < src.length; i++) {
-                if (s.startsWith(src[i], pos) && src[i].length() > 0) {
+            for (int i = 0; i < src.length; i++)
+            {
+                if (s.startsWith(src[i], pos) && src[i].length() > 0)
+                {
                     // we found a matching pattern - append the acculumation plus the replacement
-                    sb.append(s.substring(lastMatch, pos)).append(target[i]);
+                    sb.append(s, lastMatch, pos).append(target[i]);
                     pos += src[i].length();
                     lastMatch = pos;
                     matched = true;
                     break;
                 }
             }
-            if (!matched) {
+            if (!matched)
+            {
                 // we didn't match any patterns, so move forward 1 character
                 pos++;
             }
         }
         // see if we found any matches
-        if (lastMatch == 0) {
+        if (lastMatch == 0)
+        {
             // we didn't match anything, so return the source string
             return s;
         }
@@ -233,62 +276,60 @@ public final class FormulaTextUtil {
     }
 
     /**
-     * @param s the string to replace
-     * @param src a single value to replace
+     * @param s      the string to replace
+     * @param src    a single value to replace
      * @param target what to replace it with.
      * @return the replacement of src with target in s, using simple string replacement
      */
     //@edu.umd.cs.findbugs.annotations.SuppressWarnings("RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE")
-    public static String replaceSimple(String s, String src, String target) {
+    public static String replaceSimple(String s, String src, String target)
+    {
         assert src != null && src.length() > 0;
-        if (s == null || s.length() == 0) {
+        if (s == null || s.length() == 0)
+        {
             return s;
         }
 
         // Even though this may look redundant after the assertion above (which is disabled in production)
         // this precondition check is necessary to prevent infinite loop leading to catastrophic OOM (W-1140719)
-        if (src == null || src.length() == 0) {
+        if (src == null || src.length() == 0)
+        {
             // Need to check for null again to create proper message. Suppressed RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE
             String message = (src == null ? "Null" : "Empty") + " string pattern to replace";
             throw new IllegalArgumentException(message);
         }
 
         if (target == null)
-         {
+        {
             target = "null";  // gag - but this is the way the replaceRegex works, so, I guess we need to be compatible
         }
 
         int pos = s.indexOf(src);
         if (pos == -1)
-         {
+        {
             return s; // no match
         }
 
         int limit = s.length();
         StringBuilder buf = new StringBuilder(limit);
-        buf.append(s.substring(0, pos)).append(target); // replace the first instance
+        buf.append(s, 0, pos).append(target); // replace the first instance
         pos += src.length();
-        while (pos < limit) { // and keep looking for more
+        while (pos < limit)
+        { // and keep looking for more
             int p = s.indexOf(src, pos);
             if (p == -1)
-             {
+            {
                 break; // no more
             }
-            buf.append(s.substring(pos, p)).append(target);
+            buf.append(s, pos, p).append(target);
             pos = p + src.length();
         }
         if (pos < limit)
-         {
+        {
             buf.append(s.substring(pos)); // append the tail
         }
         return buf.toString();
     }
-
-
-    private static final String[] JS_IN = new String[] { "\\", "'", "\n", "\r", "\"", "!--", "<", ">", "\u2028", "\u2029", "\u0000", "/*", "*/", "*", "&#39;" };
-    private static final String[] JS_OUT = new String[] { "\\\\", "\\'", "\\n", "\\r", "\\\"", "\\!--", "\\u003C", "\\u003E", "\\n", "\\u2029", "", "\\/\\*", "\\*\\/", "\\*", "\\&#39;" };
-
-    private static final TrieMatcher JS_SEARCH_REPLACE = TrieMatcher.compile(JS_IN, JS_OUT);
 
     /**
      * Properly escapes strings to be displayed in Javascript Strings. This means that backslashes and single quotes are
@@ -299,10 +340,12 @@ public final class FormulaTextUtil {
      * The Javascript escaping methods are the only methods you should call outside of Element classes.
      * Whenever you are passing Javascript into elements, you should escape any potentially dangerous portions
      * of the script.
+     *
      * @param in the value to esacpe for javascript
      * @return in with javascript references escaped
      */
-    public static String escapeForJavascriptString(String in) {
+    public static String escapeForJavascriptString(String in)
+    {
         return TrieMatcher.replaceMultiple(in, JS_SEARCH_REPLACE);
     }
 
@@ -316,14 +359,14 @@ public final class FormulaTextUtil {
      * <p>
      * Note, regexes aren't supported by this, see {@link #replaceSimple(String, String[], String[])}.
      *
-     * @param s
-     *        the text you are searching in
-     * @param trieMatcher
-     *        the trie representing the words to search and replace for
+     * @param s           the text you are searching in
+     * @param trieMatcher the trie representing the words to search and replace for
      * @return the text with the search words swapped by the replacements
      */
-    public static String replaceMultiple(String s, TrieMatcher trieMatcher) {
-        if (s == null || trieMatcher == null || s.length() == 0) {
+    public static String replaceMultiple(String s, TrieMatcher trieMatcher)
+    {
+        if (s == null || trieMatcher == null || s.length() == 0)
+        {
             return s;
         }
 
@@ -335,24 +378,31 @@ public final class FormulaTextUtil {
         int pos = 0;
         int length = s.length();
         boolean foundMatch = false;
-        while (pos < length) {
+        while (pos < length)
+        {
             TrieMatch match = trieMatcher.match(s, pos);
-            if (match == null) {
-                if (!foundMatch) {
+            if (match == null)
+            {
+                if (!foundMatch)
+                {
                     return s;
-                } else {
+                }
+                else
+                {
                     // No more matches, so copy the rest and get gone
                     dsb.append(s, pos, s.length());
                     break;
                 }
             }
             foundMatch = true;
-            if (dsb == null) {
+            if (dsb == null)
+            {
                 dsb = new StringBuilder(s.length() + 16);
             }
 
             // Copy up to the match position
-            if (match.getPosition() > pos) {
+            if (match.getPosition() > pos)
+            {
                 dsb.append(s, pos, match.getPosition());
             }
 
@@ -367,21 +417,28 @@ public final class FormulaTextUtil {
 
     /**
      * Used by Formula Field: TRIM() function
+     *
      * @param arg the string to trim
      * @return the string trimmed in a way similar to how the DB does it.
      */
-    public static String formulaTrim(String arg) {
+    public static String formulaTrim(String arg)
+    {
         int left = 0;
-        while ((left < arg.length()) && (arg.charAt(left) == ' ')) {
+        while ((left < arg.length()) && (arg.charAt(left) == ' '))
+        {
             left++;
         }
         int right = arg.length() - 1;
-        while ((right >= 0) && (arg.charAt(right) == ' ')) {
+        while ((right >= 0) && (arg.charAt(right) == ' '))
+        {
             right--;
         }
-        if (left > right) {
+        if (left > right)
+        {
             return null;
-        } else {
+        }
+        else
+        {
             return arg.substring(left, right + 1);
         }
     }
@@ -389,85 +446,108 @@ public final class FormulaTextUtil {
     /**
      * Used by Formula Field: INITCAP() function.  Where the string is lowercased, except for the start
      * of each word.  This uses only unicode character sets to determine upper and lowercase (to match psql)
+     *
      * @param value the string to init cap
      * @return the string INITCAP'd the way the database does it.
      */
-    public static String formulaInitCap(String value) {
+    public static String formulaInitCap(String value)
+    {
         return formulaInitCap(value, false);
     }
 
     /**
      * Used by Formula Field: INITCAP() function.  Where the string is lowercased, except for the start
      * of each word
+     *
      * @param value the string to init cap
      * @param ascii if only ascii characters should be considered (to match psql).  Diacritics won't work
      * @return the string INITCAP'd the way the database does it.
      */
-    public static String formulaInitCap(String value, boolean ascii) {
-        if (value == null || value.length() == 0) {
+    public static String formulaInitCap(String value, boolean ascii)
+    {
+        if (value == null || value.length() == 0)
+        {
             return value;
         }
         DeferredStringBuilder buf = new DeferredStringBuilder(value);
         // Optimized version of appendEscapedOutput where we can use appendQuicklyForEscapingWithoutSkips
         boolean isStart = true;
         final int length = value.length();
-        for (int i = 0; i < length; i++) {
+        for (int i = 0; i < length; i++)
+        {
             char c = value.charAt(i);
-            if (ascii ? (c >= 'a' && c <= 'z') : Character.isLowerCase(c)) {
-                if (isStart) {
+            if (ascii ? (c >= 'a' && c <= 'z') : Character.isLowerCase(c))
+            {
+                if (isStart)
+                {
                     buf.append(Character.toUpperCase(c));
-                } else {
+                }
+                else
+                {
                     buf.append(c);
                 }
                 isStart = false;
-            } else if (ascii ? (c >= 'A' && c <= 'Z') : Character.isUpperCase(c)) {
-                if (isStart) {
+            }
+            else if (ascii ? (c >= 'A' && c <= 'Z') : Character.isUpperCase(c))
+            {
+                if (isStart)
+                {
                     buf.append(c);
-                } else {
+                }
+                else
+                {
                     buf.append(Character.toLowerCase(c));
                 }
                 isStart = false;
-            } else {
-                isStart = ascii ? !(c >= '0' && c <= '9'): !Character.isDigit(c);   // alphanumeric
+            }
+            else
+            {
+                isStart = ascii ? !(c >= '0' && c <= '9') : !Character.isDigit(c);   // alphanumeric
                 buf.append(c);
             }
         }
         return buf.toString();
     }
 
-
-
     /**
      * Removes enclosing single or double quotes provided the string's first and last character are the quotes
+     *
      * @param s the string where the quotes should be removed
      * @return the string without enclosing quotes
      */
-    public static String removeEnclosingQuotes(String s) {
-        if (s == null || s.length() < 3) {
+    public static String removeEnclosingQuotes(String s)
+    {
+        if (s == null || s.length() < 3)
+        {
             return s;
         }
 
         int olen = s.length();
-        if (s.charAt(0) == s.charAt(olen-1) && (s.charAt(0) == '\'' || s.charAt(0) == '"')) {
-            return s.substring(1, olen-1);
+        if (s.charAt(0) == s.charAt(olen - 1) && (s.charAt(0) == '\'' || s.charAt(0) == '"'))
+        {
+            return s.substring(1, olen - 1);
         }
         return s;
     }
 
-    public static boolean isNullEmptyOrWhitespace(CharSequence str) {
-        if (str == null) {
+    public static boolean isNullEmptyOrWhitespace(CharSequence str)
+    {
+        if (str == null)
+        {
             return true;
         }
 
         return isEmptyOrWhitespace(str);
     }
 
-
-    public static boolean isEmptyOrWhitespace(CharSequence str) {
+    public static boolean isEmptyOrWhitespace(CharSequence str)
+    {
         int end = str.length();
         char c;
-        for (int i = 0; i < end; i++) {
-            if (!((c = str.charAt(i)) <= ' ' || Character.isWhitespace(c))) {
+        for (int i = 0; i < end; i++)
+        {
+            if (!((c = str.charAt(i)) <= ' ' || Character.isWhitespace(c)))
+            {
                 return false;
             }
         }
@@ -477,54 +557,70 @@ public final class FormulaTextUtil {
     /**
      * Compares two strings and returns true if they're equal to each other, where a null string and an empty string are
      * considered equal.
-     * <P>
+     * <p>
      * This is essentially a convenience method for comparing two strings when one or both might be null, so you can't
      * just do <code>s1.equals(s2)</code>.
+     *
      * @param s1 left hand side
      * @param s2 right hand side
      * @return whether the strings are equal
      */
-    public static boolean stringsAreEqualNullIsEmpty(String s1, String s2) {
-        if (s1 == null) {
+    public static boolean stringsAreEqualNullIsEmpty(String s1, String s2)
+    {
+        if (s1 == null)
+        {
             return s2 == null || s2.length() == 0;
-        } else if (s2 == null) {
+        }
+        else if (s2 == null)
+        {
             return s1.length() == 0;
-        } else {
+        }
+        else
+        {
             return s1.equals(s2);
         }
     }
 
     /**
      * Compares the arrays by running each pair through compareStringsNullIsEmpty.
+     *
      * @param s1 left hand side
      * @param s2 right hand side
      * @return whether the string arrays are equal
      */
-    public static boolean stringArraysAreEqualNullIsEmpty(String[] s1, String[] s2) {
-        if (s1 == null || s2 == null) {
+    public static boolean stringArraysAreEqualNullIsEmpty(String[] s1, String[] s2)
+    {
+        if (s1 == null || s2 == null)
+        {
             return (s1 == null && s2 == null);
         }
-        if (s1.length != s2.length) {
+        if (s1.length != s2.length)
+        {
             return false;
         }
 
         int len = s1.length;
-        for (int i = 0; i < len; i++) {
-            if (!stringsAreEqualNullIsEmpty(s1[i], s2[i])) {
+        for (int i = 0; i < len; i++)
+        {
+            if (!stringsAreEqualNullIsEmpty(s1[i], s2[i]))
+            {
                 return false;
             }
         }
         return true;
     }
 
-    private static final Pattern NUMERIC_PATTERN = Pattern.compile("[-+]?\\d*\\.?\\d+");
     /**
+     * @param s the string to test
      * @return whether the string is numeric...  This isn't 100% fool proof, and isn't what is used for ISNUMBER(),
      * but it close enough
-     * @param s the string to test
      */
-    public static boolean isNumeric(String s) {
-        if (s == null) return false;
+    public static boolean isNumeric(String s)
+    {
+        if (s == null)
+        {
+            return false;
+        }
         return NUMERIC_PATTERN.matcher(s).matches();
     }
 
@@ -532,10 +628,14 @@ public final class FormulaTextUtil {
      * @param map the map to pretty print
      * @return a debug string for a map, one entry per line
      */
-    public static String prettyPrintMap(Map<?, ?> map) {
-        if (map == null) {
+    public static String prettyPrintMap(Map<?, ?> map)
+    {
+        if (map == null)
+        {
             return null;
-        } else if (map.size() == 0) {
+        }
+        else if (map.size() == 0)
+        {
             return "";
         }
         return Joiner.on("\n").withKeyValueSeparator(" = ").join(map) + "\n";
@@ -553,22 +653,25 @@ public final class FormulaTextUtil {
      * The convention in the app is that all escaping is done at output time by Elements
      * and output should go through elements when possible. If you are using this method, you should think
      * carefully about what you are doing and decide if it's truly necessary to bypass elements.
+     *
      * @param input the string to escape for XML
      * @return the string with XML special characters, like greater than/less than, escaped
      */
-    public static String escapeToXml(CharSequence input) {
+    public static String escapeToXml(CharSequence input)
+    {
         return escapeToXml(input, false, false);
     }
 
-    public static String escapeToXml(CharSequence input, boolean allowNewLines, boolean convertNulls) {
+    public static String escapeToXml(CharSequence input, boolean allowNewLines, boolean convertNulls)
+    {
         return escapeToXml(input, allowNewLines, convertNulls, false);
     }
 
     public static String escapeToXml(CharSequence input, boolean allowNewLines, boolean convertNulls,
-            boolean escapeApos) {
+            boolean escapeApos)
+    {
         return escapeToXml(input, allowNewLines, convertNulls, escapeApos, false);
     }
-
 
 
     /**
@@ -583,33 +686,33 @@ public final class FormulaTextUtil {
      * The convention in the app is that all escaping is done at output time by Elements
      * and output should go through elements when possible. If you are using this method, you should think
      * carefully about what you are doing and decide if it's truly necessary to bypass elements.
-     * @param input
-     *        the text to escape
-     * @param allowNewLines
-     *        if false, newlines (\r or \n) are converted to spaces instead
-     * @param convertNulls
-     *        convert nulls to the empty string if treu
-     * @param escapeApos
-     *        Add a backslash in front of apostrophes to deal with MSXML's nonsense
-     * @param preserveWhitespace
-     *        if true, whitespace chars (as defined by {@link Character#isWhitespace(char)}) are not converted to
-     *        spaces. If false, they may be converted to spaces if they are control characters. This argument is weaker
-     *        than {@code allowNewLines}, so if {@code allowNewLines} is true but this argument is false, newlines will
-     *        be preserved anyway. Since newlines are also whitespace, if {@code allowNewLines} is false but this
-     *        argument is true, then newlines will still be preserved.
+     *
+     * @param input              the text to escape
+     * @param allowNewLines      if false, newlines (\r or \n) are converted to spaces instead
+     * @param convertNulls       convert nulls to the empty string if treu
+     * @param escapeApos         Add a backslash in front of apostrophes to deal with MSXML's nonsense
+     * @param preserveWhitespace if true, whitespace chars (as defined by {@link Character#isWhitespace(char)}) are not converted to
+     *                           spaces. If false, they may be converted to spaces if they are control characters. This argument is weaker
+     *                           than {@code allowNewLines}, so if {@code allowNewLines} is true but this argument is false, newlines will
+     *                           be preserved anyway. Since newlines are also whitespace, if {@code allowNewLines} is false but this
+     *                           argument is true, then newlines will still be preserved.
      * @return input escaped to XML.
      */
     public static String escapeToXml(CharSequence input, boolean allowNewLines, boolean convertNulls,
-            boolean escapeApos, boolean preserveWhitespace) {
-        if (input == null || input.length() == 0) {
+            boolean escapeApos, boolean preserveWhitespace)
+    {
+        if (input == null || input.length() == 0)
+        {
             return convertNulls ? "" : input == null ? null : "";
         }
 
         int limit = input.length();
         DeferredStringBuilder buf = new DeferredStringBuilder(input);
-        for (int i = 0; i < limit; i++) {
+        for (int i = 0; i < limit; i++)
+        {
             char c = input.charAt(i);
-            switch (c) {
+            switch (c)
+            {
                 case '\n':
                     buf.append(allowNewLines ? '\n' : ' ');
                     break;
@@ -629,16 +732,21 @@ public final class FormulaTextUtil {
                     buf.append("&quot;");
                     break;
                 case '\'':
-                    buf.append(escapeApos ? "&apos;" : "\'");
+                    buf.append(escapeApos ? "&apos;" : "'");
                     break;
                 default:
-                    if (Character.isHighSurrogate(c) && (i + 1) < limit && Character.isLowSurrogate(input.charAt(i + 1))) {
+                    if (Character.isHighSurrogate(c) && (i + 1) < limit && Character.isLowSurrogate(input.charAt(i + 1)))
+                    {
                         // Old browsers prefer decimal entity
                         buf.append(codepointToCharRefDec(Character.codePointAt(input, i)));
                         i++;
-                    } else if (!(preserveWhitespace && Character.isWhitespace(c)) && isIsoControlOrOddUnicode(c)) {
+                    }
+                    else if (!(preserveWhitespace && Character.isWhitespace(c)) && isIsoControlOrOddUnicode(c))
+                    {
                         buf.append(' ');
-                    } else {
+                    }
+                    else
+                    {
                         buf.append(c);
                     }
                     break;
@@ -648,55 +756,118 @@ public final class FormulaTextUtil {
     }
 
     /**
-     * @return whether the given input char is an iso-control character, undefined, or in an unusable Unicode block.
      * @param c the character to test
+     * @return whether the given input char is an iso-control character, undefined, or in an unusable Unicode block.
      */
-    public static boolean isIsoControlOrOddUnicode(char c) {
+    public static boolean isIsoControlOrOddUnicode(char c)
+    {
         Character.UnicodeBlock block = Character.UnicodeBlock.of(c);
         return (Character.isISOControl(c) || !Character.isDefined(c) || block == Character.UnicodeBlock.HIGH_SURROGATES
                 || block == Character.UnicodeBlock.HIGH_PRIVATE_USE_SURROGATES || block == Character.UnicodeBlock.LOW_SURROGATES);
     }
 
     // These are from Salesforce's commons-text, not yet open source.  The grammaticus version was rather stripped down, but we need the full one here.
+
     /**
      * An immutable trie used for fast multiple string search and replace.
-     *
+     * <p>
      * It's set of words and replacements are populated at initialization,
      * and the data structure creation is not the cheapest of operations,
      * so it is best used when the object will be used multiple times.
      *
      * @author koliver
-     * @since 154
      * @see TrieMatcher#replaceMultiple(String, TrieMatcher)
+     * @since 154
      */
     @Immutable
-    public static class TrieMatcher {
+    public static class TrieMatcher
+    {
 
         private static final int DEFAULT_CAPACITY = 1; // trading initialization time for a small memory footprint
+        private final IntHashMap<TrieData> root;
+        private final List<String> words;
+        private final int minWordLength;
+
+        /**
+         * Use the factory {@link #compile()} instead.
+         */
+        private TrieMatcher(List<String> strings, List<String> replacements)
+        {
+            if (strings == null)
+            {
+                throw new NullPointerException();
+            }
+            if (replacements == null)
+            {
+                throw new NullPointerException();
+            }
+
+            if (strings.size() != replacements.size())
+            {
+                throw new IllegalArgumentException("Replacements must have same size, " + replacements.size()
+                        + ", as search strings " + strings.size());
+            }
+
+            this.words = Collections.unmodifiableList(strings);
+            this.root = new IntHashMap<TrieData>(DEFAULT_CAPACITY);
+
+            int minWordLen = Integer.MAX_VALUE;
+            int wordIndex = 0;
+            for (String s : strings)
+            {
+                IntHashMap<TrieData> current = this.root;
+
+                int len = s.length();
+                minWordLen = Math.min(minWordLen, len);
+                for (int i = 0; i < len; i++)
+                {
+                    int ch = s.charAt(i);
+                    TrieData next = current.get(ch);
+                    if (next == null)
+                    {
+                        next = new TrieData(new IntHashMap<TrieData>(DEFAULT_CAPACITY));
+                        current.put(ch, next);
+                    }
+                    current = next.nextChars;
+
+                    // if we're at the last char, store it and its replacement...
+                    if (i + 1 == len)
+                    {
+                        next.word = s;
+                        next.replacement = replacements.get(wordIndex);
+                    }
+                }
+                wordIndex++;
+            }
+
+            this.minWordLength = minWordLen;
+        }
 
         /**
          * This is not the cheapest of operations.
          *
-         * @param strings this is the list of words that make up the Trie.
-         *      It is assumed that the lists are not modified once passed into the Trie
+         * @param strings      this is the list of words that make up the Trie.
+         *                     It is assumed that the lists are not modified once passed into the Trie
          * @param replacements the list of words that can be used to replace those words.
-         *      It is assumed that the lists are not modified once passed into the Trie
+         *                     It is assumed that the lists are not modified once passed into the Trie
          * @return a new TrieMatcher
          */
-        public static TrieMatcher compile(String[] strings, String[] replacements) {
+        public static TrieMatcher compile(String[] strings, String[] replacements)
+        {
             return TrieMatcher.compile(Arrays.asList(strings), Arrays.asList(replacements));
         }
 
         /**
          * This is not the cheapest of operations.
          *
-         * @param strings this is the list of words that make up the Trie.
-         *      It is assumed that the lists are not modified once passed into the Trie
+         * @param strings      this is the list of words that make up the Trie.
+         *                     It is assumed that the lists are not modified once passed into the Trie
          * @param replacements the list of words that can be used to replace those words.
-         *      It is assumed that the lists are not modified once passed into the Trie
+         *                     It is assumed that the lists are not modified once passed into the Trie
          * @return a new TrieMatcher
          */
-        public static TrieMatcher compile(List<String> strings, List<String> replacements) {
+        public static TrieMatcher compile(List<String> strings, List<String> replacements)
+        {
             return new TrieMatcher(strings, replacements);
         }
 
@@ -710,15 +881,16 @@ public final class FormulaTextUtil {
          * <p>
          * Note, regexes aren't supported by this, see {@link #replaceSimple(String, String[], String[])}.
          *
-         * @param s
-         *        the text you are searching in
-         * @param trieMatcher
-         *        the trie representing the words to search and replace for
+         * @param s           the text you are searching in
+         * @param trieMatcher the trie representing the words to search and replace for
          * @return the text with the search words swapped by the replacements
          */
-        public static final String replaceMultiple(String s, TrieMatcher trieMatcher) {
+        public static final String replaceMultiple(String s, TrieMatcher trieMatcher)
+        {
             if (s == null || trieMatcher == null || s.length() == 0)
+            {
                 return s;
+            }
 
             // we don't use a DeferredStringBuilder because we don't expect to
             // reuse much of the original string. it's likely all or nothing.
@@ -728,23 +900,33 @@ public final class FormulaTextUtil {
             int pos = 0;
             int length = s.length();
             boolean foundMatch = false;
-            while (pos < length) {
+            while (pos < length)
+            {
                 TrieMatch match = trieMatcher.match(s, pos);
-                if (match == null) {
-                    if (!foundMatch) {
+                if (match == null)
+                {
+                    if (!foundMatch)
+                    {
                         return s;
-                    } else {
+                    }
+                    else
+                    {
                         // No more matches, so copy the rest and get gone
                         dsb.append(s, pos, s.length());
                         break;
                     }
                 }
                 foundMatch = true;
-                if (dsb == null) dsb = new StringBuilder(s.length() + 16);
+                if (dsb == null)
+                {
+                    dsb = new StringBuilder(s.length() + 16);
+                }
 
                 // Copy up to the match position
                 if (match.getPosition() > pos)
+                {
                     dsb.append(s, pos, match.getPosition());
+                }
 
                 // Append the replacement
                 dsb.append(match.getReplacement());
@@ -759,7 +941,8 @@ public final class FormulaTextUtil {
          * @param s the term to search for the terms of the trie in
          * @return true if the any of the terms are contained in <code>s</code>
          */
-        public boolean containedIn(CharSequence s) {
+        public boolean containedIn(CharSequence s)
+        {
             TrieMatch match = match(s);
             return match != null;
         }
@@ -768,7 +951,8 @@ public final class FormulaTextUtil {
          * @param s the term to see if it starts with any terms of the trie
          * @return if the string starts with any of the terms in the trie.
          */
-        public boolean begins(CharSequence s) {
+        public boolean begins(CharSequence s)
+        {
             TrieData match = begins(s, 0);
             return match != null;
         }
@@ -776,72 +960,19 @@ public final class FormulaTextUtil {
         /**
          * Find the next match in <code>s</code>.
          *
-         * @param s the term to search for the terms of the trie in
+         * @param s     the term to search for the terms of the trie in
          * @param start the 0-based position to start the search from.
          * @return null if no match found
          */
         @Nullable
-        public String findIn(CharSequence s, int start) {
+        public String findIn(CharSequence s, int start)
+        {
             TrieMatch match = match(s, start);
-            if (match == null) return null;
+            if (match == null)
+            {
+                return null;
+            }
             return match.getWord();
-        }
-
-        private static class TrieData {
-            String word;
-            String replacement;
-            final IntHashMap<TrieData> nextChars;
-
-            TrieData(IntHashMap<TrieData> next) {
-                this.nextChars = next;
-            }
-        }
-
-        private final IntHashMap<TrieData> root;
-        private final List<String> words;
-        private final int minWordLength;
-
-        /**
-         * Use the factory {@link #compile()} instead.
-         */
-        private TrieMatcher(List<String> strings, List<String> replacements) {
-            if (strings == null) throw new NullPointerException();
-            if (replacements == null) throw new NullPointerException();
-
-            if (strings.size() != replacements.size()) {
-                throw new IllegalArgumentException("Replacements must have same size, "+ replacements.size()
-                    + ", as search strings " + strings.size());
-            }
-
-            this.words = Collections.unmodifiableList(strings);
-            this.root = new IntHashMap<TrieData>(DEFAULT_CAPACITY);
-
-            int minWordLen = Integer.MAX_VALUE;
-            int wordIndex = 0;
-            for (String s : strings) {
-                IntHashMap<TrieData> current = this.root;
-
-                int len = s.length();
-                minWordLen = Math.min(minWordLen, len);
-                for (int i = 0; i < len; i++) {
-                    int ch = s.charAt(i);
-                    TrieData next = current.get(ch);
-                    if (next == null) {
-                        next = new TrieData(new IntHashMap<TrieData>(DEFAULT_CAPACITY));
-                        current.put(ch, next);
-                    }
-                    current = next.nextChars;
-
-                    // if we're at the last char, store it and its replacement...
-                    if (i+1 == len) {
-                        next.word = s;
-                        next.replacement = replacements.get(wordIndex);
-                    }
-                }
-                wordIndex++;
-            }
-
-            this.minWordLength = minWordLen;
         }
 
         /**
@@ -849,56 +980,82 @@ public final class FormulaTextUtil {
          *
          * @return null if none are found.
          */
-        TrieMatch match(CharSequence s) {
+        TrieMatch match(CharSequence s)
+        {
             return match(s, 0);
         }
 
         /**
          * See if the given string matches any of the given words in the Trie
-         * @param s the string to test
          *
+         * @param s      the string to test
          * @param offset where to start looking inside of the given String.
          * @return null if none are found.
          */
-        public TrieMatch match(CharSequence s, int offset) {
-            if (s == null || s.length() == 0 || offset < 0) return null;
+        public TrieMatch match(CharSequence s, int offset)
+        {
+            if (s == null || s.length() == 0 || offset < 0)
+            {
+                return null;
+            }
 
             int len = s.length();
-            for (int i = offset; i < len; i++) {
+            for (int i = offset; i < len; i++)
+            {
                 // optimize the case when we don't have enough room left to contain any matches
-                if (i + this.minWordLength > len) break;
+                if (i + this.minWordLength > len)
+                {
+                    break;
+                }
 
                 TrieData data = contains(s, i);
-                if (data != null) return new TrieMatch(i, data.word, data.replacement);
+                if (data != null)
+                {
+                    return new TrieMatch(i, data.word, data.replacement);
+                }
             }
 
             return null;
         }
 
-        private TrieData begins(CharSequence s, int offset) {
-            if (s == null || s.length() == 0 || offset < 0) return null;
+        private TrieData begins(CharSequence s, int offset)
+        {
+            if (s == null || s.length() == 0 || offset < 0)
+            {
+                return null;
+            }
             return contains(s, offset);
         }
 
         /**
          * @return null if not found
          */
-        private TrieData contains(CharSequence s, int offset) {
+        private TrieData contains(CharSequence s, int offset)
+        {
             IntHashMap<TrieData> current = this.root;
             int len = s.length();
             LinkedList<TrieData> matches = null;
             TrieData firstMatch = null;
 
-            for (int i = offset; i < len; i++) {
+            for (int i = offset; i < len; i++)
+            {
                 int ch = s.charAt(i);
                 TrieData nextData = current.get(ch);
 
-                if (nextData == null) break;
-                if (nextData.word != null) {
-                    if (firstMatch == null){
+                if (nextData == null)
+                {
+                    break;
+                }
+                if (nextData.word != null)
+                {
+                    if (firstMatch == null)
+                    {
                         firstMatch = nextData;
-                    } else {
-                        if (matches == null){
+                    }
+                    else
+                    {
+                        if (matches == null)
+                        {
                             matches = new LinkedList<TrieData>();
                             matches.add(firstMatch);
                         }
@@ -909,20 +1066,41 @@ public final class FormulaTextUtil {
                 current = nextData.nextChars;
             }
 
-            if (firstMatch != null) {
+            if (firstMatch != null)
+            {
                 // only 1 match, so we know that's the one
-                if (matches == null) return firstMatch;
+                if (matches == null)
+                {
+                    return firstMatch;
+                }
 
                 // else, we need to find the "highest" priority order word
                 // as specified by the input to the trie
-                for (String word : this.words) {
-                    for (TrieData td : matches) {
-                        if (word.equals(td.word)) return td;
+                for (String word : this.words)
+                {
+                    for (TrieData td : matches)
+                    {
+                        if (word.equals(td.word))
+                        {
+                            return td;
+                        }
                     }
                 }
             }
 
             return null;
+        }
+
+        private static class TrieData
+        {
+            final IntHashMap<TrieData> nextChars;
+            String word;
+            String replacement;
+
+            TrieData(IntHashMap<TrieData> next)
+            {
+                this.nextChars = next;
+            }
         }
 
     }
@@ -933,16 +1111,27 @@ public final class FormulaTextUtil {
      * @author koliver
      * @see TrieMatcher
      */
-    public static class TrieMatch {
+    public static class TrieMatch
+    {
 
         private final int position;
         private final String word;
         private final String replacement;
 
-        TrieMatch(int position, String word, String replacement) {
-            if (position < 0) throw new IllegalArgumentException(Integer.toString(position));
-            if (word == null) throw new NullPointerException();
-            if (replacement == null) throw new NullPointerException();
+        TrieMatch(int position, String word, String replacement)
+        {
+            if (position < 0)
+            {
+                throw new IllegalArgumentException(Integer.toString(position));
+            }
+            if (word == null)
+            {
+                throw new NullPointerException();
+            }
+            if (replacement == null)
+            {
+                throw new NullPointerException();
+            }
             this.position = position;
             this.word = word;
             this.replacement = replacement;
@@ -956,7 +1145,8 @@ public final class FormulaTextUtil {
          *    Assert.assertEquals(3, match.getPosition());
          * </pre>
          */
-        public int getPosition() {
+        public int getPosition()
+        {
             return this.position;
         }
 
@@ -968,7 +1158,8 @@ public final class FormulaTextUtil {
          *    Assert.assertEquals("x", match.getWord());
          * </pre>
          */
-        public String getWord() {
+        public String getWord()
+        {
             return this.word;
         }
 
@@ -980,7 +1171,8 @@ public final class FormulaTextUtil {
          *    Assert.assertEquals("Y", match.getReplacement());
          * </pre>
          */
-        public String getReplacement() {
+        public String getReplacement()
+        {
             return this.replacement;
         }
 

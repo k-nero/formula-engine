@@ -8,9 +8,12 @@ import com.force.formula.util.FormulaI18nUtils;
  * @author wmacklem
  * @since 154
  */
-public class FieldNotAllowedException extends InvalidFieldReferenceException {
-	private static final long serialVersionUID = 1L;
-    public FieldNotAllowedException(String fieldName) {
+public class FieldNotAllowedException extends InvalidFieldReferenceException
+{
+    private static final long serialVersionUID = 1L;
+
+    public FieldNotAllowedException(String fieldName)
+    {
         super(fieldName, null, FormulaI18nUtils.getLocalizer().getLabel("FormulaFieldExceptionMessages", "FieldNotAllowedException", fieldName));
     }
 }

@@ -11,7 +11,8 @@ package com.force.formula;
  * @author aroyfaderman
  * @since 186
  */
-public interface ContextualFormulaFieldInfo extends FormulaFieldInfo {
+public interface ContextualFormulaFieldInfo extends FormulaFieldInfo
+{
     /**
      * @return the formula context that this was created from
      */

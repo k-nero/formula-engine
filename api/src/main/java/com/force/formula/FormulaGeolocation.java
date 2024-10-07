@@ -6,10 +6,11 @@ import jakarta.annotation.Nullable;
  * Represents a location on earth, defined by a latitude and a longitude.
  *
  * @author ahersans
- * @since 180
  * @see com.force.formula.util.FormulaGeolocationService
+ * @since 180
  */
-public interface FormulaGeolocation {
+public interface FormulaGeolocation
+{
 
     @Nullable
     Number getLatitude();
@@ -18,9 +19,9 @@ public interface FormulaGeolocation {
     Number getLongitude();
 
     // Optional enum for helping with display.  Not required, but used by the GeolocationService
-    enum GeolocationDisplayMode {
+    enum GeolocationDisplayMode
+    {
         DecimalDegrees,
         DegreesMinutesSeconds,
-        ;
     }
 }

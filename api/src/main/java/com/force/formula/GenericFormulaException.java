@@ -10,14 +10,17 @@ package com.force.formula;
  * @author wmacklem
  * @since 154
  */
-public class GenericFormulaException extends FormulaException {
-	private static final long serialVersionUID = 1L;
+public class GenericFormulaException extends FormulaException
+{
+    private static final long serialVersionUID = 1L;
 
-    public GenericFormulaException(String message) {
+    public GenericFormulaException(String message)
+    {
         super(message);
     }
-    
-    public GenericFormulaException(Throwable t) {
+
+    public GenericFormulaException(Throwable t)
+    {
         super(t);
     }
 }

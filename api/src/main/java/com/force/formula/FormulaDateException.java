@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package com.force.formula;
 
@@ -8,16 +8,19 @@ package com.force.formula;
  * @author stamm
  * @since 0.0.1
  */
-public class FormulaDateException extends FormulaException {
+public class FormulaDateException extends FormulaException
+{
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	public FormulaDateException(String message) {
-		super(message);
-	}
+    public FormulaDateException(String message)
+    {
+        super(message);
+    }
 
-	public FormulaDateException(Throwable t) {
-		super(t);
-	}
+    public FormulaDateException(Throwable t)
+    {
+        super(t);
+    }
 
 }

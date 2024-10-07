@@ -6,10 +6,12 @@ package com.force.formula;
  * @author dchasman
  * @since 140
  */
-public class FormulaEvaluationException extends RuntimeException {
+public class FormulaEvaluationException extends RuntimeException
+{
     private static final long serialVersionUID = 1L;
 
-	public FormulaEvaluationException(Throwable cause) {
+    public FormulaEvaluationException(Throwable cause)
+    {
         super(cause);
     }
 
@@ -17,11 +19,13 @@ public class FormulaEvaluationException extends RuntimeException {
      * Reporting uses this constructor to handle cases where the db auxiliary column
      * tells us that there is an error.
      */
-    public FormulaEvaluationException() {
+    public FormulaEvaluationException()
+    {
         super();
     }
 
-    public FormulaEvaluationException(String message) {
+    public FormulaEvaluationException(String message)
+    {
         super(message);
     }
 

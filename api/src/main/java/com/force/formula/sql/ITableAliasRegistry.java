@@ -1,9 +1,9 @@
 package com.force.formula.sql;
 
+import com.force.formula.FormulaFieldReferenceInfo;
+
 import java.util.Collection;
 import java.util.List;
-
-import com.force.formula.FormulaFieldReferenceInfo;
 
 /**
  * Maps spanning relationship paths to temporary table aliases for sql generation.
@@ -11,7 +11,8 @@ import com.force.formula.FormulaFieldReferenceInfo;
  * @author stamm
  * @since 200 (from wmacklem 154)
  */
-public interface ITableAliasRegistry {
+public interface ITableAliasRegistry
+{
 
     /**
      * @param fieldPath the list of field references by path for the current formula
@@ -22,8 +23,9 @@ public interface ITableAliasRegistry {
 
     /**
      * Take the inputted sql generated from the "other" registry and translate it to valid sql for <code>this</code> registry.
-     * @param sql the input sql converted with actual table names
-     * @param other the other registry to use for conversions of spanning relationships
+     *
+     * @param sql       the input sql converted with actual table names
+     * @param other     the other registry to use for conversions of spanning relationships
      * @param fieldPath the list of field references by path for the current formula
      * @return the sql converted
      */
@@ -36,5 +38,5 @@ public interface ITableAliasRegistry {
     String getRootTableCustomAlias();
 
     Collection<List<FormulaFieldReferenceInfo>> getFieldPaths();
-    
+
 }

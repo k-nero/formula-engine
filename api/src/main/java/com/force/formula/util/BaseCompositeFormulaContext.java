@@ -1,50 +1,34 @@
 package com.force.formula.util;
 
+import com.force.formula.*;
+import com.force.formula.FormulaSchema.ApiElement;
+import com.google.common.base.Ascii;
+
 import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-
-import com.force.formula.ContextualFormulaFieldInfo;
-import com.force.formula.DisplayField;
-import com.force.formula.FormulaCommandType;
-import com.force.formula.FormulaContext;
-import com.force.formula.FormulaCurrencyData;
-import com.force.formula.FormulaDateTime;
-import com.force.formula.FormulaEvaluationException;
-import com.force.formula.FormulaException;
-import com.force.formula.FormulaGeolocation;
-import com.force.formula.FormulaReturnType;
-import com.force.formula.FormulaRuntimeContext;
-import com.force.formula.FormulaSchema;
-import com.force.formula.FormulaSchema.ApiElement;
-import com.force.formula.FormulaTime;
-import com.force.formula.FormulaTypeSpec;
-import com.force.formula.GlobalFormulaProperties;
-import com.force.formula.InvalidFieldReferenceException;
-import com.force.formula.UnsupportedTypeException;
-import com.google.common.base.Ascii;
+import java.util.*;
 
 /**
  * Composite adapter to provide access to field values where the data source is an EntityObject.
- * 
+ * <p>
  * Use this to create the "$Foo" style of global properties by extending this class and calling addContextProvider
  * in the constructor
  *
  * @author dchasman
  * @since 144
  */
-public class BaseCompositeFormulaContext implements FormulaRuntimeContext {
-    @FunctionalInterface
-    public interface FormulaRuntimeContextProvider {
-        FormulaRuntimeContext get(FormulaContext outerContext) throws FormulaException, SQLException;
-    }
+public class BaseCompositeFormulaContext implements FormulaRuntimeContext
+{
+    private final GlobalFormulaProperties globalFormulaProperties;
+    private final Map<String, FormulaRuntimeContextProvider> additionalContextProviders;
+    private final Map<String, FormulaRuntimeContext> additionalContexts;
+    //Sometimes have to defer construction of the default context
+    protected FormulaRuntimeContext defaultContext;
+    private boolean allowSelfReference;
 
-    public BaseCompositeFormulaContext(FormulaRuntimeContext defaultContext, FormulaTypeSpec topLevelFormulaType) {
+    public BaseCompositeFormulaContext(FormulaRuntimeContext defaultContext, FormulaTypeSpec topLevelFormulaType)
+    {
         this.defaultContext = defaultContext;
         this.globalFormulaProperties = new GlobalFormulaProperties(topLevelFormulaType);
         this.additionalContextProviders = new HashMap<String, FormulaRuntimeContextProvider>();
@@ -52,7 +36,8 @@ public class BaseCompositeFormulaContext implements FormulaRuntimeContext {
         this.allowSelfReference = true;
     }
 
-    public BaseCompositeFormulaContext(FormulaRuntimeContext defaultContext, GlobalFormulaProperties globalProperties) {
+    public BaseCompositeFormulaContext(FormulaRuntimeContext defaultContext, GlobalFormulaProperties globalProperties)
+    {
         this.defaultContext = defaultContext;
         this.globalFormulaProperties = globalProperties;
         this.additionalContextProviders = new HashMap<String, FormulaRuntimeContextProvider>();
@@ -60,68 +45,87 @@ public class BaseCompositeFormulaContext implements FormulaRuntimeContext {
         this.allowSelfReference = true;
     }
 
+    /**
+     * @param fieldReference the field reference name
+     * @return whether this field reference is for a constant formula context like $System or $User.
+     */
+    public static boolean isGlobalContextFieldReference(String fieldReference)
+    {
+        assert fieldReference != null : "Do not pass in a null field reference";
+        return !fieldReference.isEmpty() && fieldReference.charAt(0) == '$';
+    }
 
     /**
      * Provide a way for a child formula context to filter out formulas simply without breaking inheritance
+     *
      * @param contextName the uppercase name of the formula.
      * @return <code>false</code> if the context shouldn't be available.
      */
-    protected boolean filterFormulaContext(String contextName) {
+    protected boolean filterFormulaContext(String contextName)
+    {
         return true;
     }
 
-
     @Override
-    public BigDecimal getNumber(String fieldName) throws InvalidFieldReferenceException, UnsupportedTypeException {
+    public BigDecimal getNumber(String fieldName) throws InvalidFieldReferenceException, UnsupportedTypeException
+    {
         FormulaRuntimeContext context = getContextThrowRuntimeOnly(fieldName);
         return context.getNumber(getFieldName(fieldName));
     }
 
     @Override
-    public String getString(String fieldName, boolean useNative) throws InvalidFieldReferenceException, UnsupportedTypeException {
+    public String getString(String fieldName, boolean useNative) throws InvalidFieldReferenceException, UnsupportedTypeException
+    {
         FormulaRuntimeContext context = getContextThrowRuntimeOnly(fieldName);
         return context.getString(getFieldName(fieldName), useNative);
     }
 
     @Override
-    public String getMaskedString(String fieldName) throws InvalidFieldReferenceException, UnsupportedTypeException {
+    public String getMaskedString(String fieldName) throws InvalidFieldReferenceException, UnsupportedTypeException
+    {
         FormulaRuntimeContext context = getContextThrowRuntimeOnly(fieldName);
         return context.getMaskedString(getFieldName(fieldName));
     }
 
     @Override
     public FormulaDateTime getDateTime(String fieldname) throws InvalidFieldReferenceException,
-            UnsupportedTypeException {
+            UnsupportedTypeException
+    {
         FormulaRuntimeContext context = getContextThrowRuntimeOnly(fieldname);
         return context.getDateTime(getFieldName(fieldname));
     }
 
     @Override
-    public Date getDate(String fieldName) throws InvalidFieldReferenceException, UnsupportedTypeException {
+    public Date getDate(String fieldName) throws InvalidFieldReferenceException, UnsupportedTypeException
+    {
         FormulaRuntimeContext context = getContextThrowRuntimeOnly(fieldName);
         return context.getDate(getFieldName(fieldName));
     }
 
     @Override
-    public FormulaTime getTime(String fieldname) throws InvalidFieldReferenceException, UnsupportedTypeException {
+    public FormulaTime getTime(String fieldname) throws InvalidFieldReferenceException, UnsupportedTypeException
+    {
         FormulaRuntimeContext context = getContextThrowRuntimeOnly(fieldname);
         return context.getTime(getFieldName(fieldname));
     }
 
     @Override
-    public Boolean getBoolean(String fieldName) throws InvalidFieldReferenceException, UnsupportedTypeException {
+    public Boolean getBoolean(String fieldName) throws InvalidFieldReferenceException, UnsupportedTypeException
+    {
         FormulaRuntimeContext context = getContextThrowRuntimeOnly(fieldName);
         return context.getBoolean(getFieldName(fieldName));
     }
 
     @Override
-    public FormulaCurrencyData getCurrency(String fieldName) throws InvalidFieldReferenceException, UnsupportedTypeException {
+    public FormulaCurrencyData getCurrency(String fieldName) throws InvalidFieldReferenceException, UnsupportedTypeException
+    {
         FormulaRuntimeContext context = getContextThrowRuntimeOnly(fieldName);
         return context.getCurrency(getFieldName(fieldName));
     }
 
     @Override
-    public FormulaGeolocation getLocation(String fieldName) throws InvalidFieldReferenceException, UnsupportedTypeException {
+    public FormulaGeolocation getLocation(String fieldName) throws InvalidFieldReferenceException, UnsupportedTypeException
+    {
         FormulaRuntimeContext context = getContextThrowRuntimeOnly(fieldName);
         return context.getLocation(getFieldName(fieldName));
     }
@@ -139,50 +143,62 @@ public class BaseCompositeFormulaContext implements FormulaRuntimeContext {
     }
 
     @Override
-    public Object getObject(String fieldName) throws InvalidFieldReferenceException, UnsupportedTypeException {
+    public Object getObject(String fieldName) throws InvalidFieldReferenceException, UnsupportedTypeException
+    {
         FormulaRuntimeContext context = getContextThrowRuntimeOnly(fieldName);
         return context.getObject(getFieldName(fieldName));
     }
 
     @Override
     @SuppressWarnings("unchecked")
-    public <T> T getProperty(String name) {
-        return (T)getDefaultContext().getProperty(name);
+    public <T> T getProperty(String name)
+    {
+        return getDefaultContext().getProperty(name);
     }
 
     @Override
-    public void setProperty(String name, Object value) {
+    public void setProperty(String name, Object value)
+    {
         FormulaContext context = getDefaultContext();
-        if (context != null) context.setProperty(name, value);
+        if (context != null)
+        {
+            context.setProperty(name, value);
+        }
     }
 
     @Override
-    public FormulaRuntimeContext getOriginalValuesContext() throws FormulaException {
+    public FormulaRuntimeContext getOriginalValuesContext() throws FormulaException
+    {
         return getDefaultContext().getOriginalValuesContext();
     }
 
     @Override
-    public boolean convertIdto18Digits() {
+    public boolean convertIdto18Digits()
+    {
         return false;
     }
 
     @Override
-    public boolean isNew() {
+    public boolean isNew()
+    {
         return getDefaultContext().isNew();
     }
 
     @Override
-    public boolean isClone() {
+    public boolean isClone()
+    {
         return getDefaultContext().isClone();
     }
 
     @Override
-    public FormulaReturnType getFormulaReturnType() {
+    public FormulaReturnType getFormulaReturnType()
+    {
         return getDefaultContext().getFormulaReturnType();
     }
 
     @Override
-    public ContextualFormulaFieldInfo lookup(String devName, boolean isDynamicRefBase) throws InvalidFieldReferenceException, UnsupportedTypeException {
+    public ContextualFormulaFieldInfo lookup(String devName, boolean isDynamicRefBase) throws InvalidFieldReferenceException, UnsupportedTypeException
+    {
         FormulaRuntimeContext context = getContextFromReference(devName);
         //context.setProperty(FormulaContext.FILTER_ENCRYPTED_FIELDS, new Boolean(true));  // Unused in Salesforce since 204
         String fieldName = getFieldName(devName);
@@ -190,41 +206,56 @@ public class BaseCompositeFormulaContext implements FormulaRuntimeContext {
     }
 
     @Override
-    public String toDurableName(String name) throws InvalidFieldReferenceException, UnsupportedTypeException {
+    public String toDurableName(String name) throws InvalidFieldReferenceException, UnsupportedTypeException
+    {
         FormulaRuntimeContext context = getContextFromReference(name);
 
-        if (context == null) { throw new InvalidFieldReferenceException(name, "Unable to get the reference's context"); }
+        if (context == null)
+        {
+            throw new InvalidFieldReferenceException(name, "Unable to get the reference's context");
+        }
 
         String fieldName = getFieldName(name);
 
-        if (context == getDefaultContext()) {
+        if (context == getDefaultContext())
+        {
             return context.toDurableName(fieldName);
-        } else {
+        }
+        else
+        {
             return String.format("%s.%s", getContextName(name), context.toDurableName(fieldName));
         }
     }
-    
+
     /**
      * @return the name to use when referencing the field in javascript.
      * @throws InvalidFieldReferenceException if the name is not a valid field reference
      */
     @Override
-    public String toJavascriptName(String name) throws InvalidFieldReferenceException {
+    public String toJavascriptName(String name) throws InvalidFieldReferenceException
+    {
         FormulaRuntimeContext context = getContextFromReference(name);
 
-        if (context == null) { throw new InvalidFieldReferenceException(name, "Unable to get the reference's context"); }
+        if (context == null)
+        {
+            throw new InvalidFieldReferenceException(name, "Unable to get the reference's context");
+        }
 
         String fieldName = getFieldName(name);
 
-        if (context == getDefaultContext()) {
+        if (context == getDefaultContext())
+        {
             return context.toJavascriptName(fieldName);
-        } else {
+        }
+        else
+        {
             return String.format("%s.%s", context.getJavascriptReference(), context.toJavascriptName(fieldName));
         }
     }
 
     @Override
-    public String fromDurableName(Connection conn, String reference) throws InvalidFieldReferenceException, UnsupportedTypeException {
+    public String fromDurableName(Connection conn, String reference) throws InvalidFieldReferenceException, UnsupportedTypeException
+    {
         FormulaRuntimeContext context = getContextFromReference(reference);
 
         int firstDot = reference.indexOf(".");
@@ -237,29 +268,36 @@ public class BaseCompositeFormulaContext implements FormulaRuntimeContext {
 
     // Provided a default implementation that fills in null for conn.
     @Override
-    public String fromDurableName(String reference) throws InvalidFieldReferenceException, UnsupportedTypeException {
+    public String fromDurableName(String reference) throws InvalidFieldReferenceException, UnsupportedTypeException
+    {
         return fromDurableName(null, reference);
     }
 
     @Override
-    public boolean isFunctionSupported(FormulaCommandType function) {
+    public boolean isFunctionSupported(FormulaCommandType function)
+    {
         return getDefaultContext().isFunctionSupported(function);
     }
 
     @Override
-    public boolean isGlobalVariableSupportedOffline(String variableType) {
+    public boolean isGlobalVariableSupportedOffline(String variableType)
+    {
         return getGlobalVariablesSupportedOffline().contains(Ascii.toUpperCase(variableType));
     }
 
-    protected Collection<String> getGlobalVariablesSupportedOffline() {
+    protected Collection<String> getGlobalVariablesSupportedOffline()
+    {
         return Collections.emptySet();
     }
 
     @Override
-    public FormulaContext[] getAdditionalContexts() throws InvalidFieldReferenceException {
+    public FormulaContext[] getAdditionalContexts() throws InvalidFieldReferenceException
+    {
         // Insure that the lazy loaded additional context cache is fully loaded
-        for (String providerName : additionalContextProviders.keySet()) {
-            if (filterFormulaContext(providerName)) {
+        for (String providerName : additionalContextProviders.keySet())
+        {
+            if (filterFormulaContext(providerName))
+            {
                 getAdditionalContext(providerName);
             }
         }
@@ -268,162 +306,189 @@ public class BaseCompositeFormulaContext implements FormulaRuntimeContext {
     }
 
     @Override
-    public FormulaContext getParentContext() {
+    public FormulaContext getParentContext()
+    {
         return null;
     }
 
     @Override
-    public DisplayField[] getDisplayFields(FormulaSchema.Entity entityInfo) {
+    public DisplayField[] getDisplayFields(FormulaSchema.Entity entityInfo)
+    {
         return allowSelfReference ? getDefaultContext().getDisplayFields(entityInfo) : null;
     }
 
     @Override
-    public String getName() {
+    public String getName()
+    {
         return getDefaultContext().getName();
     }
 
     @Override
-    public String getFullName(boolean useDurableName, FormulaContext relativeToContext) {
+    public String getFullName(boolean useDurableName, FormulaContext relativeToContext)
+    {
         return getDefaultContext().getFullName(useDurableName, relativeToContext);
     }
 
     @Override
-    public GlobalFormulaProperties getGlobalProperties(){
+    public GlobalFormulaProperties getGlobalProperties()
+    {
         return globalFormulaProperties;
     }
 
-    protected String getFieldName(String devName) {
+    protected String getFieldName(String devName)
+    {
         int firstDot = devName.indexOf(".");
         return (firstDot >= 0) ? devName.substring(firstDot + 1) : devName;
     }
 
-    protected void addContextProvider(String name, FormulaRuntimeContextProvider provider) {
+    protected void addContextProvider(String name, FormulaRuntimeContextProvider provider)
+    {
         if (!(name.charAt(0) == '$'
                 && globalFormulaProperties.getFormulaType().getDefaultProperties().getGenerateJavascript()
-                && !isGlobalVariableSupportedOffline(name))) {
+                && !isGlobalVariableSupportedOffline(name)))
+        {
             additionalContextProviders.put(Ascii.toUpperCase(name), provider);
         }
     }
 
-    protected void allowSelfReference(boolean allowSelfReference) {
+    protected void allowSelfReference(boolean allowSelfReference)
+    {
         this.allowSelfReference = allowSelfReference;
     }
 
-    public FormulaRuntimeContext getDefaultContext() {
+    public FormulaRuntimeContext getDefaultContext()
+    {
         return this.defaultContext;
     }
 
-    public void setDefaultContext(FormulaRuntimeContext context) {
+    public void setDefaultContext(FormulaRuntimeContext context)
+    {
         this.defaultContext = context;
     }
 
-    private String getContextName(String devName) throws InvalidFieldReferenceException {
-        if (devName == null) {
+    private String getContextName(String devName) throws InvalidFieldReferenceException
+    {
+        if (devName == null)
+        {
             throw new InvalidFieldReferenceException(null, "Invalid reference");
         }
         int i = devName.indexOf('.');
         return i > -1 ? devName.substring(0, i) : null;
     }
 
-    private FormulaRuntimeContext getContextThrowRuntimeOnly(String devName) {
-        try {
+    private FormulaRuntimeContext getContextThrowRuntimeOnly(String devName)
+    {
+        try
+        {
             return getContextFromReference(devName);
-        } catch (InvalidFieldReferenceException x) {
+        }
+        catch (InvalidFieldReferenceException x)
+        {
             throw new FormulaEvaluationException(x);
         }
     }
 
-    protected FormulaRuntimeContext getContextFromReference(String fieldName) throws InvalidFieldReferenceException {
+    protected FormulaRuntimeContext getContextFromReference(String fieldName) throws InvalidFieldReferenceException
+    {
         String contextName = getContextName(fieldName);
 
-        if (contextName == null && !allowSelfReference) {
-            throw new InvalidFieldReferenceException(fieldName, String.format("Self references are not permitted in this context"));
+        if (contextName == null && !allowSelfReference)
+        {
+            throw new InvalidFieldReferenceException(fieldName, "Self references are not permitted in this context");
         }
 
         FormulaRuntimeContext context = getAdditionalContext(contextName);
-        if (context == null) {
+        if (context == null)
+        {
             throw new InvalidFieldReferenceException(fieldName, String.format("Unable to find matching FormulaContext for '%s'",
                     (contextName != null) ? contextName : "Default"));
         }
 
         return context;
     }
-    
+
     /**
-     * @return the final context that is referenced by the field.
      * @param fieldName the name of the field
+     * @return the final context that is referenced by the field.
      * @throws InvalidFieldReferenceException if the name is not a valid field reference
      */
-    public FormulaRuntimeContext getFinalContext(String fieldName) throws InvalidFieldReferenceException {
+    public FormulaRuntimeContext getFinalContext(String fieldName) throws InvalidFieldReferenceException
+    {
         FormulaRuntimeContext context = this;
-        while (context instanceof BaseCompositeFormulaContext) {
-            if (isGlobalContextFieldReference(fieldName) && fieldName.indexOf('.') < 0) {
+        while (context instanceof BaseCompositeFormulaContext)
+        {
+            if (isGlobalContextFieldReference(fieldName) && fieldName.indexOf('.') < 0)
+            {
                 // need to handle if the context is global
-                context = ((BaseCompositeFormulaContext)context).getAdditionalContext(fieldName);
-            } else {
-                context = ((BaseCompositeFormulaContext)context).getContextFromReference(fieldName);
+                context = ((BaseCompositeFormulaContext) context).getAdditionalContext(fieldName);
+            }
+            else
+            {
+                context = ((BaseCompositeFormulaContext) context).getContextFromReference(fieldName);
             }
             fieldName = getFieldName(fieldName);
         }
         return context;
     }
 
-    public FormulaRuntimeContext getAdditionalContext(String contextName) throws InvalidFieldReferenceException {
-        if (contextName == null) { return getDefaultContext(); }
+    public FormulaRuntimeContext getAdditionalContext(String contextName) throws InvalidFieldReferenceException
+    {
+        if (contextName == null)
+        {
+            return getDefaultContext();
+        }
 
         FormulaRuntimeContext context;
         String contextKey = Ascii.toUpperCase(contextName);
-        if (!additionalContexts.containsKey(contextKey)) {
-            if (!filterFormulaContext(contextKey)) {
+        if (!additionalContexts.containsKey(contextKey))
+        {
+            if (!filterFormulaContext(contextKey))
+            {
                 return null; // You're not allowed to see it.
             }
             // Attempt to load the additional context
             FormulaRuntimeContextProvider provider = additionalContextProviders.get(contextKey);
-            try {
+            try
+            {
                 context = (provider != null) ? provider.get(this) : null;
-            } catch (Exception x) {
+            }
+            catch (Exception x)
+            {
                 throw new FormulaEvaluationException(x);
             }
 
             additionalContexts.put(contextKey, context);
-        } else {
+        }
+        else
+        {
             context = additionalContexts.get(contextKey);
         }
 
         return context;
     }
 
-    private boolean allowSelfReference;
-
-    //Sometimes have to defer construction of the default context
-    protected FormulaRuntimeContext defaultContext;
-    private final GlobalFormulaProperties globalFormulaProperties;
-    private final Map<String, FormulaRuntimeContextProvider> additionalContextProviders;
-    private final Map<String, FormulaRuntimeContext> additionalContexts;
-
-    /**
-     * @return whether this field reference is for a constant formula context like $System or $User.
-     * @param fieldReference the field reference name
-     */
-    public static boolean isGlobalContextFieldReference(String fieldReference) {
-        assert fieldReference != null : "Do not pass in a null field reference";
-        return !fieldReference.isEmpty() && fieldReference.charAt(0) == '$';
-    }
-    
     @Override
-    public Map<String, String> getMetaInformation() {
+    public Map<String, String> getMetaInformation()
+    {
         Map<String, String> info = FormulaRuntimeContext.super.getMetaInformation();
-        
-        info.put("CompositeFormulaContext_TopLevelFormulaType", 
+
+        info.put("CompositeFormulaContext_TopLevelFormulaType",
                 getGlobalProperties().getTopLevelFormulaType().getDisplay());
-        info.put("CompositeFormulaContext_DefaultContext", 
+        info.put("CompositeFormulaContext_DefaultContext",
                 "{" + FormulaTextUtil.prettyPrintMap(getDefaultContext().getMetaInformation()) + "}");
-        
+
         return info;
     }
 
     @Override
-    public DisplayField getDisplayField(ApiElement aei) {
+    public DisplayField getDisplayField(ApiElement aei)
+    {
         throw new UnsupportedOperationException();
+    }
+
+    @FunctionalInterface
+    public interface FormulaRuntimeContextProvider
+    {
+        FormulaRuntimeContext get(FormulaContext outerContext) throws FormulaException, SQLException;
     }
 }

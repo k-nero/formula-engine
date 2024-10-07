@@ -11,7 +11,8 @@ package com.force.formula;
  * @author stamm
  * @since 0.2.0
  */
-public interface FormulaTypeAdapter {
+public interface FormulaTypeAdapter
+{
     /**
      * @return the underlying java class that represents the value, when this is an "adapter" class.
      */

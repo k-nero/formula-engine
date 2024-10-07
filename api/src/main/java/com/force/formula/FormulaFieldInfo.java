@@ -6,7 +6,8 @@ package com.force.formula;
  * @author dchasman
  * @since 140
  */
-public interface FormulaFieldInfo extends FormulaReturnType {
+public interface FormulaFieldInfo extends FormulaReturnType
+{
 
     /**
      * @return Opaque internal identifier that should only be used to refer to a field and not interpreted in any way outside the internals of the FFI implementation (Memento design pattern)
@@ -38,15 +39,16 @@ public interface FormulaFieldInfo extends FormulaReturnType {
      * current user.
      */
     FormulaSchema.Entity[] getFormulaForeignKeyDomains();
-    
+
     /**
-     * Represents any "special" fields, without comment on the underlying data store.  For example, if you want to treat the primary key 
+     * Represents any "special" fields, without comment on the underlying data store.  For example, if you want to treat the primary key
      * "specially", you have no way to distinguish it from any other ID.
      *
      * @author stamm
      * @since 0.2
      */
-    interface FormulaFieldType {
+    interface FormulaFieldType
+    {
         /**
          * @return <code>true</code> if this is a primary key field type
          */

@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package com.force.formula;
 
@@ -10,9 +10,12 @@ import java.time.temporal.ChronoField;
  * @author stamm
  * @since 0.0.1
  */
-public interface FormulaTime extends Comparable<FormulaTime> {
+public interface FormulaTime extends Comparable<FormulaTime>
+{
     FormulaTime addHours(int hours);
+
     FormulaTime addMinutes(int minutes);
+
     FormulaTime addSeconds(int seconds);
 
     FormulaTime addMilliseconds(int millis);
@@ -50,91 +53,129 @@ public interface FormulaTime extends Comparable<FormulaTime> {
      * @return 0 - 999
      */
     int getMillisecond();
-    
-	@Override
-	default int compareTo(FormulaTime o) {
-		return Long.compare(getTimeInMillis(), o.getTimeInMillis());
-	}
-    
+
+    @Override
+    default int compareTo(FormulaTime o)
+    {
+        return Long.compare(getTimeInMillis(), o.getTimeInMillis());
+    }
+
     /**
      * Default implementation of FormulaTime that wraps java.time.LocalTime
      * @author stamm
      */
-    class TimeWrapper implements FormulaTime {
-    	private final java.time.LocalTime delegate;
-    	public TimeWrapper(java.time.LocalTime delegate) {
-    		assert delegate != null;
-    		this.delegate = delegate;
-    	}
-    	public java.time.LocalTime getDelegate() {
-    		return this.delegate;
-    	}
-    	
-		@Override
-		public FormulaTime addHours(int hours) {
-			return new TimeWrapper(delegate.plusHours(hours));
-		}
-		@Override
-		public FormulaTime addMinutes(int minutes) {
-			return new TimeWrapper(delegate.plusMinutes(minutes));
-		}
-		@Override
-		public FormulaTime addSeconds(int seconds) {
-			return new TimeWrapper(delegate.plusSeconds(seconds));
-		}
-		@Override
-		public FormulaTime addMilliseconds(int millis) {
-			return new TimeWrapper(delegate.plusNanos(millis * 1000000L));
-		}
-		@Override
-		public long getTimeInMillis() {
-			return this.delegate.get(ChronoField.MILLI_OF_DAY);
-		}
-		@Override
-		public long getTimeInSeconds() {
-			return this.delegate.get(ChronoField.SECOND_OF_DAY);
-		}
-		@Override
-		public int getHourOfDay() {
-			return this.delegate.getHour();
-		}
-		@Override
-		public int getMinute() {
-			return this.delegate.getMinute();
-		}
-		@Override
-		public int getSecond() {
-			return this.delegate.getSecond();
-		}
-		@Override
-		public int getMillisecond() {
-			return this.delegate.get(ChronoField.MILLI_OF_SECOND);
-		}
-		@Override
-		public boolean equals(Object obj) {
-			if (obj instanceof TimeWrapper) {
-				return delegate.equals(((TimeWrapper)obj).delegate);
-			} else if (obj instanceof FormulaTime) {
-				return getTimeInMillis() == (((FormulaTime)obj).getTimeInMillis());
-			}
-			return false;
-		}
-		@Override
-		public int hashCode() {
-			return delegate.hashCode();
-		}
-		@Override
-		public String toString() {
-			return delegate.toString();
-		}
+    class TimeWrapper implements FormulaTime
+    {
+        private final java.time.LocalTime delegate;
 
-		@Override
-		public int compareTo(FormulaTime o) {
-			if (o instanceof TimeWrapper) {
-				return delegate.compareTo(((TimeWrapper) o).delegate);
-			} else {
-				return Long.compare(getTimeInMillis(), o.getTimeInMillis());
-			}
-		}
-	}
+        public TimeWrapper(java.time.LocalTime delegate)
+        {
+            assert delegate != null;
+            this.delegate = delegate;
+        }
+
+        public java.time.LocalTime getDelegate()
+        {
+            return this.delegate;
+        }
+
+        @Override
+        public FormulaTime addHours(int hours)
+        {
+            return new TimeWrapper(delegate.plusHours(hours));
+        }
+
+        @Override
+        public FormulaTime addMinutes(int minutes)
+        {
+            return new TimeWrapper(delegate.plusMinutes(minutes));
+        }
+
+        @Override
+        public FormulaTime addSeconds(int seconds)
+        {
+            return new TimeWrapper(delegate.plusSeconds(seconds));
+        }
+
+        @Override
+        public FormulaTime addMilliseconds(int millis)
+        {
+            return new TimeWrapper(delegate.plusNanos(millis * 1000000L));
+        }
+
+        @Override
+        public long getTimeInMillis()
+        {
+            return this.delegate.get(ChronoField.MILLI_OF_DAY);
+        }
+
+        @Override
+        public long getTimeInSeconds()
+        {
+            return this.delegate.get(ChronoField.SECOND_OF_DAY);
+        }
+
+        @Override
+        public int getHourOfDay()
+        {
+            return this.delegate.getHour();
+        }
+
+        @Override
+        public int getMinute()
+        {
+            return this.delegate.getMinute();
+        }
+
+        @Override
+        public int getSecond()
+        {
+            return this.delegate.getSecond();
+        }
+
+        @Override
+        public int getMillisecond()
+        {
+            return this.delegate.get(ChronoField.MILLI_OF_SECOND);
+        }
+
+        @Override
+        public boolean equals(Object obj)
+        {
+            if (obj instanceof TimeWrapper)
+            {
+                return delegate.equals(((TimeWrapper) obj).delegate);
+            }
+            else if (obj instanceof FormulaTime)
+            {
+                return getTimeInMillis() == (((FormulaTime) obj).getTimeInMillis());
+            }
+            return false;
+        }
+
+        @Override
+        public int hashCode()
+        {
+            return delegate.hashCode();
+        }
+
+        @Override
+        public String toString()
+        {
+            return delegate.toString();
+        }
+
+        @Override
+        public int compareTo(FormulaTime o)
+        {
+            if (o instanceof TimeWrapper)
+            {
+                return delegate.compareTo(((TimeWrapper) o).delegate);
+            }
+            else
+            {
+                return Long.compare(getTimeInMillis(), o.getTimeInMillis());
+            }
+        }
+    }
 }

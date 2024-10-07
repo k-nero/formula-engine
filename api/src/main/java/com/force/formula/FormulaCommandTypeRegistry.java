@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package com.force.formula;
 
@@ -10,8 +10,9 @@ import java.util.List;
  * @author stamm
  * @since 0.0.1
  */
-public interface FormulaCommandTypeRegistry {
+public interface FormulaCommandTypeRegistry
+{
     List<? extends FormulaCommandType> getCommands();
-    
+
     FormulaCommandType getAllowNull(String name);
 }

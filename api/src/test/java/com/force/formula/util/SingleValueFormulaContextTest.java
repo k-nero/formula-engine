@@ -1,28 +1,17 @@
 /**
- * 
+ *
  */
 package com.force.formula.util;
+
+import com.force.formula.*;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
 
 import java.math.BigDecimal;
 import java.time.LocalTime;
 import java.util.Date;
 import java.util.concurrent.Callable;
-
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-
-import com.force.formula.ContextualFormulaFieldInfo;
-import com.force.formula.FormulaDataType;
-import com.force.formula.FormulaDateTime;
-import com.force.formula.FormulaEvaluationException;
-import com.force.formula.FormulaProperties;
-import com.force.formula.FormulaReturnType;
-import com.force.formula.FormulaRuntimeContext;
-import com.force.formula.FormulaTime;
-import com.force.formula.FormulaTypeSpec;
-import com.force.formula.InvalidFieldReferenceException;
-import com.force.formula.UnsupportedTypeException;
 
 
 /**
@@ -31,73 +20,75 @@ import com.force.formula.UnsupportedTypeException;
  * @author stamm
  * @since 0.2
  */
-public class SingleValueFormulaContextTest {
-    
+public class SingleValueFormulaContextTest
+{
+
     @Before
-    public void setup() {
+    public void setup()
+    {
         BaseCompositeFormulaContextTest.setLocalizer();
     }
-    
+
     @Test(expected = FormulaEvaluationException.class)
-    public void testBoolean() throws Exception {
+    public void testBoolean() throws Exception
+    {
         SingleValueFormulaContext context = new TestSingleValueFormulaContext(null, null);
         context.getBoolean("Value");
     }
 
     @Test
-    public void testGetString() throws Exception {
+    public void testGetString() throws Exception
+    {
         SingleValueFormulaContext context = new TestSingleValueFormulaContext(null, "Hi");
-        checkValidValue(context, (key)->context.getString(key, false), "Hi");
+        checkValidValue(context, (key) -> context.getString(key, false), "Hi");
     }
-    
-    @Test
-    public void testLookup() throws Exception {
-        SingleValueFormulaContext context = new TestSingleValueFormulaContext(null, "Hi");
-        ContextualFormulaFieldInfo ffi = context.lookup("value");
-        Assert.assertEquals(null, ffi.getDataType());
-        Assert.assertEquals("Value", ffi.getName());
-    }
-    
 
     @Test
-    public void testGetMethods() throws Exception {
+    public void testLookup() throws Exception
+    {
+        SingleValueFormulaContext context = new TestSingleValueFormulaContext(null, "Hi");
+        ContextualFormulaFieldInfo ffi = context.lookup("value");
+        Assert.assertNull(ffi.getDataType());
+        Assert.assertEquals("Value", ffi.getName());
+    }
+
+
+    @Test
+    public void testGetMethods() throws Exception
+    {
         SingleValueFormulaContext c0 = new TestSingleValueFormulaContext(null, "Hi");
-        checkValidValue(c0, (key)->c0.getString(key, false), "Hi");
-        checkValidValue(c0, (key)->c0.getMaskedString(key), "Hi");
+        checkValidValue(c0, (key) -> c0.getString(key, false), "Hi");
+        checkValidValue(c0, (key) -> c0.getMaskedString(key), "Hi");
 
         Date d = new Date();
         final SingleValueFormulaContext c1 = new TestSingleValueFormulaContext(null, d);
-        checkValidValue(c1, (key)->c1.getDate(key), d);
-   
+        checkValidValue(c1, (key) -> c1.getDate(key), d);
+
         FormulaDateTime dt = new FormulaDateTime(new Date());
         final SingleValueFormulaContext c2 = new TestSingleValueFormulaContext(null, dt);
-        checkValidValue(c2, (key)->c2.getDateTime(key), dt);
+        checkValidValue(c2, (key) -> c2.getDateTime(key), dt);
 
         BigDecimal n = BigDecimal.ONE;
         final SingleValueFormulaContext c3 = new TestSingleValueFormulaContext(null, n);
-        checkValidValue(c3, (key)->c3.getNumber(key), n);
-   
+        checkValidValue(c3, (key) -> c3.getNumber(key), n);
+
         FormulaTime t = new FormulaTime.TimeWrapper(LocalTime.now());
         final SingleValueFormulaContext c4 = new TestSingleValueFormulaContext(null, t);
-        checkValidValue(c4, (key)->c4.getTime(key), t);
+        checkValidValue(c4, (key) -> c4.getTime(key), t);
     }
-    
+
     // Test lowercase/uppercase and getObject for each type
-    <T> void checkValidValue(FormulaRuntimeContext context, ContextLookup<T> v, T value) throws Exception {
+    <T> void checkValidValue(FormulaRuntimeContext context, ContextLookup<T> v, T value) throws Exception
+    {
         Assert.assertEquals(value, v.apply("Value"));
         Assert.assertEquals(value, v.apply("value"));
         Assert.assertEquals(value, context.getObject("Value"));
         Assert.assertEquals(value, context.getObject("value"));
     }
-    
-    
-    @FunctionalInterface
-    interface ContextLookup<V> {
-        V apply(String t) throws InvalidFieldReferenceException, UnsupportedTypeException;
-    }
-    
+
     @Test
-    public void testInvalidValue() throws Exception {
+    public void testInvalidValue() throws Exception
+    {
         SingleValueFormulaContext context = new TestSingleValueFormulaContext(null, "Hi");
         checkInvalidValue(() -> context.getString("invalid", false));
         checkInvalidValue(() -> context.getDate("invalid"));
@@ -110,66 +101,89 @@ public class SingleValueFormulaContextTest {
         checkInvalidValue(() -> context.getNumber("invalid"));
         checkInvalidValue(() -> context.getTime("invalid"));
     }
-  
-    void checkInvalidValue(Callable<?> v) throws Exception {
-        try {
+
+    void checkInvalidValue(Callable<?> v) throws Exception
+    {
+        try
+        {
             v.call();
             Assert.fail();
-        } catch (FormulaEvaluationException x) {
+        }
+        catch (FormulaEvaluationException x)
+        {
             Assert.assertTrue(x.getCause() instanceof InvalidFieldReferenceException);
         }
     }
 
     @Test(expected = ClassCastException.class)
-    public void testGetWrongType() throws Exception {
+    public void testGetWrongType() throws Exception
+    {
         SingleValueFormulaContext context = new TestSingleValueFormulaContext(null, new Date());
         context.getString("Value", false);
     }
 
-    
     @Test
-    public void testAlternateName() throws Exception {
-        SingleValueFormulaContext context = new TestSingleValueFormulaContext(null, BigDecimal.ONE) {
+    public void testAlternateName() throws Exception
+    {
+        SingleValueFormulaContext context = new TestSingleValueFormulaContext(null, BigDecimal.ONE)
+        {
             @Override
-            public String getValueName() {
+            public String getValueName()
+            {
                 return "Num";
             }
-            
+
         };
         ContextualFormulaFieldInfo ffi = context.lookup("num");
-        Assert.assertEquals(null, ffi.getDataType());
+        Assert.assertNull(ffi.getDataType());
         Assert.assertEquals("Num", ffi.getName());
         Assert.assertEquals(BigDecimal.ONE, context.getNumber("num"));
     }
-    
-    
+
     @Test
-    public void testProperties() throws Exception {
+    public void testProperties() throws Exception
+    {
         SingleValueFormulaContext context = new TestSingleValueFormulaContext(null, BigDecimal.ONE);
-        Assert.assertEquals(null, context.<Object>getProperty("foo"));
+        Assert.assertNull(context.<Object>getProperty("foo"));
         context.setProperty("foo", "bar");
         Assert.assertEquals("bar", context.getProperty("foo"));
     }
-    
-    
-    static class TestSingleValueFormulaContext extends SingleValueFormulaContext<Object> {
-        public TestSingleValueFormulaContext(FormulaDataType type, Object value) {
-            super(new FormulaTypeSpec() {
+
+
+    @FunctionalInterface
+    interface ContextLookup<V>
+    {
+        V apply(String t) throws InvalidFieldReferenceException, UnsupportedTypeException;
+    }
+
+    static class TestSingleValueFormulaContext extends SingleValueFormulaContext<Object>
+    {
+        public TestSingleValueFormulaContext(FormulaDataType type, Object value)
+        {
+            super(new FormulaTypeSpec()
+            {
                 @Override
-                public int getMaxLength() {
+                public int getMaxLength()
+                {
                     return 0;
                 }
+
                 @Override
-                public String getDisplay() {
+                public String getDisplay()
+                {
                     return "display";
                 }
+
                 @Override
-                public FormulaProperties getDefaultProperties() {
+                public FormulaProperties getDefaultProperties()
+                {
                     return new FormulaProperties();
                 }
-            }, new FormulaReturnType() {
+            }, new FormulaReturnType()
+            {
                 @Override
-                public FormulaDataType getDataType() {
+                public FormulaDataType getDataType()
+                {
                     return null;
                 }
             }, type, value);

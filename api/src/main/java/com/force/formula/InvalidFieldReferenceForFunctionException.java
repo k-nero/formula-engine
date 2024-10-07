@@ -1,5 +1,5 @@
 /*
- * Created on Dec 8, 2004 
+ * Created on Dec 8, 2004
  */
 package com.force.formula;
 
@@ -12,9 +12,12 @@ import com.force.formula.util.FormulaI18nUtils;
  * @author wmacklem
  * @since 148
  */
-public class InvalidFieldReferenceForFunctionException extends FormulaException {
-	private static final long serialVersionUID = 1L;
-    public InvalidFieldReferenceForFunctionException(String fieldName, String functionName) {
+public class InvalidFieldReferenceForFunctionException extends FormulaException
+{
+    private static final long serialVersionUID = 1L;
+
+    public InvalidFieldReferenceForFunctionException(String fieldName, String functionName)
+    {
         super(FormulaI18nUtils.getLocalizer().getLabel("FormulaFieldExceptionMessages", "InvalidFieldReferenceForFunctionException", functionName, fieldName));
     }
 }

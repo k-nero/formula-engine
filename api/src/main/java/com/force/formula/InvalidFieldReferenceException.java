@@ -11,34 +11,41 @@ import com.force.formula.util.FormulaI18nUtils;
  * @author dchasman
  * @since 140
  */
-public class InvalidFieldReferenceException extends FormulaException {
+public class InvalidFieldReferenceException extends FormulaException
+{
 
     private static final long serialVersionUID = 1L;
     protected final String fieldName;
     private final String reason;
     private int location;
 
-	public InvalidFieldReferenceException(String fieldName, String reason) {
+    public InvalidFieldReferenceException(String fieldName, String reason)
+    {
         this(fieldName, reason, false);
     }
 
-    public InvalidFieldReferenceException(String fieldName, String reason, boolean isRuntimeError) {
+    public InvalidFieldReferenceException(String fieldName, String reason, boolean isRuntimeError)
+    {
         this(fieldName, reason, FormulaI18nUtils.getLocalizer().getLabel(isRuntimeError ? "FormulaFieldExceptionMessages_runtime" : "FormulaFieldExceptionMessages", "InvalidFieldReferenceException", fieldName));
     }
 
-    public InvalidFieldReferenceException(String fieldName, String reason, String message) {
+    public InvalidFieldReferenceException(String fieldName, String reason, String message)
+    {
         this(fieldName, reason, message, -1);
     }
 
-    public InvalidFieldReferenceException(String fieldName, String reason, String message, Throwable t) {
+    public InvalidFieldReferenceException(String fieldName, String reason, String message, Throwable t)
+    {
         this(fieldName, reason, message, -1, t);
     }
 
-    public InvalidFieldReferenceException(String fieldName, String reason, String message, int location) {
+    public InvalidFieldReferenceException(String fieldName, String reason, String message, int location)
+    {
         this(fieldName, reason, message, location, null);
     }
 
-    public InvalidFieldReferenceException(String fieldName, String reason, String message, int location, Throwable t) {
+    public InvalidFieldReferenceException(String fieldName, String reason, String message, int location, Throwable t)
+    {
         super(message, t);
 
         this.fieldName = fieldName;
@@ -46,24 +53,29 @@ public class InvalidFieldReferenceException extends FormulaException {
         this.location = location;
     }
 
-    public String getFieldName() {
+    public String getFieldName()
+    {
         return fieldName;
     }
 
-    public String getReason() {
+    public String getReason()
+    {
         return reason;
     }
 
-    public int getLocation() {
+    public int getLocation()
+    {
         return location;
     }
 
-    public void setLocation(int loc) {
+    public void setLocation(int loc)
+    {
         this.location = loc;
     }
 
     @Override
-    public String toString() {
+    public String toString()
+    {
         String s = getClass().getName();
         s = getMessage() != null ? (s + ": " + getMessage()) : s;
         s = reason != null ? (s + " Reason: " + reason) : s;

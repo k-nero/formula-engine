@@ -7,13 +7,14 @@ import java.util.Map;
 
 /**
  * FormulaInformationContext is a context used by the formula engine for debugging information. Callers of the formula
- * engine should call update FormulaEngineHooks.getInformationContextProvider and push(context, keysAndValues) when 
+ * engine should call update FormulaEngineHooks.getInformationContextProvider and push(context, keysAndValues) when
  * invoking the formula engine with any additional information that would help with debugging formulas.
  *
  * @author a.rich
  * @since 214
  */
-public interface FormulaInformationContext /* implements Context */ {
+public interface FormulaInformationContext /* implements Context */
+{
 
     /**
      * @return Additional information which may be set by the caller of the formula engine
@@ -23,6 +24,7 @@ public interface FormulaInformationContext /* implements Context */ {
     /**
      * Each formula context can override {@link FormulaRuntimeContext#getMetaInformation()} to provide the formula engine
      * useful debugging information relevant to that specific context.
+     *
      * @return useful debugging information.
      */
     Map<String, String> getContextInfo();
@@ -33,8 +35,7 @@ public interface FormulaInformationContext /* implements Context */ {
     String getContextName();
 
     /**
-     * @param stackLevel
-     *            what level is this in the context stack?
+     * @param stackLevel what level is this in the context stack?
      * @return a message suitable for appending to gack messages
      */
     String toGackMessage(int stackLevel);
@@ -42,14 +43,16 @@ public interface FormulaInformationContext /* implements Context */ {
     /**
      * A FormulaInformationContext Provider
      */
-    interface Provider {
+    interface Provider
+    {
         /**
          * The new context of a process
-         * @param context the context to push onto the stack
+         *
+         * @param context       the context to push onto the stack
          * @param keysAndValues the keys and values to push onto the FIC as key,value,[key,value...]
          * @return a new FormulaInformationContext
          */
-    	FormulaInformationContext push(FormulaContext context, String... keysAndValues);
+        FormulaInformationContext push(FormulaContext context, String... keysAndValues);
 
         /**
          * @param assertContext the expected context which should get popped.

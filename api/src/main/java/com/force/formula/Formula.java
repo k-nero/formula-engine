@@ -14,14 +14,14 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @author dchasman
  * @since 140
  */
-public interface Formula extends Comparable<Formula>, Serializable {
+public interface Formula extends Comparable<Formula>, Serializable
+{
     /**
      * Execute the formula based on field data retrieved from the provided context
      *
-     * @param context
-     *            data source for field references
+     * @param context data source for field references
      * @return result of executing the formula
-     * @throws FormulaException if an error occurred.  
+     * @throws FormulaException if an error occurred.
      */
     Object evaluate(FormulaRuntimeContext context) throws FormulaException;
 
@@ -29,10 +29,9 @@ public interface Formula extends Comparable<Formula>, Serializable {
      * Execute the formula based on field data retrieved from the provided context. Does no final processing of the
      * result so it can be used in nested computations.
      *
-     * @param context
-     *            data source for field references
+     * @param context data source for field references
      * @return result of executing the formula
-     * @throws FormulaException if an error occurred. 
+     * @throws FormulaException if an error occurred.
      */
     Object evaluateRaw(FormulaRuntimeContext context) throws FormulaException;
 
@@ -41,7 +40,7 @@ public interface Formula extends Comparable<Formula>, Serializable {
      * vlookup that perform a query for all contexts and cache the value for runtime evaluation.
      *
      * @param contexts the set of runtime contexts that will be used in execution
-     * @throws FormulaException if a FormulaException occurred. 
+     * @throws FormulaException if a FormulaException occurred.
      */
     void bulkProcessingBeforeEvaluation(List<FormulaRuntimeContext> contexts) throws FormulaException;
 
@@ -49,24 +48,19 @@ public interface Formula extends Comparable<Formula>, Serializable {
      * Checks whether this formula is simply a direct reference to another field, and if so, returns the field path to
      * the referenced field. Otherwise, it returns null.
      *
-     * @return  the field path to the referenced field. Otherwise, it returns null.
-     * @param formulaContext
-     *            data source for field references
-     * @param zeroExcluded
-     *            If set, the caller is not checking against numeric 0, and this allows the direct field reference to be
-     *            returned even if the numeric formula has the NVL-as-ZERO option set. N/A if this is not a numeric
-     *            formula.
-     * @param allowDateValue
-     *            If set, this will return the directFieldPath even if there is a wrapping DATEVALUE(...) function (e.g.
-     *            convert to date).
-     * @param caseSafeIdUsed
-     *            It will be set to true (by code inside the method) if formula uses CASESAFEID() function
-     * @param namespace
-     *            Namespace of a field, This is important for extension package because usually extension package
-     *            namespace is on the stack, however we can find field only from the original developer namespace who
-     *            delievered field.
+     * @param formulaContext data source for field references
+     * @param zeroExcluded   If set, the caller is not checking against numeric 0, and this allows the direct field reference to be
+     *                       returned even if the numeric formula has the NVL-as-ZERO option set. N/A if this is not a numeric
+     *                       formula.
+     * @param allowDateValue If set, this will return the directFieldPath even if there is a wrapping DATEVALUE(...) function (e.g.
+     *                       convert to date).
+     * @param caseSafeIdUsed It will be set to true (by code inside the method) if formula uses CASESAFEID() function
+     * @param namespace      Namespace of a field, This is important for extension package because usually extension package
+     *                       namespace is on the stack, however we can find field only from the original developer namespace who
+     *                       delievered field.
+     * @return the field path to the referenced field. Otherwise, it returns null.
      * @throws InvalidFieldReferenceException if a field reference in this formula cannot be evaluated
-     * @throws UnsupportedTypeException if the formula isn't supported 
+     * @throws UnsupportedTypeException       if the formula isn't supported
      */
     List<FormulaFieldReferenceInfo> getFieldPathIfDirectReferenceToAnotherField(FormulaContext formulaContext,
             boolean zeroExcluded, boolean allowDateValue, AtomicBoolean caseSafeIdUsed, String namespace)
@@ -77,8 +71,7 @@ public interface Formula extends Comparable<Formula>, Serializable {
      * with the same inputs (EntityContexts in this case). If a formula is not deterministic it cannot be summarized by
      * a summary field.
      *
-     * @param formulaContext
-     *            data source for field references
+     * @param formulaContext data source for field references
      * @return true if the formula is deterministic
      */
     boolean isDeterministic(FormulaContext formulaContext);
@@ -86,15 +79,13 @@ public interface Formula extends Comparable<Formula>, Serializable {
     /**
      * Checks whether a formula reference any AI Prediction Target field.
      *
-     * @param formulaContext
-     *            data source for field references
+     * @param formulaContext data source for field references
      * @return true if formula references AI Prediction Target Field.
      */
     boolean hasAIPredictionFieldReference(FormulaContext formulaContext);
 
     /**
-     * @param attribute
-     *            defined in the <code>Formula</code> interface
+     * @param attribute defined in the <code>Formula</code> interface
      * @return true if the formula has this attribute
      */
     boolean hasAttribute(int attribute);
@@ -108,7 +99,7 @@ public interface Formula extends Comparable<Formula>, Serializable {
 
     /**
      * @return the current formula converted to javascript for client side evaluation, or <code>null</code> if the formula
-     *         is not convertable.
+     * is not convertable.
      */
     String toJavascript();
 
@@ -130,7 +121,7 @@ public interface Formula extends Comparable<Formula>, Serializable {
 
     /**
      * @return whether in javascript, the value of this formula could be null. This is helpful for knowing whether to
-     *         guard against NPE's in javascript when using nested formulae
+     * guard against NPE's in javascript when using nested formulae
      */
     boolean couldJavascriptBeNull();
 }

@@ -15,7 +15,8 @@ import com.google.errorprone.annotations.Immutable;
  * @since 168
  */
 @Immutable
-public class FormulaFieldReferenceImpl implements FormulaFieldReference {
+public class FormulaFieldReferenceImpl implements FormulaFieldReference
+{
 
     private final Object baseReference;
     private final Object elementReference;
@@ -25,54 +26,68 @@ public class FormulaFieldReferenceImpl implements FormulaFieldReference {
     // isDynamicBase indicates whether this reference occurs as the base of a subscript expression.
     private final boolean isDynamicBase;
 
-    public FormulaFieldReferenceImpl(Object baseReference, Object elementReference, boolean fieldSelector, boolean isDynamicBase) {
+    public FormulaFieldReferenceImpl(Object baseReference, Object elementReference, boolean fieldSelector, boolean isDynamicBase)
+    {
         this.baseReference = baseReference;
         this.elementReference = elementReference;
         this.isSelector = fieldSelector;
         this.isDynamicBase = isDynamicBase;
     }
 
-    public FormulaFieldReferenceImpl(Object baseReference, Object elementReference) {
+    public FormulaFieldReferenceImpl(Object baseReference, Object elementReference)
+    {
         this(baseReference, elementReference, true, false);
     }
 
     // True if the element reference comes from an expression.
     @Override
-    public boolean isDynamic() {
+    public boolean isDynamic()
+    {
         return !isSelector;
     }
 
     // True if this reference is the base of a dynamic ref; i.e. it is followed by a subscript expression
     @Override
-    public boolean isDynamicBase() {
+    public boolean isDynamicBase()
+    {
         return isDynamicBase;
     }
 
     @Override
-    public Object getBase() {
+    public Object getBase()
+    {
         return baseReference;
     }
 
     @Override
-    public String getElement() {
+    public String getElement()
+    {
         return elementReference.toString();
     }
 
     @Override
-    public Object getSelector() {
+    public Object getSelector()
+    {
         return elementReference;
     }
 
     @Override
-    public String toString() {
-        if (baseReference == null) {
+    public String toString()
+    {
+        if (baseReference == null)
+        {
             return getElement();
-        } else {
+        }
+        else
+        {
             StringBuffer s = new StringBuffer();
-            s.append(baseReference.toString());
-            if (isSelector) {
+            s.append(baseReference);
+            if (isSelector)
+            {
                 s.append(".").append(elementReference);
-            } else {
+            }
+            else
+            {
                 s.append("['").append(elementReference).append("']");
             }
             return s.toString();

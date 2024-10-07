@@ -10,5 +10,6 @@ package com.force.formula;
  * @author dchasman
  * @since 150
  */
-public interface Tokenizer extends NameTokenizer, NameDetokenizer {
+public interface Tokenizer extends NameTokenizer, NameDetokenizer
+{
 }

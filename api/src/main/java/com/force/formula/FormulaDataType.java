@@ -14,7 +14,8 @@ package com.force.formula;
  * @author stamm
  * @since 200
  */
-public interface FormulaDataType {
+public interface FormulaDataType
+{
     /*
      * Naming
      */
@@ -32,7 +33,8 @@ public interface FormulaDataType {
     /**
      * @return the database representation of this type
      */
-    default String getDatatype() {
+    default String getDatatype()
+    {
         return getJavaName();
     }
 
@@ -44,41 +46,49 @@ public interface FormulaDataType {
     /*
      * Broad categorizations of column types
      */
-    
-    default boolean isCustom() {
+
+    default boolean isCustom()
+    {
         return false;
     }
+
     // Is simple text that will be <4000 chars
     boolean isSimpleText();
 
-    default boolean isSimpleTextOrClob() {
+    default boolean isSimpleTextOrClob()
+    {
         return isSimpleText() || isClob();
     }
+
     // Things that can be considered text, but also picklists, like comboboxes or currency iso codes
-    default boolean isText() {
+    default boolean isText()
+    {
         return isSimpleText();
     }
+
     /**
      * @return whether this is text, or encrypted text
      */
-    default boolean isTextOrEncrypted() {
+    default boolean isTextOrEncrypted()
+    {
         return isText();
     }
 
     /**
      * @return true if the contents of fields of this type are *always* encrypted. This is true only for legacy
      * encrypted fields types (ENCRYPTEDTEXT).
-     *
+     * <p>
      * Please try to avoid using this, as it is very salesforce specific
      */
-    default boolean isEncrypted() {
+    default boolean isEncrypted()
+    {
         return false;
     }
 
     /**
      * True if the contents of fields of this type *may* be encrypted using the newer platform encryption framework.
      * (AtRest == new).
-     * 
+     * <p>
      * Generally speaking, encryption will happen for fields that
      * <ul>
      * <li>are of a DataType that canBeEncryptedAtRest</li>
@@ -86,90 +96,130 @@ public interface FormulaDataType {
      * <li>are in orgs that have the EncryptionAtRest feature enabled</li>
      * <li>have been configured by org admins to be encrypted</li>
      * </ul>
+     *
      * @return if this data type can be encrypted at rest (i.e. it needs special formula support)
      */
-    default boolean canBeEncryptedAtRest() {
+    default boolean canBeEncryptedAtRest()
+    {
         return false;
     }
 
     boolean isBoolean();
+
     boolean isInteger();
+
     boolean isDecimal();
+
     boolean isPercent();
-    default boolean isNumber() {
-        return isInteger() || isDecimal() || isPercent();        
+
+    default boolean isNumber()
+    {
+        return isInteger() || isDecimal() || isPercent();
     }
-    default boolean isCurrency()  {
-        return false;
-    }
-    boolean isDateTime();
-    boolean isDateOnly();
-    default boolean isDate() {
-        return isDateTime() || isDateOnly();
-    }
-    default boolean isTimeOnly() {
-        return false;
-    }
-    default boolean isId() {
-        return false;
-    }
-    default boolean isRaw() {
-        return false;
-    }
-    default boolean isClob() {
-        return false;
-    }
-    default boolean isBlob() {
-        return false;
-    }
-    default boolean isLob() {
-        return isClob() || isBlob();
-    }
-    /**
-     * @return if this is a picklist value that can be only from a set of choices,
-     */
-    default boolean isAnySingleEnum() {
-        return isStaticEnum() || isMultiEnum();
-    }
-    default boolean isStaticEnum() {
-        return false;
-    }
-    default boolean isSingleDynamicPicklist() {
+
+    default boolean isCurrency()
+    {
         return false;
     }
 
-    default boolean isMultiEnum() {
+    boolean isDateTime();
+
+    boolean isDateOnly();
+
+    default boolean isDate()
+    {
+        return isDateTime() || isDateOnly();
+    }
+
+    default boolean isTimeOnly()
+    {
         return false;
     }
-    default boolean isAnyPerson() {
+
+    default boolean isId()
+    {
         return false;
     }
-    default boolean isLocation() {  // Location or address
+
+    default boolean isRaw()
+    {
         return false;
     }
-    default boolean isTextEnum() { // Is TextEnum, i.e. an editable combo box.
+
+    default boolean isClob()
+    {
+        return false;
+    }
+
+    default boolean isBlob()
+    {
+        return false;
+    }
+
+    default boolean isLob()
+    {
+        return isClob() || isBlob();
+    }
+
+    /**
+     * @return if this is a picklist value that can be only from a set of choices,
+     */
+    default boolean isAnySingleEnum()
+    {
+        return isStaticEnum() || isMultiEnum();
+    }
+
+    default boolean isStaticEnum()
+    {
+        return false;
+    }
+
+    default boolean isSingleDynamicPicklist()
+    {
+        return false;
+    }
+
+    default boolean isMultiEnum()
+    {
+        return false;
+    }
+
+    default boolean isAnyPerson()
+    {
+        return false;
+    }
+
+    default boolean isLocation()
+    {  // Location or address
+        return false;
+    }
+
+    default boolean isTextEnum()
+    { // Is TextEnum, i.e. an editable combo box.
         return false;
     }
 
     /*
      * Schema properties
      */
-    
+
     /**
      * @return whether or not you should test for IdTraits.EMPTY_KEY for values.  In order to prevent outer joins,
      * and the performance issues associated with it, there are some "empty_key" rows with empty values to prevent
      * the perf issues.  It's not a big deal these days, but it is for salesforce internally.
      */
-    default boolean canBeEmptyKeyForNullInDb() {
+    default boolean canBeEmptyKeyForNullInDb()
+    {
         return isId();
     }
 
     /**
      * @return whether this column needs to be used with the isPickVal function in formulas
      */
-    default boolean isPickval() {
+    default boolean isPickval()
+    {
         return false;
     }
-    
+
 
 }

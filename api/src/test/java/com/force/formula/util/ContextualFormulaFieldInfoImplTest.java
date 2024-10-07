@@ -1,40 +1,40 @@
 /**
- * 
+ *
  */
 package com.force.formula.util;
 
-import java.util.Objects;
-
-import org.junit.Assert;
-import org.junit.Test;
-
-import com.force.formula.ContextualFormulaFieldInfo;
-import com.force.formula.FormulaContext;
-import com.force.formula.FormulaDataType;
+import com.force.formula.*;
 import com.force.formula.FormulaFieldInfo.FormulaFieldType;
-import com.force.formula.FormulaReturnType;
-import com.force.formula.FormulaSchema;
 import com.force.formula.FormulaSchema.Entity;
 import com.force.formula.FormulaSchema.Field;
 import com.force.formula.FormulaSchema.FieldOrColumn;
-import com.force.formula.GlobalFormulaProperties;
+import org.junit.Assert;
+import org.junit.Test;
+
+import java.util.Objects;
 
 /**
  * Test of the functions on ContextualFormulaFieldInfoImpl 
  * @author stamm
  * @since 0.1.16
  */
-public class ContextualFormulaFieldInfoImplTest {
+public class ContextualFormulaFieldInfoImplTest
+{
 
     @Test
-    public void testContextEqualsHashCode() {
-        FormulaContext context = new NullFormulaContext(new GlobalFormulaProperties(null)) {
+    public void testContextEqualsHashCode()
+    {
+        FormulaContext context = new NullFormulaContext(new GlobalFormulaProperties(null))
+        {
             @Override
-            public FormulaReturnType getFormulaReturnType() {
+            public FormulaReturnType getFormulaReturnType()
+            {
                 return null;
             }
+
             @Override
-            public String getName() {
+            public String getName()
+            {
                 return "hi";
             }
         };
@@ -50,52 +50,79 @@ public class ContextualFormulaFieldInfoImplTest {
         Assert.assertNotEquals(field1.hashCode(), field3.hashCode());
     }
 
-    
-    public static class MockFieldOrColumn implements FormulaSchema.Field {
+
+    public static class MockFieldOrColumn implements FormulaSchema.Field
+    {
         private final String name;
-        public MockFieldOrColumn(String name) {
+
+        public MockFieldOrColumn(String name)
+        {
             this.name = name;
         }
+
         @Override
-        public FormulaDataType getDataType() {
+        public FormulaDataType getDataType()
+        {
             return null;
         }
+
         @Override
-        public Field getFieldInfo() {
+        public Field getFieldInfo()
+        {
             return this;
         }
+
         @Override
-        public Entity getEntityInfo() {
+        public Entity getEntityInfo()
+        {
             return null;
         }
+
         @Override
-        public String getName() {
+        public String getName()
+        {
             return this.name;
         }
+
         @Override
-        public boolean isColumnInfo() {
+        public boolean isColumnInfo()
+        {
             return true;
         }
+
         @Override
-        public Entity[] getFormulaForeignKeyDomains() {
+        public Entity[] getFormulaForeignKeyDomains()
+        {
             return null;
         }
+
         @Override
-        public FormulaFieldType getFieldType() {
+        public FormulaFieldType getFieldType()
+        {
             return null;
         }
+
         @Override
-        public int hashCode() {
+        public int hashCode()
+        {
             return Objects.hash(this.name);
         }
+
         @Override
-        public boolean equals(Object obj) {
-            if (this == obj) return true;
-            if (obj == null || getClass() != obj.getClass()) return false;
-            MockFieldOrColumn other = (MockFieldOrColumn)obj;
+        public boolean equals(Object obj)
+        {
+            if (this == obj)
+            {
+                return true;
+            }
+            if (obj == null || getClass() != obj.getClass())
+            {
+                return false;
+            }
+            MockFieldOrColumn other = (MockFieldOrColumn) obj;
             return Objects.equals(this.name, other.name);
         }
-        
+
     }
-    
+
 }

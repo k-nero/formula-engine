@@ -1,5 +1,8 @@
 package com.force.formula.util;
 
+import com.force.i18n.BaseLocalizer;
+import com.force.i18n.grammar.GrammaticalLocalizer;
+
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.ParseException;
@@ -9,114 +12,126 @@ import java.util.Date;
 import java.util.TimeZone;
 import java.util.function.Supplier;
 
-import com.force.i18n.BaseLocalizer;
-import com.force.i18n.grammar.GrammaticalLocalizer;
-
 /**
  * Date utils beyond the LibDateUtil that's used for Formula SQL Generation
+ *
  * @author stamm
  * @since 0.0.1
  */
-public final class FormulaDateUtil {
+public final class FormulaDateUtil
+{
     public static final int MINUTE_IN_MILLIS = 60 * 1000;
     public static final int HOUR_IN_MILLIS = 60 * 60 * 1000;
     public static final int DAY_IN_MILLIS = 24 * HOUR_IN_MILLIS;
     public static final int WEEK_IN_MILLIS = 7 * DAY_IN_MILLIS;
     public static final BigDecimal SECONDSPERDAY = BigDecimal.valueOf(24 * 60 * 60);
     public static final BigDecimal MILLISECONDSPERDAY = SECONDSPERDAY.movePointRight(3);
-
-	private FormulaDateUtil() {}
-
-	private final static String SQL_TO_DATE_FORMAT = "DD-MM-YYYY";
-
-
+    private final static String SQL_TO_DATE_FORMAT = "DD-MM-YYYY";
     private static final ThreadLocal<SimpleDateFormat> ISO8601_FORMATTER = ThreadLocal.withInitial(sdfWithGMT("yyyy-MM-dd'T'HH:mm:ss'Z'"));
     private static final ThreadLocal<SimpleDateFormat> SQL_TIMESTAMP_FORMATTER = ThreadLocal.withInitial(sdfWithGMT("yyyy-MM-dd HH:mm:ss"));
     private static final ThreadLocal<SimpleDateFormat> ISO8601_MILLISECOND_FORMATTER = ThreadLocal.withInitial(sdfWithGMT("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"));
-
     private static final ThreadLocal<SimpleDateFormat> SQL_FORMATTER = ThreadLocal.withInitial(() -> new SimpleDateFormat("dd-MM-yyyy"));
 
-    
-    static Supplier<SimpleDateFormat> sdfWithGMT(String format) {
-    	return () -> {
-    		SimpleDateFormat sdf = new SimpleDateFormat(format);
-    		sdf.setTimeZone(TimeZone.getTimeZone("GMT"));
-    		return sdf;
-    	};
+    private FormulaDateUtil()
+    {
     }
-    
-    
+
+    static Supplier<SimpleDateFormat> sdfWithGMT(String format)
+    {
+        return () -> {
+            SimpleDateFormat sdf = new SimpleDateFormat(format);
+            sdf.setTimeZone(TimeZone.getTimeZone("GMT"));
+            return sdf;
+        };
+    }
+
+
     /**
      * Creates to_date sql string for java.util.Date
+     *
      * @param date Date to be converted
      * @return Date in string format for sql
      */
-    public static String dateToSqlToDateString(Date date) {
+    public static String dateToSqlToDateString(Date date)
+    {
         return "TO_DATE('" + formatDateToSql(date) + "', '" + SQL_TO_DATE_FORMAT + "')";
     }
-    
+
     /**
      * Milliseconds from start of the day, including effect of daylight saving switch over
+     *
      * @param cal Calender to be converted
      * @return millis in int
      */
-    public static int millisecondOfDay(Calendar cal) {
-        Calendar s = (Calendar)cal.clone();
+    public static int millisecondOfDay(Calendar cal)
+    {
+        Calendar s = (Calendar) cal.clone();
         toMidnight(s);
-        return (int)(cal.getTimeInMillis() - s.getTimeInMillis());
+        return (int) (cal.getTimeInMillis() - s.getTimeInMillis());
     }
-    
+
 
     /**
      * Get today's (local) date as a GMT midnight date only
+     *
      * @return Date
      */
-    public static Date todayGmt() {
+    public static Date todayGmt()
+    {
         return translateToGMT(new Date(), true);
     }
 
     /**
      * Translate a Date from its localtime representation to a new Date
      * representing the same calendar day in GMT.
-     * @param date the date to translate
+     *
+     * @param date       the date to translate
      * @param toMidnight if the time portion should be truncated
      * @return a date at midnight in the GMT timezone.
      */
-    public static Date translateToGMT(Date date, boolean toMidnight) {
-        if (date == null) {
+    public static Date translateToGMT(Date date, boolean toMidnight)
+    {
+        if (date == null)
+        {
             return null;
         }
 
         GrammaticalLocalizer l = FormulaI18nUtils.getLocalizer();
         return translate(l.getCalendar(BaseLocalizer.LOCAL), l.getCalendar(BaseLocalizer.GMT), date, toMidnight);
     }
-    
+
     /**
      * Translate a Date from its GMT representation to a new Date
      * representing the same calendar day in Local timezone
-     * @param date the date to translate
+     *
+     * @param date       the date to translate
      * @param toMidnight if the time portion should be truncated
      * @return a date at midnight in the locale timezone.
      */
-    public static Date translateToLocal(Date date, boolean toMidnight) {
-        if (date == null) {
+    public static Date translateToLocal(Date date, boolean toMidnight)
+    {
+        if (date == null)
+        {
             return null;
         }
 
         GrammaticalLocalizer l = FormulaI18nUtils.getLocalizer();
         return translate(l.getCalendar(BaseLocalizer.GMT), l.getCalendar(BaseLocalizer.LOCAL), date, toMidnight);
     }
-    
+
 
     /**
      * Truncates a date to a users localtime midnight, and then converts that date
      * to a Gmt midnight date only.
-     * @param tz the owners timezone
-     * @param date  the date to trucate
+     *
+     * @param tz   the owners timezone
+     * @param date the date to trucate
      * @return the date at GMT midnight.
      */
-    public static Date truncateDateToOwnersGmtMidnight(TimeZone tz, Date date) {
-        if (date == null) {
+    public static Date truncateDateToOwnersGmtMidnight(TimeZone tz, Date date)
+    {
+        if (date == null)
+        {
             return null;
         }
 
@@ -129,22 +144,26 @@ public final class FormulaDateUtil {
         return toMidnight(gmtCal).getTime();
     }
 
-    
+
     /**
      * Converts java.util.Date to format appropriate for oracle sql using sqlFormatter
+     *
      * @param date the date to format
      * @return format the date to SQL format
      */
-    public static String formatDateToSql(Date date) {
+    public static String formatDateToSql(Date date)
+    {
         return SQL_FORMATTER.get().format(date);
     }
-    
+
     /**
      * Truncates the given calendar to midnight
+     *
      * @param cal Calender object to truncate
      * @return The same Calender object passed in
      */
-    public static Calendar toMidnight(Calendar cal) {
+    public static Calendar toMidnight(Calendar cal)
+    {
         cal.set(Calendar.HOUR, 0);
         cal.set(Calendar.AM_PM, Calendar.AM);
         cal.set(Calendar.MILLISECOND, 0);
@@ -152,25 +171,31 @@ public final class FormulaDateUtil {
         cal.set(Calendar.SECOND, 0);
         return cal;
     }
-    
+
     /**
      * add a duration to a date(units of duration is days)
+     *
      * @param performAddition if true, add, otherwise subtract
-     * @param value  the date value
-     * @param duration the number of seconds to add to the date
-     * @param truncate should the milliseconds be truncated, or rounded
+     * @param value           the date value
+     * @param duration        the number of seconds to add to the date
+     * @param truncate        should the milliseconds be truncated, or rounded
      * @return the value with the date added
      */
-    public static Date addDurationToDate(boolean performAddition, Date value, BigDecimal duration, boolean truncate) {
+    public static Date addDurationToDate(boolean performAddition, Date value, BigDecimal duration, boolean truncate)
+    {
 
-        if (!performAddition) {
+        if (!performAddition)
+        {
             duration = duration.negate();
         }
 
-        if (truncate) {
+        if (truncate)
+        {
             // Truncate any fractional part
             duration = new BigDecimal(duration.toBigInteger()).multiply(MILLISECONDSPERDAY);
-        } else {
+        }
+        else
+        {
             // otherwise do what Oracle does: Round to the nearest second
             duration = duration.multiply(SECONDSPERDAY).setScale(0, RoundingMode.HALF_UP).movePointRight(3);
         }
@@ -180,49 +205,62 @@ public final class FormulaDateUtil {
 
 
     /**
-     * Parses a string in ISO8601 format, with both date and time. This method handles parsing 
+     * Parses a string in ISO8601 format, with both date and time. This method handles parsing
      * with and without milliseconds
      * Must be in universal GMT timezone and contain both date and time
      * e.g. 2011-01-31T22:59:48.317Z
      * e.g. 2011-01-31T22:59:48Z
+     *
      * @param date the date to parse
      * @return the parsed date
      * @throws ParseException if the date format is invalid
      */
-    public static Date parseISO8601(String date) throws ParseException {
-    	try {
-    		return ISO8601_MILLISECOND_FORMATTER.get().parse(date);
-    	} catch(ParseException exc) {
-    		return ISO8601_FORMATTER.get().parse(date);
-    	}
+    public static Date parseISO8601(String date) throws ParseException
+    {
+        try
+        {
+            return ISO8601_MILLISECOND_FORMATTER.get().parse(date);
+        }
+        catch (ParseException exc)
+        {
+            return ISO8601_FORMATTER.get().parse(date);
+        }
     }
-    
+
     /**
      * Returns a string in ISO8601 format, with both date and time
      * e.g. 2011-01-31T22:59:48Z
+     *
      * @param date the date to format
      * @return the value of the date formatted with ISO8601 format.
      */
-    public static String formatDatetimeToISO8601(Date date) {
+    public static String formatDatetimeToISO8601(Date date)
+    {
         return ISO8601_FORMATTER.get().format(date);
     }
 
     /**
      * Returns a string in SQL Literal format, with both date and time
      * e.g. 2011-01-31 22:59:48
+     *
      * @param date the date to format
      * @return the value of the date formatted with ISO8601 format.
      */
-    public static String formatDatetimeToSqlLiteral(Date date) {
+    public static String formatDatetimeToSqlLiteral(Date date)
+    {
         return SQL_TIMESTAMP_FORMATTER.get().format(date);
     }
-    
-    public static Calendar translateCal(Calendar from, Calendar to, Date date, boolean toMidnight) {
+
+    public static Calendar translateCal(Calendar from, Calendar to, Date date, boolean toMidnight)
+    {
         from.setTime(date);
-                to.set(from.get(Calendar.YEAR), from.get(Calendar.MONTH), from.get(Calendar.DAY_OF_MONTH));
-        if (toMidnight) {
+        to.set(from.get(Calendar.YEAR), from.get(Calendar.MONTH), from.get(Calendar.DAY_OF_MONTH));
+        if (toMidnight)
+        {
             to = toMidnight(to);
-        } else {
+        }
+        else
+        {
             to.set(Calendar.HOUR_OF_DAY, from.get(Calendar.HOUR_OF_DAY));
             to.set(Calendar.MINUTE, from.get(Calendar.MINUTE));
             to.set(Calendar.SECOND, from.get(Calendar.SECOND));
@@ -231,10 +269,10 @@ public final class FormulaDateUtil {
         return to;
     }
 
-    public static Date translate(Calendar from, Calendar to, Date date, boolean toMidnight) {
+    public static Date translate(Calendar from, Calendar to, Date date, boolean toMidnight)
+    {
         return translateCal(from, to, date, toMidnight).getTime();
     }
-    
-    
-    
+
+
 }

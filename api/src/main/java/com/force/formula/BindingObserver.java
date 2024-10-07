@@ -7,6 +7,7 @@ package com.force.formula;
  * @since 140
  */
 
-public interface BindingObserver {
+public interface BindingObserver
+{
     String bind(String value) throws FormulaException;
 }

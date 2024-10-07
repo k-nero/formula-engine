@@ -8,6 +8,7 @@ import com.force.formula.FormulaException;
  * @author dchasman
  * @since 144
  */
-public interface FormulaSQLProvider {
+public interface FormulaSQLProvider
+{
     SQLPair getSQL(ITableAliasRegistry registry) throws FormulaException;
 }

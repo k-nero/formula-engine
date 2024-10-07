@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package com.force.formula;
 
@@ -8,7 +8,8 @@ package com.force.formula;
  * @author stamm
  * @since 0.0.1
  */
-public interface FormulaFieldReferenceInfo {
+public interface FormulaFieldReferenceInfo
+{
 
     /**
      * @return the field or column associated with the field reference.  Probably a foreign key

@@ -4,12 +4,12 @@
  */
 package com.force.formula;
 
+import com.force.formula.sql.ITableAliasRegistry;
+
 import java.io.Serializable;
 import java.util.Deque;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
-
-import com.force.formula.sql.ITableAliasRegistry;
 
 /**
  * Command pattern interface for formula operations
@@ -17,28 +17,39 @@ import com.force.formula.sql.ITableAliasRegistry;
  * @author dchasman
  * @since 140
  */
-public interface FormulaCommand extends Serializable {
+public interface FormulaCommand extends Serializable
+{
 
     String getName();
+
     void execute(FormulaRuntimeContext context, Deque<Object> stack) throws FormulaException;
+
     boolean isDeterministic(FormulaContext formulaContext);
+
     boolean isStale(FormulaContext formulaContext);
-    default boolean hasAIPredictionFieldReference(FormulaContext formulaContext) {
+
+    default boolean hasAIPredictionFieldReference(FormulaContext formulaContext)
+    {
         return false;
     }
 
     List<FormulaFieldReferenceInfo> getDirectReference(FormulaContext formulaContext, ITableAliasRegistry registry,
-                boolean zeroExcluded, boolean allowDateValue, AtomicBoolean caseSafeIdUsed, FormulaDataType formulaResultDataType) throws UnsupportedTypeException, InvalidFieldReferenceException;
+            boolean zeroExcluded, boolean allowDateValue, AtomicBoolean caseSafeIdUsed, FormulaDataType formulaResultDataType) throws UnsupportedTypeException, InvalidFieldReferenceException;
 
     // Hooks for core.
-    default boolean isCustomIndexable(FormulaContext formulaContext) {
-    	return isDeterministic(formulaContext);
+    default boolean isCustomIndexable(FormulaContext formulaContext)
+    {
+        return isDeterministic(formulaContext);
     }
-    default boolean isFlexIndexable(FormulaContext formulaContext) {
-    	return isCustomIndexable(formulaContext);
+
+    default boolean isFlexIndexable(FormulaContext formulaContext)
+    {
+        return isCustomIndexable(formulaContext);
     }
-    default boolean isPostSaveIndexUpdated(FormulaContext formulaContext, FormulaDmlType dmlType) {
-    	return false;
+
+    default boolean isPostSaveIndexUpdated(FormulaContext formulaContext, FormulaDmlType dmlType)
+    {
+        return false;
     }
 
     /**
@@ -61,12 +72,13 @@ public interface FormulaCommand extends Serializable {
     FormulaException validateMergeFieldsForFormulaType(FormulaContext formulaContext);
 
     void visit(FormulaCommandVisitor visitor);
-    
+
     /**
      * @return true if evaluating this command yields a field reference
      * Used only by FieldReferenceCommand for now...
      */
-    default boolean isFieldReference() {
+    default boolean isFieldReference()
+    {
         return false;
     }
 }

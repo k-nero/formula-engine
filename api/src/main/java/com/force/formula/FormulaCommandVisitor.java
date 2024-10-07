@@ -7,26 +7,31 @@ package com.force.formula;
  * @author wmacklem
  * @since 156
  */
-public interface FormulaCommandVisitor {
-     void visit(FormulaCommand formulaCommand);
-     
-     /**
-      * @return the formula context associated with the visitor (so it can be passed into the commands)
-      */
-     default FormulaContext getFormulaContext() {
-         return null;
-     }
+public interface FormulaCommandVisitor
+{
+    void visit(FormulaCommand formulaCommand);
 
-     /**
-      * Indicate that we're are in a nested formula.  This should always be called
-      * with popNestedFormula() in a finally block.
-      * @param formulaName the name of the formula being validated
-      */
-     default void pushNestedFormula(String formulaName) {
-     }
+    /**
+     * @return the formula context associated with the visitor (so it can be passed into the commands)
+     */
+    default FormulaContext getFormulaContext()
+    {
+        return null;
+    }
 
-     default void popNestedFormula() {
-         
-     }
+    /**
+     * Indicate that we're are in a nested formula.  This should always be called
+     * with popNestedFormula() in a finally block.
+     *
+     * @param formulaName the name of the formula being validated
+     */
+    default void pushNestedFormula(String formulaName)
+    {
+    }
+
+    default void popNestedFormula()
+    {
+
+    }
 
 }
