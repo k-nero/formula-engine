@@ -75,7 +75,7 @@ class FunctionLeftCommand extends AbstractFormulaCommand
         {
             stack.push(null);
         }
-        else if ((target == null) || (target.equals("")))
+        else if ((target == null) || (target.isEmpty()))
         {
             stack.push(null);
         }

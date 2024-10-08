@@ -87,7 +87,7 @@ class FunctionRpadCommand extends AbstractFormulaCommand
             return;
         }
         int count = bdCount.intValue();
-        if ((target == null) || (target.equals("")))
+        if ((target == null) || (target.isEmpty()))
         {
             stack.push(null);
         }

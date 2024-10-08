@@ -55,7 +55,7 @@ public class FormulaCommandInfoRegistry
     {
         synchronized (bindingObservers)
         {
-            return Collections.unmodifiableList(new ArrayList<BindingObserver>(bindingObservers));
+            return List.copyOf(bindingObservers);
         }
     }
 

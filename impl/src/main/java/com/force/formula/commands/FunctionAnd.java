@@ -163,7 +163,7 @@ class OperatorAndCommand extends AbstractFormulaCommand
         {
             args[i].executeReally(context, stack);
             Boolean result = checkBooleanType(stack.pop());
-            if (result == null || !result.booleanValue())
+            if (result == null || !result)
             {
                 stack.push(Boolean.FALSE);
                 return;

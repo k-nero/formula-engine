@@ -68,7 +68,6 @@ public class FunctionFormatDuration extends FormulaCommandInfoImpl implements Fo
         {
             // Valid datatype combinations are BigDecimal,Boolean or DateTime,DateTime or Time,Time
             FormulaAST rhsNode = (FormulaAST) lhsNode.getNextSibling();
-            FormulaAST invalidNode = lhsNode;
 
             Type rhs = rhsNode.getDataType();
 
@@ -106,7 +105,7 @@ public class FunctionFormatDuration extends FormulaCommandInfoImpl implements Fo
             else
             {
                 throw new WrongArgumentTypeException(node.getText(), new Class[]{BigDecimal.class, FormulaTime.class,
-                        FormulaDateTime.class}, invalidNode);
+                        FormulaDateTime.class}, lhsNode);
             }
 
             return String.class;

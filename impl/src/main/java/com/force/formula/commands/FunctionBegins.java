@@ -64,11 +64,11 @@ class FunctionBeginsCommand extends AbstractFormulaCommand
     {
         String sub = checkStringType(stack.pop());
         String target = checkStringType(stack.pop());
-        if ((sub == null) || (sub == ""))
+        if ((sub == null) || (sub.isEmpty()))
         {
             stack.push(true);
         }
-        else if ((target == null) || (target.equals("")))
+        else if ((target == null) || (target.isEmpty()))
         {
             stack.push(null);
         }

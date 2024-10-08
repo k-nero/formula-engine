@@ -215,11 +215,11 @@ class FunctionFormatCommand extends AbstractFormulaCommand
                 BaseLocalizer localizer = hooks.getLocalizer();
                 MessageFormat mf = new MessageFormat(pattern, localizer.getLocale());
                 Object[] formats = mf.getFormats();
-                for (int i = 0; i < formats.length; i++)
+                for (Object format : formats)
                 {
-                    if (formats[i] instanceof DateFormat)
+                    if (format instanceof DateFormat)
                     {
-                        ((DateFormat) formats[i]).setTimeZone(hooks.getLocalizer().getTimeZone());
+                        ((DateFormat) format).setTimeZone(hooks.getLocalizer().getTimeZone());
                     }
                 }
                 String result = mf.format(args);
@@ -373,6 +373,7 @@ class FunctionFormatCommand extends AbstractFormulaCommand
         }
         else
         {
+            assert pattern != null;
             return new SimpleDateFormat(pattern, FormulaI18nUtils.getLocalizer().getLocale());
         }
     }

@@ -74,7 +74,7 @@ class OperatorNotFormulaCommand extends AbstractFormulaCommand
         }
         else
         {
-            stack.push(Boolean.valueOf(!arg.booleanValue()));
+            stack.push(!arg);
         }
     }
 }

@@ -57,7 +57,7 @@ public class FunctionTrunc extends BinaryMathCommandBehavior
     public JsValue getJavascript(FormulaAST node, FormulaContext context, JsValue[] args)
     {
         // Short circuit the complexity if we know it's positive.
-        if (context.useHighPrecisionJs() && args[1].js.length() > 0 && Character.isDigit(args[1].js.charAt(0)))
+        if (context.useHighPrecisionJs() && !args[1].js.isEmpty() && Character.isDigit(args[1].js.charAt(0)))
         {
             return JsValue.forNonNullResult(args[0] + ".toDecimalPlaces(" + args[1] + ".toNumber(),1)", args);  //,1 == RoundingMode.down
         }

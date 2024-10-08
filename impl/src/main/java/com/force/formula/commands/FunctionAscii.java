@@ -60,7 +60,7 @@ public class FunctionAscii extends FormulaCommandInfoImpl
         public void execute(FormulaRuntimeContext context, Deque<Object> stack)
         {
             String arg = checkStringType(stack.pop());
-            if (arg == null || arg.length() == 0)
+            if (arg == null || arg.isEmpty())
             {
                 stack.push(null);
             }

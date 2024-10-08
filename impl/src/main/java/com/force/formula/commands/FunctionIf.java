@@ -329,7 +329,7 @@ class OperatorIfFormulaCommand extends AbstractFormulaCommand
         Thunk elseVal = (Thunk) stack.pop();
         Thunk thenVal = (Thunk) stack.pop();
         Boolean guard = checkBooleanType(stack.pop());
-        if ((guard == null) || !guard.booleanValue()) // Treat NULL as false
+        if ((guard == null) || !guard) // Treat NULL as false
         {
             elseVal.executeReally(context, stack);
         }

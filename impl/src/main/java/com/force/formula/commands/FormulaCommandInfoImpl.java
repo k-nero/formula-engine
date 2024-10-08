@@ -98,7 +98,7 @@ public abstract class FormulaCommandInfoImpl implements FormulaCommandInfo
     public static String jsNoe(FormulaContext context, String value, String ifNull)
     {
         // If we were given null, then return ifNull
-        if (value == null || value.equalsIgnoreCase("null") || (value != null && FormulaTextUtil.isEmptyOrWhitespace(value)))
+        if (value == null || value.equalsIgnoreCase("null") || FormulaTextUtil.isEmptyOrWhitespace(value))
         {
             // return "(ifNull)"
             return "(" + ifNull + ")";
@@ -210,12 +210,12 @@ public abstract class FormulaCommandInfoImpl implements FormulaCommandInfo
         return context.useHighPrecisionJs() ? val + ".toNumber()" : val;
     }
 
-    protected static final FormulaValidationHooks hooks()
+    protected static FormulaValidationHooks hooks()
     {
         return FormulaValidationHooks.get();
     }
 
-    protected static final FormulaSqlHooks getSqlHooks(FormulaContext context)
+    protected static FormulaSqlHooks getSqlHooks(FormulaContext context)
     {
         return (FormulaSqlHooks) context.getSqlStyle();
     }

@@ -164,7 +164,7 @@ public class FunctionOr extends FormulaCommandInfoImpl implements FormulaCommand
     @Override
     public JsValue getJavascript(FormulaAST node, FormulaContext context, JsValue[] args) throws FormulaException
     {
-        return new JsValue(jsNvl(context, Arrays.asList(args).stream().map((a) -> a.buildJSWithGuard())
+        return new JsValue(jsNvl(context, Arrays.stream(args).map(JsValue::buildJSWithGuard)
                 .collect(Collectors.joining(")||(", "(", ")")), "false"), null, false);
     }
 }
@@ -192,7 +192,7 @@ class OperatorOrCommand extends AbstractFormulaCommand
         {
             args[i].executeReally(context, stack);
             Boolean result = checkBooleanType(stack.pop());
-            if (result != null && result.booleanValue())
+            if (result != null && result)
             {
                 stack.push(Boolean.TRUE);
                 return;

@@ -140,8 +140,8 @@ public class FunctionDistance extends FormulaCommandInfoImpl implements FormulaC
         try
         {
             // Let's see if they are simple constants
-            double latitudeValue = Double.valueOf(stripParentheses(latitudeExpr));
-            double longitudeValue = Double.valueOf(stripParentheses(longitudeExpr));
+            double latitudeValue = Double.parseDouble(stripParentheses(latitudeExpr));
+            double longitudeValue = Double.parseDouble(stripParentheses(longitudeExpr));
 
             return getGeolocationService().getXyzStrings(latitudeValue, longitudeValue);
         }

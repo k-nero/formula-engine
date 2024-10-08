@@ -119,7 +119,7 @@ class FunctionLowerCommand extends AbstractFormulaCommand
     {
         String localeStr = hasLocale ? checkStringType(stack.pop()) : null;
         String target = checkStringType(stack.pop());
-        if ((target == null) || (target.equals("")))
+        if ((target == null) || (target.isEmpty()))
         {
             stack.push(null);
         }

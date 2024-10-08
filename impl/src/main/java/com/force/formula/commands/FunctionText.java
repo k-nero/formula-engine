@@ -149,11 +149,11 @@ public class FunctionText extends FormulaCommandInfoImpl implements FormulaComma
             // If the type is a Picklist, make it explicit in the error message
             if (toConvert.getColumnType() != null && toConvert.getColumnType().isPickval())
             {
-                throw new WrongArgumentTypeException(node.getText(), types.toArray(new Class[types.size()]), toConvert, toConvert.getColumnType());
+                throw new WrongArgumentTypeException(node.getText(), types.toArray(new Class[0]), toConvert, toConvert.getColumnType());
             }
             else
             {
-                throw new WrongArgumentTypeException(node.getText(), types.toArray(new Class[types.size()]), toConvert);
+                throw new WrongArgumentTypeException(node.getText(), types.toArray(new Class[0]), toConvert);
             }
         }
 
@@ -294,7 +294,7 @@ class OperatorTextFormulaCommand extends AbstractFormulaCommand
                 }
                 String dbValue = context.getString(picklistFieldName, false);
                 FormulaPicklistInfo enumInfo = context.lookup(picklistFieldName).getEnumInfo();
-                if (dbValue != null && enumInfo != null && enumInfo instanceof FormulaPicklistInfo.Dynamic)
+                if (dbValue != null && enumInfo instanceof FormulaPicklistInfo.Dynamic)
                 {
                     ((FormulaPicklistInfo.Dynamic) enumInfo).collectDbValueToFetch(dbValue);
                 }
@@ -358,11 +358,7 @@ class OperatorTextFormulaCommand extends AbstractFormulaCommand
                         stack.push(value);
                     }
                 }
-                catch (InvalidFieldReferenceException x)
-                {
-                    throw new RuntimeException(x);
-                }
-                catch (UnsupportedTypeException x)
+                catch (InvalidFieldReferenceException | UnsupportedTypeException x)
                 {
                     throw new RuntimeException(x);
                 }

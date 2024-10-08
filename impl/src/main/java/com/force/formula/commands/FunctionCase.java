@@ -114,6 +114,7 @@ public class FunctionCase extends FormulaCommandInfoImpl implements FormulaComma
                 whenNode = (FormulaAST) valueNode.getNextSibling();
                 if (isPicklistCase)
                 {
+                    assert targets != null;
                     if (targets.get(i) == null || targets.get(i).isEmpty())
                     {
                         condition = "(1=0)";
@@ -274,6 +275,7 @@ public class FunctionCase extends FormulaCommandInfoImpl implements FormulaComma
             for (int i = 1; i < args.length - 2; i += 2)
             {
                 whenNode = (FormulaAST) valueNode.getNextSibling();
+                assert targets != null;
                 List<String> cases = targets.get(i);
                 if (cases != null)
                 {  // If the case is valid...
@@ -299,7 +301,7 @@ public class FunctionCase extends FormulaCommandInfoImpl implements FormulaComma
                 //String condition;
                 whenNode = (FormulaAST) valueNode.getNextSibling();
                 // Make sure null != null by testings args[i]
-                js.append("(" + args[i] + "&&(" + OperatorEquality.wrapJsForEquality(context, args[0], expType) + "==" + OperatorEquality.wrapJsForEquality(context, args[i], expType) + "))?");
+                js.append("(").append(args[i]).append("&&(").append(OperatorEquality.wrapJsForEquality(context, args[0], expType)).append("==").append(OperatorEquality.wrapJsForEquality(context, args[i], expType)).append("))?");
                 valueNode = (FormulaAST) whenNode.getNextSibling();
                 js.append("(").append(args[i + 1].js).append("):");
                 couldBeNull |= args[i + 1].couldBeNull;
@@ -367,7 +369,7 @@ public class FunctionCase extends FormulaCommandInfoImpl implements FormulaComma
         // Prefetch dynamic enum items needed for this Case function
         FormulaFieldInfo formulaFieldInfo = FunctionIsPickVal.getFormulaFieldInfo(targetNode, context);
         FormulaPicklistInfo enumInfo = formulaFieldInfo.getEnumInfo();
-        if (enumInfo != null && enumInfo instanceof FormulaPicklistInfo.Dynamic)
+        if (enumInfo instanceof FormulaPicklistInfo.Dynamic)
         {
             FormulaAST currentNode = targetNode;
             int numberOfChildren = ast.getNumberOfChildren();

@@ -42,23 +42,23 @@ public class FunctionIsNull extends FormulaCommandInfoImpl implements FormulaCom
     @Override
     public SQLPair getSQL(FormulaAST node, FormulaContext context, String[] args, String[] guards, TableAliasRegistry registry)
     {
-        String sql;
+        StringBuilder sql;
         String guard;
         if (args[0] == null)
         {
             // flow passes null for arguments
-            sql = "(" + args[0] + " IS NULL)";
+            sql = new StringBuilder("(" + args[0] + " IS NULL)");
         }
         else
         {
             List<String> colList = Splitter.on(FunctionGeolocation.LOCATION_DELIMITER).splitToList(args[0]);
-            String[] columns = colList.toArray(new String[colList.size()]);
-            sql = "(";
+            String[] columns = colList.toArray(new String[0]);
+            sql = new StringBuilder("(");
             for (int i = 0; i < columns.length; i++)
             {
                 if (i != 0)
                 {
-                    sql += " AND ";
+                    sql.append(" AND ");
                 }
 
                 String col = columns[i];
@@ -66,18 +66,18 @@ public class FunctionIsNull extends FormulaCommandInfoImpl implements FormulaCom
                 if ("''".equals(col))
                 {
                     // replacing '' with NULL for Postgres - see W-4808196    
-                    sql += "NULL IS NULL";
+                    sql.append("NULL IS NULL");
                 }
                 else
                 {
-                    sql += col + " IS NULL";
+                    sql.append(col).append(" IS NULL");
                 }
             }
-            sql += ")";
+            sql.append(")");
         }
         guard = guards[0];
 
-        return new SQLPair(sql, guard);
+        return new SQLPair(sql.toString(), guard);
     }
 
     @Override
@@ -152,7 +152,7 @@ class OperatorIsNullCommand extends AbstractFormulaCommand
         }
         else
         {
-            stack.push(Boolean.valueOf(FunctionNullValueFormulaCommand.unwrap(arg) == null));
+            stack.push(FunctionNullValueFormulaCommand.unwrap(arg) == null);
         }
     }
 }

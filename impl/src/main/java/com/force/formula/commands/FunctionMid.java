@@ -82,7 +82,7 @@ class FunctionMidCommand extends AbstractFormulaCommand
         {
             start = BigDecimal.ONE;
         }
-        if ((target == null) || (target.equals("")) || (count.compareTo(BigDecimal.ZERO) == 0)
+        if ((target == null) || (target.isEmpty()) || (count.compareTo(BigDecimal.ZERO) == 0)
                 || (start.compareTo(new BigDecimal(target.length())) > 0))
         {
             stack.push(null);

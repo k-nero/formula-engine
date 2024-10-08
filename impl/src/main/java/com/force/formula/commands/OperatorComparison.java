@@ -213,7 +213,7 @@ class OperatorComparisonFormulaCommand extends AbstractFormulaCommand
                 throw new FormulaRuntimeTypeException(token);  // NOPMD
             }
 
-            stack.push(Boolean.valueOf(value));
+            stack.push(value);
         }
     }
 }

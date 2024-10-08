@@ -53,7 +53,7 @@ public class FunctionRound extends BinaryMathCommandBehavior
     public JsValue getJavascript(FormulaAST node, FormulaContext context, JsValue[] args)
     {
         // Short circuit the complexity if we know it's positive.
-        if (args[1].js.length() > 0 && Character.isDigit(args[1].js.charAt(0)))
+        if (!args[1].js.isEmpty() && Character.isDigit(args[1].js.charAt(0)))
         {
             if (context.useHighPrecisionJs())
             {

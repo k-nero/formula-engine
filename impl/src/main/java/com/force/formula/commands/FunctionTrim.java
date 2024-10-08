@@ -62,7 +62,7 @@ class FunctionTrimCommand extends AbstractFormulaCommand
     public void execute(FormulaRuntimeContext context, Deque<Object> stack)
     {
         String arg = checkStringType(stack.pop());
-        if ((arg == null) || (arg.equals("")))
+        if ((arg == null) || (arg.isEmpty()))
         {
             stack.push(null);
         }

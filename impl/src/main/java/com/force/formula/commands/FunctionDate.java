@@ -74,7 +74,7 @@ public class FunctionDate extends FormulaCommandInfoImpl
         }
 
         String sql;
-        if ("".equals(nullBits))
+        if (nullBits.isEmpty())
         {
             sql = date;
         }
@@ -180,7 +180,7 @@ public class FunctionDate extends FormulaCommandInfoImpl
                 }
             }
         }
-        else if ((monthValue == BAD_VALUE) && (dayValue != BAD_VALUE))
+        else if (monthValue == BAD_VALUE)
         {
             if (dayValue > 30)
             {
@@ -229,11 +229,11 @@ public class FunctionDate extends FormulaCommandInfoImpl
             }
             if (monthCanBeNull)
             {
-                nullChecks = nullChecks + (nullChecks.length() > 0 ? "OR " : "") + args[1] + " IS NULL ";
+                nullChecks = nullChecks + (!nullChecks.isEmpty() ? "OR " : "") + args[1] + " IS NULL ";
             }
             if (dayCanBeNull)
             {
-                nullChecks = nullChecks + (nullChecks.length() > 0 ? "OR " : "") + args[2] + " IS NULL ";
+                nullChecks = nullChecks + (!nullChecks.isEmpty() ? "OR " : "") + args[2] + " IS NULL ";
             }
             result = "NOT (" + nullChecks + ") AND (" + result + ")";
         }

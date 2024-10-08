@@ -46,12 +46,12 @@ public class FunctionFind extends FormulaCommandInfoImpl
             // With postgres, you need to do a bunch of stuff to get around the lack of a built-in for the offset.
             String startPosition = hooks.sqlNvl() + "(" + args[2] + ", 1)";
             String instr = hooks.sqlInstr3(args[1], args[0], hooks.sqlGreatest(startPosition, "1"));
-            sql.append(hooks.sqlNvl() + "(" + instr + ", 0)");
+            sql.append(hooks.sqlNvl()).append("(").append(instr).append(", 0)");
         }
         else
         {
             // Use regular instr if there isn't a position offset
-            sql.append(hooks.sqlNvl() + "(" + hooks.sqlInstr2(args[1], args[0]) + ", 0)");
+            sql.append(hooks.sqlNvl()).append("(").append(hooks.sqlInstr2(args[1], args[0])).append(", 0)");
         }
 
         String guard = SQLPair.generateGuard(guards, null);

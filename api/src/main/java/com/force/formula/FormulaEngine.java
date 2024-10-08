@@ -26,7 +26,7 @@ import java.util.concurrent.atomic.AtomicReference;
 public class FormulaEngine
 {
 
-    private static final String[] JAVA_VERSION_PARTS = System.getProperty("java.version").split("\\.|_");
+    private static final String[] JAVA_VERSION_PARTS = System.getProperty("java.version").split("[._]");
 
     private final static AtomicReference<FormulaEngineHooks> hooksRef = new AtomicReference<>();
     private final static AtomicReference<FormulaFactory> factoryRef = new AtomicReference<>();
@@ -121,7 +121,7 @@ public class FormulaEngine
                 throw new RuntimeException(e1);
             }
         }
-        hooksRef.set((FormulaEngineHooks) Proxy.newProxyInstance(FormulaEngine.class.getClassLoader(), hooksClasses.toArray(new Class[hooksClasses.size()]), call_default_handler));
+        hooksRef.set((FormulaEngineHooks) Proxy.newProxyInstance(FormulaEngine.class.getClassLoader(), hooksClasses.toArray(new Class[0]), call_default_handler));
 
         try
         {

@@ -170,7 +170,7 @@ public abstract class MockBasePicklistData {
         if (multiple)
             return this.selectedValues == null || this.selectedValues.length == 0;
         else
-            return this.defaultVal == null || this.defaultVal.length() == 0;
+            return this.defaultVal == null || this.defaultVal.isEmpty();
 
     }
 

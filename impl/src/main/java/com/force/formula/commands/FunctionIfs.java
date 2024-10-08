@@ -111,7 +111,7 @@ public class FunctionIfs extends FormulaCommandInfoImpl implements FormulaComman
         // Convert to an expression....SqlGeneratorOutput
         String sql = resultDataType == Boolean.class ? "(" + sj + ") = 1" : sj.toString();
 
-        /**
+        /*
          * Conditionally evaluate guards on the basis of condition clauses.
          *
          * The final guard will look exactly like it would have if we kept the IF functions nested. We start
@@ -174,7 +174,7 @@ public class FunctionIfs extends FormulaCommandInfoImpl implements FormulaComman
         for (int i = 0; i < args.length - 1; i += 2)
         {
             whenNode = (FormulaAST) valueNode.getNextSibling();
-            js.append("(" + args[i] + "?");
+            js.append("(").append(args[i]).append("?");
             valueNode = (FormulaAST) whenNode.getNextSibling();
             js.append("(").append(args[i + 1].js).append("):");
             couldBeNull |= args[i + 1].couldBeNull;
@@ -219,7 +219,7 @@ class OperatorIfsFormulaCommand extends AbstractFormulaCommand
             }
             Boolean guard = checkBooleanType(comparison);
             Thunk thunk = (Thunk) ifs.pop();
-            if ((guard != null) && guard.booleanValue())
+            if ((guard != null) && guard)
             { // Treat NULL as false
                 thunk.executeReally(context, stack);
                 return;

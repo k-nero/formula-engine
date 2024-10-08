@@ -109,7 +109,7 @@ public class FunctionSubstring extends FormulaCommandInfoImpl
                 count = BigDecimal.ZERO;
             }
 
-            if ((target == null) || (target.equals("")) || (hasLength && count.compareTo(BigDecimal.ZERO) == 0)
+            if ((target == null) || (target.isEmpty()) || (hasLength && count.compareTo(BigDecimal.ZERO) == 0)
                     || (start.compareTo(new BigDecimal(target.length())) > 0) // If start > length or start < -length..
                     || (start.compareTo(new BigDecimal(-target.length())) < 0))
             {

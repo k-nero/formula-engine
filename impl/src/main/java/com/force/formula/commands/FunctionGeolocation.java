@@ -87,7 +87,7 @@ public class FunctionGeolocation extends FormulaCommandInfoImpl implements Formu
 
         if (latitudeNode.isLiteral())
         {
-            double lat = Double.valueOf(latitudeNode.getText());
+            double lat = Double.parseDouble(latitudeNode.getText());
             if (lat < LAT_MIN || lat > LAT_MAX)
             {
                 throw new WrongArgumentException("GEOLOCATION");
@@ -95,7 +95,7 @@ public class FunctionGeolocation extends FormulaCommandInfoImpl implements Formu
         }
         if (longitudeNode.isLiteral())
         {
-            double longitude = Double.valueOf(longitudeNode.getText());
+            double longitude = Double.parseDouble(longitudeNode.getText());
             if (longitude < LON_MIN || longitude > LON_MAX)
             {
                 throw new WrongArgumentException("GEOLOCATION");
@@ -129,22 +129,22 @@ class GeolocationCommand extends AbstractFormulaCommand
 
         if (latitude != null && (latitude.doubleValue() < FunctionGeolocation.LAT_MIN || latitude.doubleValue() > FunctionGeolocation.LAT_MAX))
         {
-            throw new FormulaEvaluationException("Latitude out of range: " + (latitude == null ? "null" : latitude.doubleValue()));
+            throw new FormulaEvaluationException("Latitude out of range: " + latitude.doubleValue());
         }
         if (longitude != null && (longitude.doubleValue() < FunctionGeolocation.LON_MIN || longitude.doubleValue() > FunctionGeolocation.LON_MAX))
         {
-            throw new FormulaEvaluationException("Longitude is out of range: " + (longitude == null ? "null" : longitude.doubleValue()));
+            throw new FormulaEvaluationException("Longitude is out of range: " + longitude.doubleValue());
         }
 
         if (latitude == null && longitude != null)
         {
-            throw new FormulaEvaluationException("Latitude can be null if and only if longitude is null" + (latitude == null ? "null" : latitude.doubleValue()) +
-                    " Longitude = " + (longitude == null ? "null" : longitude.doubleValue()));
+            throw new FormulaEvaluationException("Latitude can be null if and only if longitude is null" + "null" +
+                    " Longitude = " + longitude.doubleValue());
         }
         else if (latitude != null && longitude == null)
         {
-            throw new FormulaEvaluationException("Longitude can be null if and only if latitude is null" + (latitude == null ? "null" : latitude.doubleValue()) +
-                    " Longitude = " + (longitude == null ? "null" : longitude.doubleValue()));
+            throw new FormulaEvaluationException("Longitude can be null if and only if latitude is null" + latitude.doubleValue() +
+                    " Longitude = " + "null");
         }
 
         stack.push(FormulaEngine.getHooks().constructGeolocation(latitude, longitude));

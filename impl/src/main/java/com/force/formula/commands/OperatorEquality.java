@@ -34,12 +34,7 @@ public class OperatorEquality extends FormulaCommandInfoImpl implements FormulaC
      */
     static protected boolean isTextPicklistCase(FormulaAST node)
     {
-        if (FormulaAST.isFunctionNode(node, "text"))
-        {
-            FormulaDataType argType = ((FormulaAST) node.getFirstChild()).getColumnType();
-            return argType != null && argType.isAnySingleEnum();
-        }
-        return false;
+        return FunctionText.isTextPicklistCase(node);
     }
 
     /**
@@ -133,7 +128,7 @@ public class OperatorEquality extends FormulaCommandInfoImpl implements FormulaC
         {
             result = !result;
         }
-        return Boolean.valueOf(result);
+        return result;
     }
 
     public static String compareBulk(FormulaContext context, Object lhs, int lhsType, Object rhs, int rhsType, boolean treatAsString,
@@ -257,7 +252,7 @@ public class OperatorEquality extends FormulaCommandInfoImpl implements FormulaC
         final String lhsString = wrapBoolean(args[0], lhs.getDataType(), lhs.getType());
         final String rhsString = wrapBoolean(args[1], rhs.getDataType(), rhs.getType());
 
-        String sql = compareBulk(context, lhsString, lhs.getType(), rhsString, rhs.getType(), treatAsString(node),
+        String sql = compareBulk(context, lhsString, lhs.getType(), rhsString, rhs.getType(), Boolean.TRUE.equals(treatAsString(node)),
                 "<>".equals(getName()));
         String guard = SQLPair.generateGuard(guards, null);
         return new SQLPair(sql, guard);
@@ -389,7 +384,7 @@ public class OperatorEquality extends FormulaCommandInfoImpl implements FormulaC
         // See note above...
         final boolean highPres = lhs.getDataType() == BigDecimal.class && context.useHighPrecisionJs();
 
-        return compareBulkJS(context, lhsString, lhs.getType(), rhsString, rhs.getType(), treatAsString(node),
+        return compareBulkJS(context, lhsString, lhs.getType(), rhsString, rhs.getType(), Boolean.TRUE.equals(treatAsString(node)),
                 "<>".equals(getName()), highPres, args);
     }
 }

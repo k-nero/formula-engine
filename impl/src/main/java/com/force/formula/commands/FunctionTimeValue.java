@@ -192,15 +192,12 @@ public class FunctionTimeValue extends FormulaCommandInfoImpl implements Formula
                 {
                     // Convert from FormulaDateTime to Date
                     FormulaDateTime dateTimeInput = (FormulaDateTime) input;
-                    if (dateTimeInput != null)
+                    Date date = dateTimeInput.getDate();
+                    if (date != null)
                     {
-                        Date date = dateTimeInput.getDate();
-                        if (date != null)
-                        {
-                            Calendar cal = new GregorianCalendar(BaseLocalizer.GMT_TZ);
-                            cal.setTime(date);
-                            value = FormulaEngine.getHooks().constructTime(FormulaDateUtil.millisecondOfDay(cal));
-                        }
+                        Calendar cal = new GregorianCalendar(BaseLocalizer.GMT_TZ);
+                        cal.setTime(date);
+                        value = FormulaEngine.getHooks().constructTime(FormulaDateUtil.millisecondOfDay(cal));
                     }
                 }
                 else

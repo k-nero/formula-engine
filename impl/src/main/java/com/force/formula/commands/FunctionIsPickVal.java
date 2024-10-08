@@ -45,7 +45,7 @@ public class FunctionIsPickVal extends FormulaCommandInfoImpl
         {
             return "(" + arg + " IS NOT NULL AND " + arg + " IN (" + Joiner.on(", ").join(target) + "))";
         }
-        else if (target.get(0) == null || target.get(0).equals(""))
+        else if (target.get(0) == null || target.get(0).isEmpty())
         {
             return "(" + arg + " IS NULL)";// The none selected picklist value
         }
@@ -136,7 +136,7 @@ public class FunctionIsPickVal extends FormulaCommandInfoImpl
         FormulaFieldInfo formulaFieldInfo = getFormulaFieldInfo(first, context);
         FormulaPicklistInfo enumInfo = formulaFieldInfo.getEnumInfo();
 
-        if (enumInfo != null && enumInfo instanceof FormulaPicklistInfo.Dynamic)
+        if (enumInfo instanceof FormulaPicklistInfo.Dynamic)
         {
             ((FormulaPicklistInfo.Dynamic) enumInfo).collectApiValueToFetch(fieldValue);
         }

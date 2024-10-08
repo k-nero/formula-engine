@@ -45,7 +45,7 @@ public class FunctionSubstitute extends FormulaCommandInfoImpl
     @Override
     public JsValue getJavascript(FormulaAST node, FormulaContext context, JsValue[] args) throws FormulaException
     {
-        /**
+        /*
          * JS replaceAll natively returns the original string if arg[1] is null and replaces with null if arg[2] is null
          * However, the SQL and Java implementation returns null if arg[1] is null and replaces with "" if arg[2] is null
          * To align with SQL and Java implementation, we are putting JS guards on arg[1] and arg[2] of substitute function
@@ -85,7 +85,7 @@ class FunctionSubstituteCommand extends AbstractFormulaCommand
             stack.push(null);
             return;
         }
-        if (sourceText.length() == 0)
+        if (sourceText.isEmpty())
         {
             stack.push(sourceText);
             return;

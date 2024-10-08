@@ -66,6 +66,7 @@ public class FunctionIn extends FormulaCommandInfoImpl implements FormulaCommand
             {
                 if (isPicklistCase)
                 {
+                    assert targets != null;
                     if (targets.get(i) != null && !targets.get(i).isEmpty())
                     {
                         values.addAll(values);
@@ -82,7 +83,7 @@ public class FunctionIn extends FormulaCommandInfoImpl implements FormulaCommand
             values.addAll(Arrays.asList(args).subList(1, args.length));
         }
 
-        if (values.size() > 0)
+        if (!values.isEmpty())
         {
             FormulaSqlHooks hooks = getSqlHooks(context);
             if (FormulaTypeUtils.isTypeText(valueNode.getDataType()))
@@ -173,6 +174,7 @@ public class FunctionIn extends FormulaCommandInfoImpl implements FormulaCommand
             js.append("([");
             for (int i = 1; i < args.length; i++)
             {
+                assert targets != null;
                 List<String> cases = targets.get(i);
                 if (cases != null)
                 {  // If the case is valid...
@@ -279,7 +281,7 @@ public class FunctionIn extends FormulaCommandInfoImpl implements FormulaCommand
         // Prefetch dynamic enum items needed for this IN function
         FormulaFieldInfo formulaFieldInfo = FunctionIsPickVal.getFormulaFieldInfo(targetNode, context);
         FormulaPicklistInfo enumInfo = formulaFieldInfo.getEnumInfo();
-        if (enumInfo != null && enumInfo instanceof FormulaPicklistInfo.Dynamic)
+        if (enumInfo instanceof FormulaPicklistInfo.Dynamic)
         {
             FormulaAST currentNode = targetNode;
             int numberOfChildren = ast.getNumberOfChildren();

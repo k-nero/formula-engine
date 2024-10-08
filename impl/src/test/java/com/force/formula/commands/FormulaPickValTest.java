@@ -12,7 +12,6 @@ import com.force.formula.impl.sql.FormulaDefaultSqlStyle;
 import com.force.formula.sql.SQLPair;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
-import org.junit.Test;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -31,7 +30,6 @@ public class FormulaPickValTest extends BaseCustomizableParserTest
         super(name, new FormulaPicklistValTestFormulaValidationHooks());
     }
 
-    @Test
     public void testIsPickVal() throws Exception
     {
         parseTest("ispickval(pickval__c, \"Mr\")", " ( ispickval pickval__c \"Mr\" )");
@@ -40,14 +38,12 @@ public class FormulaPickValTest extends BaseCustomizableParserTest
         assertFalse(evaluateBoolean("ispickval(type, \"Banana\")"));
     }
 
-    @Test
     public void testPickvalCase() throws Exception
     {
         assertEquals("Red", evaluateString("CASE(type, \"Apple\", \"Red\", \"Banana\", \"Yellow\", \"Other\")"));
         assertEquals("Other", evaluateString("CASE(status, \"Open\", \"Green\", \"Closed\", \"Red\", \"Other\")"));
     }
 
-    @Test
     public void testPickvalIn() throws Exception
     {
         assertTrue(evaluateBoolean("IN(type, \"Apple\",  \"Banana\")"));
@@ -57,7 +53,6 @@ public class FormulaPickValTest extends BaseCustomizableParserTest
     }
 
 
-    @Test
     public void testText() throws Exception
     {
         // There's some optimization to convert text to ispickval
@@ -69,7 +64,6 @@ public class FormulaPickValTest extends BaseCustomizableParserTest
         assertFalse(evaluateBoolean("TEXT(status) = \"Open\""));
     }
 
-    @Test
     public void testTextPicklistConversionFail() throws Exception
     {
         // Formula type is dynamic and TextPicklistConversion is false
@@ -176,7 +170,7 @@ public class FormulaPickValTest extends BaseCustomizableParserTest
                 FormulaContext context, boolean forSql, boolean forJs)
                 throws InvalidFieldReferenceException, UnsupportedTypeException
         {
-            if (fieldValue == null || fieldValue.length() == 0)
+            if (fieldValue == null || fieldValue.isEmpty())
             {
                 List<String> arrayList = new ArrayList<>(1);
                 arrayList.add("");
@@ -224,7 +218,6 @@ public class FormulaPickValTest extends BaseCustomizableParserTest
                 }
                 dbValues.add(dbValue);
             }
-            assert !dbValues.isEmpty();
             return dbValues;
 
         }

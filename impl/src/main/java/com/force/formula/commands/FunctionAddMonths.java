@@ -84,7 +84,7 @@ public class FunctionAddMonths extends FormulaCommandInfoImpl implements Formula
 
     /**
      * Specification:
-     * https://www.oracletutorial.com/oracle-date-functions/oracle-add_months
+     * <a href="https://www.oracletutorial.com/oracle-date-functions/oracle-add_months">...</a>
      * <p>
      * The ADD_MONTHS() returns a DATE value with the number of months away from a date.
      * If  date_expression is the last day of the month, the resulting date is always the last day of the month e.g., adding 1 month to 29-FEB-2016 will result in 31-MAR-2016, not 29-MAR-2016.
