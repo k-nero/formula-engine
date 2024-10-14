@@ -149,7 +149,7 @@ public class FormulaCommandTypeRegistryImpl implements FormulaCommandTypeRegistr
     public FormulaCommandTypeRegistryImpl(List<FormulaCommandInfo> commands)
     {
         this.commandInfos = ImmutableList.copyOf(commands);
-        this.commandInfosByName = Maps.uniqueIndex(commands, (a) -> a.getName());
+        this.commandInfosByName = Maps.uniqueIndex(commands, FormulaCommandType::getName);
     }
 
     public static List<FormulaCommandInfo> getDefaultCommands()

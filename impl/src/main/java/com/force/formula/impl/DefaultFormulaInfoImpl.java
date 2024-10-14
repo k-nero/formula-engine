@@ -10,7 +10,7 @@ import com.force.formula.sql.FormulaWithSql;
 import com.force.formula.sql.RuntimeSqlFormulaInfo;
 
 /**
- * A defualt formula info.  You shouldn't use this and instead extends BaseFormulaInfoImpl yourself
+ * A default formula info.  You shouldn't use this and instead extends BaseFormulaInfoImpl yourself
  *
  * @author stamm
  * @since 0.0.1

@@ -22,7 +22,7 @@ import com.google.common.collect.ImmutableMap;
  */
 public class BeanFormulaContext extends BaseObjectFormulaContext<Object> {
     static final LoadingCache<Class<?>, BeanEntity> BEAN_CACHE = CacheBuilder.newBuilder().build(
-            CacheLoader.from((c)->BeanEntity.fromClass(c)));
+            CacheLoader.from(BeanEntity::fromClass));
 
     
     /**

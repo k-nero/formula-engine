@@ -31,8 +31,8 @@ public class BaseCompositeFormulaContext implements FormulaRuntimeContext
     {
         this.defaultContext = defaultContext;
         this.globalFormulaProperties = new GlobalFormulaProperties(topLevelFormulaType);
-        this.additionalContextProviders = new HashMap<String, FormulaRuntimeContextProvider>();
-        this.additionalContexts = new HashMap<String, FormulaRuntimeContext>();
+        this.additionalContextProviders = new HashMap<>();
+        this.additionalContexts = new HashMap<>();
         this.allowSelfReference = true;
     }
 
@@ -40,8 +40,8 @@ public class BaseCompositeFormulaContext implements FormulaRuntimeContext
     {
         this.defaultContext = defaultContext;
         this.globalFormulaProperties = globalProperties;
-        this.additionalContextProviders = new HashMap<String, FormulaRuntimeContextProvider>();
-        this.additionalContexts = new HashMap<String, FormulaRuntimeContext>();
+        this.additionalContextProviders = new HashMap<>();
+        this.additionalContexts = new HashMap<>();
         this.allowSelfReference = true;
     }
 

@@ -28,7 +28,7 @@ public abstract class BaseObjectFormulaContext<T> extends BaseCompositeFormulaCo
     T object;
     final EntityWithFields entity;
     final FormulaSchema.Field reference;
-    private final Map<String, Object> properties = new HashMap<String, Object>();
+    private final Map<String, Object> properties = new HashMap<>();
 
     /**
      * Generate a formula context for the given object
@@ -52,7 +52,7 @@ public abstract class BaseObjectFormulaContext<T> extends BaseCompositeFormulaCo
      */
     protected BaseObjectFormulaContext(FormulaRuntimeContext defaultContext, EntityWithFields beanEntity, final FormulaTypeSpec topLevelFormulaType, FormulaSchema.Field reference, T object) {
         super(defaultContext, topLevelFormulaType);
-        addContextProvider("$System", (outerContext) -> new SystemFormulaContext(outerContext));
+        addContextProvider("$System", SystemFormulaContext::new);
         this.object = object;
         this.entity = beanEntity;
         this.reference = reference;
@@ -264,7 +264,7 @@ public abstract class BaseObjectFormulaContext<T> extends BaseCompositeFormulaCo
             return super.toDurableName(name);
         String fullName = getFullName(true, null);
         StringBuilder sb = new StringBuilder(fullName);
-        if (fullName.length() > 0 )
+        if (!fullName.isEmpty())
             sb.append(".");
         FormulaSchema.FieldOrColumn fieldOrColumnInfo = entity.getField(name);
         sb.append(fieldOrColumnInfo.getName());
@@ -281,7 +281,7 @@ public abstract class BaseObjectFormulaContext<T> extends BaseCompositeFormulaCo
             // Decode?
             return reference;
         }
-        FormulaRuntimeContext context = lastDot >= 0 ? getContextFromReference(reference) : getDefaultContext();
+        FormulaRuntimeContext context = getContextFromReference(reference);
 
         String name = reference.substring(lastDot + 1);
         String decodedReference = context.fromDurableName(conn, name);
@@ -343,7 +343,7 @@ public abstract class BaseObjectFormulaContext<T> extends BaseCompositeFormulaCo
 
 
     /**
-     * Extample Field based on BeanInfo's method descriptor
+     * Example Field based on BeanInfo's method descriptor
      *
      * @author stamm
      */

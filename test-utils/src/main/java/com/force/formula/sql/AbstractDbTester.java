@@ -212,7 +212,7 @@ public abstract class AbstractDbTester implements DbTester {
 						sqlValue = getSqlLiteralValue(df, value);
 					}
 				}
-				sub.append(", " + sqlValue).append(" as ").append(df.getFormulaFieldInfo().getDbColumn(null, null));
+				sub.append(", ").append(sqlValue).append(" as ").append(df.getFormulaFieldInfo().getDbColumn(null, null));
 			}
 		}
 		sub.append(getFromDual());

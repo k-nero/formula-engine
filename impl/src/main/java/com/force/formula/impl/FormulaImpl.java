@@ -88,7 +88,7 @@ public class FormulaImpl implements FormulaWithSql
             attributes.set(FormulaUtils.PRODUCES_SQL_ERROR_COLUMN);
         }
 
-        if (this.sqlRaw != null && this.sqlRaw.length() > 0 && tempSql.length() > this.sqlRaw.length())
+        if (this.sqlRaw != null && !this.sqlRaw.isEmpty() && tempSql.length() > this.sqlRaw.length())
         {
             int idx = tempSql.indexOf(this.sqlRaw);
             if (idx != -1)
@@ -289,7 +289,7 @@ public class FormulaImpl implements FormulaWithSql
     @Override
     public boolean equals(Object o)
     {
-        if (o == null || !(o instanceof FormulaImpl))
+        if (!(o instanceof FormulaImpl))
         {
             return false;
         }

@@ -204,7 +204,7 @@ public abstract class BaseFormulaInfoImpl implements RuntimeFormulaInfo
                     }
                 }
 
-                this.formula = new FormulaImpl(commandList.toArray(new FormulaCommand[commandList.size()]), sqlPair.sql,
+                this.formula = new FormulaImpl(commandList.toArray(new FormulaCommand[0]), sqlPair.sql,
                         sqlPair.guard, javascript, properties, context.getFormulaReturnType(), ast.getDataType(),
                         propertyBits, referencesSubFormula, context.getSqlStyle(), registry);
 
@@ -399,7 +399,7 @@ public abstract class BaseFormulaInfoImpl implements RuntimeFormulaInfo
                 {
                     BigDecimal num = (BigDecimal) res;
                     FormulaAST node;
-                    if (num.compareTo(BigDecimal.ZERO) == -1)
+                    if (num.compareTo(BigDecimal.ZERO) < 0)
                     {
                         // constants like -1 are normally parsed into two nodes: '-' and '1'
                         // this makes sure that we create the same parse tree.
@@ -494,7 +494,7 @@ public abstract class BaseFormulaInfoImpl implements RuntimeFormulaInfo
             throws FormulaException
     {
 
-        /**
+        /*
          * As the recursive inorder traversal was resulting in StackOverFlow error when the tree is skewed or
          * deeply nested, using iterative implementation to do the same work
          */
@@ -649,7 +649,7 @@ public abstract class BaseFormulaInfoImpl implements RuntimeFormulaInfo
                     {
                         LinkedList<FormulaCommand> currentResult = new LinkedList<FormulaCommand>();
                         properties.or(generateOne(current, currentResult, context, formulaProperties));
-                        result.add(new Thunk(currentResult.toArray(new FormulaCommand[currentResult.size()])));
+                        result.add(new Thunk(currentResult.toArray(new FormulaCommand[0])));
                         current = (FormulaAST) current.getNextSibling();
                     }
                     break;
@@ -660,7 +660,7 @@ public abstract class BaseFormulaInfoImpl implements RuntimeFormulaInfo
                     {
                         LinkedList<FormulaCommand> currentResult = new LinkedList<FormulaCommand>();
                         properties.or(generateOne(current, currentResult, context, formulaProperties));
-                        result.add(new Thunk(currentResult.toArray(new FormulaCommand[currentResult.size()])));
+                        result.add(new Thunk(currentResult.toArray(new FormulaCommand[0])));
                         current = (FormulaAST) current.getNextSibling();
                     }
                     break;
@@ -674,7 +674,7 @@ public abstract class BaseFormulaInfoImpl implements RuntimeFormulaInfo
                         if (i == 2)
                         {
                             List<FormulaCommand> swapCommands = new LinkedList<FormulaCommand>();
-                            swapCommands.add(new Thunk(tempCommands.toArray(new FormulaCommand[tempCommands.size()])));
+                            swapCommands.add(new Thunk(tempCommands.toArray(new FormulaCommand[0])));
                             tempCommands = swapCommands;
                         }
 
@@ -695,7 +695,7 @@ public abstract class BaseFormulaInfoImpl implements RuntimeFormulaInfo
                     {
                         LinkedList<FormulaCommand> currentResult = new LinkedList<FormulaCommand>();
                         properties.or(generateOne(current, currentResult, context, formulaProperties));
-                        predictCommands.add(new Thunk(currentResult.toArray(new FormulaCommand[currentResult.size()])));
+                        predictCommands.add(new Thunk(currentResult.toArray(new FormulaCommand[0])));
                         current = (FormulaAST) current.getNextSibling();
                     }
                     command = FormulaValidationHooks.get().parseHook_generateFunctionPredict(

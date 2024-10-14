@@ -55,12 +55,9 @@ public class MockFormulaContext extends NullFormulaContext {
 
     @Override
     public FormulaReturnType getFormulaReturnType() {
-        return new FormulaReturnType() {
-            @Override
-            public FormulaDataType getDataType() {
-                // for now we only return formulas that evaluate to numbers
-                return returnType;
-            }
+        return () -> {
+            // for now we only return formulas that evaluate to numbers
+            return returnType;
         };
     }
 
