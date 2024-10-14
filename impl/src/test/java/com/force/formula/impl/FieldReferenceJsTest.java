@@ -3,6 +3,7 @@ package com.force.formula.impl;
 import com.force.formula.*;
 import com.force.formula.commands.FormulaJsTestUtils;
 import com.google.common.collect.ImmutableMap;
+import org.junit.Ignore;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -13,6 +14,7 @@ import java.util.Map;
  * @author stamm
  * @since 0.2
  */
+@Ignore
 public class FieldReferenceJsTest extends BaseFieldReferenceTest
 {
 

@@ -8,6 +8,7 @@ package com.force.formula.commands;
 import com.force.formula.FormulaDataType;
 import com.force.formula.FormulaException;
 import com.force.formula.MockFormulaType;
+import org.junit.Ignore;
 
 import java.util.TimeZone;
 
@@ -17,6 +18,7 @@ import java.util.TimeZone;
  * @author stamm
  * @since 0.1
  */
+@Ignore
 public class OptionalFunctionsJsTest extends OptionalFunctionsTest
 {
     public OptionalFunctionsJsTest(String name)

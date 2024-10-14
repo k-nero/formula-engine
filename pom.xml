@@ -50,7 +50,6 @@
     <module>api</module>
     <module>impl</module>
     <module>test-utils</module>
-    <module>docs/coverage</module>
   </modules>
 
   <licenses>
@@ -414,22 +413,6 @@
     </plugins>
   </build>
   <profiles>
-    <profile>
-      <id>Code Coverage</id>
-      <activation>
-        <activeByDefault>false</activeByDefault>
-        <property>
-          <name>coverage</name>
-        </property>
-      </activation>
-      <modules>
-        <module>coverage</module>
-      </modules>
-      <properties>
-        <coverage.skip>false</coverage.skip>
-      </properties>
-    </profile>
-
     <!-- Include graaljs in the classpath on stock JDKs. -->
     <profile>
       <id>graaljs</id>

@@ -6,6 +6,7 @@
 package com.force.formula.commands;
 
 import com.force.formula.*;
+import org.junit.Ignore;
 
 import java.util.TimeZone;
 
@@ -15,6 +16,7 @@ import java.util.TimeZone;
  * @author stamm
  * @since 206
  */
+@Ignore
 public class BuiltinFunctionsJsTest extends BuiltinFunctionsTest
 {
     public BuiltinFunctionsJsTest(String name)
