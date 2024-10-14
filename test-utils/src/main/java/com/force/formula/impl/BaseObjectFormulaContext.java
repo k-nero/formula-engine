@@ -232,7 +232,7 @@ public abstract class BaseObjectFormulaContext<T> extends BaseCompositeFormulaCo
     
     @Override
     public DisplayField[] getDisplayFields(Entity entityInfo) {
-        List<DisplayField> fields = new LinkedList<DisplayField>();
+        var fields = new LinkedList<DisplayField>();
         for (FormulaSchema.Field fieldInfo : ((EntityWithFields)entityInfo).getFields()) {
             DisplayField displayField = getDisplayField(fieldInfo);
             if (displayField != null) {

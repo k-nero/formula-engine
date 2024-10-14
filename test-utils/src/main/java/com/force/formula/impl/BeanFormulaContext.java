@@ -171,7 +171,7 @@ public class BeanFormulaContext extends BaseObjectFormulaContext<Object> {
             
             String formulaSource;
             BeanFormulaType annotation = method.getAnnotation(BeanFormulaType.class);
-            if (annotation != null && annotation.formulaSource().length() > 0) {
+            if (annotation != null && !annotation.formulaSource().isEmpty()) {
                 formulaSource = annotation.formulaSource();
             } else {
                 formulaSource = null;
@@ -187,7 +187,7 @@ public class BeanFormulaContext extends BaseObjectFormulaContext<Object> {
             }
             FormulaPicklistInfo info = null;
             if (dataType == MockFormulaDataType.STATICENUM
-            		&& annotation != null && annotation.picklistInfoMethodName().length() > 0) {
+            		&& annotation != null && !annotation.picklistInfoMethodName().isEmpty()) {
         		try {
 					info = (FormulaPicklistInfo) method.getDeclaringClass().getDeclaredMethod(annotation.picklistInfoMethodName()).invoke(null);
 				} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException
@@ -288,7 +288,7 @@ public class BeanFormulaContext extends BaseObjectFormulaContext<Object> {
         FormulaContext parentContext = currentContext.getParentContext();
         FormulaSchema.Entity domain = null;
         while (parentContext != null) {
-            domain = domain == null ? (FormulaSchema.Entity) formulaFieldInfo.getFieldOrColumnInfo().getEntityInfo() : domain;
+            domain = domain == null ? formulaFieldInfo.getFieldOrColumnInfo().getEntityInfo() : domain;
             if (fieldPath == null) {
                 fieldPath = new ArrayList<>();
             }

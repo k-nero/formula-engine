@@ -128,7 +128,7 @@ public class MapFormulaContext extends BaseObjectFormulaContext<Map<String,?>> {
         private final String name;
         private final Map<String,MapField> fields;
         
-        private static Function<MapField,String> TO_LOWER = (b)->b.getName().toLowerCase();
+        private static final Function<MapField,String> TO_LOWER = (b)->b.getName().toLowerCase();
         
         public MapEntity(String name, Collection<MapFieldInfo> infos) {
             this.name = name;
