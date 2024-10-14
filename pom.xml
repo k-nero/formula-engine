@@ -42,6 +42,8 @@
     <maven-source-plugin.version>3.2.1</maven-source-plugin.version>
     <maven-surefire-plugin.version>3.0.0-M3</maven-surefire-plugin.version>
     <maven-failsafe-plugin.version>3.0.0-M5</maven-failsafe-plugin.version>
+    <coverage.skip>true</coverage.skip>
+    <test.skipUnitTests>false</test.skipUnitTests>
   </properties>
   <packaging>pom</packaging>
   <modules>
@@ -313,7 +315,7 @@
         <version>${maven-pmd-plugin.version}</version>
         <configuration>
           <rulesets>
-            <ruleset>${project.parent.basedir}/pmd-ruleset.xml</ruleset>
+            <ruleset>${basedir}/pmd-ruleset.xml</ruleset>
           </rulesets>
           <excludeRoots>
             <excludeRoot>target/generated-sources</excludeRoot>
