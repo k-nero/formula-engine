@@ -315,7 +315,8 @@
         <version>${maven-pmd-plugin.version}</version>
         <configuration>
           <rulesets>
-            <ruleset>${basedir}/pmd-ruleset.xml</ruleset>
+            <!--suppress UnresolvedMavenProperty -->
+            <ruleset>${project.parent.basedir}/pmd-ruleset.xml</ruleset>
           </rulesets>
           <excludeRoots>
             <excludeRoot>target/generated-sources</excludeRoot>
@@ -334,6 +335,7 @@
         <!-- JaCoCo for Java code coverage metrics -->
         <groupId>org.jacoco</groupId>
         <artifactId>jacoco-maven-plugin</artifactId>
+        <version>0.8.12</version>
         <configuration>
           <skip>${coverage.skip}</skip>
         </configuration>

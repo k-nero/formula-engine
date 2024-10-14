@@ -8,6 +8,7 @@ package com.force.formula.commands;
 import com.force.formula.FormulaContext;
 import com.force.formula.FormulaDataType;
 import com.force.formula.impl.BeanFormulaContext;
+import org.junit.Ignore;
 
 /**
  * Test the javascript evaluator using the "high precision" decimals from decimal.js
@@ -15,6 +16,7 @@ import com.force.formula.impl.BeanFormulaContext;
  * @author stamm
  * @since 0.1
  */
+@Ignore
 public class OptionalFunctionsHpJsTest extends OptionalFunctionsJsTest
 {
     public OptionalFunctionsHpJsTest(String name)

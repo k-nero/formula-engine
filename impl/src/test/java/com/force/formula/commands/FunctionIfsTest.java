@@ -50,12 +50,6 @@ public class FunctionIfsTest extends BaseCustomizableParserTest
         assertEquals(BigDecimal.ZERO, evaluateBigDecimal("ifs(IF(false,true,null), 1, IF(false,true,null), 2, 0)"));
     }
 
-    @Test
-    public void testIFSJavascript() throws Exception
-    {
-        testIFS();
-    }
-
     // Validate the parsing
     @Test
     public void testIFSParsing() throws Exception

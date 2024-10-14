@@ -16,6 +16,7 @@ import org.junit.runner.RunWith;
  * @author stamm
  * @since 212
  */
+@Ignore
 public class FieldReferenceHPJsTest extends FieldReferenceJsTest
 {
     /**

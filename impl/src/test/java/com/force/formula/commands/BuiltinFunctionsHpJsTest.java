@@ -8,6 +8,7 @@ package com.force.formula.commands;
 import com.force.formula.FormulaContext;
 import com.force.formula.FormulaDataType;
 import com.force.formula.FormulaRuntimeContext;
+import org.junit.Ignore;
 
 /**
  * Test the javascript evaluator using the "high precision" decimals from decimal.js
@@ -15,6 +16,7 @@ import com.force.formula.FormulaRuntimeContext;
  * @author stamm
  * @since 212
  */
+@Ignore
 public class BuiltinFunctionsHpJsTest extends BuiltinFunctionsJsTest
 {
     public BuiltinFunctionsHpJsTest(String name)

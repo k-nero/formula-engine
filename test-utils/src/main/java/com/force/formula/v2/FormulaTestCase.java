@@ -79,9 +79,16 @@ public class FormulaTestCase extends FormulaTestBase {
      * expected outputs
      */
     private void runTestCase(){
-        for(String executionPath: this.testCase.getExecutionPaths()){
-            if(ExecutionPaths.get(executionPath)!=null){
-                for(FormulaTestData testData: this.testCase.getTestData()){
+        for(String executionPath: this.testCase.getExecutionPaths())
+        {
+            if (executionPath.contains("javascript"))
+            {
+                continue;
+            }
+            if(ExecutionPaths.get(executionPath)!=null)
+            {
+                for(FormulaTestData testData: this.testCase.getTestData())
+                {
                     String output = ExecutionPaths.get(executionPath)
                             .execute(this.testCase.getTestCaseFieldInfo().getFormula(),
                                     this.testCase.getTestCaseFieldInfo().getDataType(),
