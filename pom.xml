@@ -42,9 +42,7 @@
     <maven-source-plugin.version>3.2.1</maven-source-plugin.version>
     <maven-surefire-plugin.version>3.0.0-M3</maven-surefire-plugin.version>
     <maven-failsafe-plugin.version>3.0.0-M5</maven-failsafe-plugin.version>
-
   </properties>
-
   <packaging>pom</packaging>
   <modules>
     <module>api</module>
@@ -73,13 +71,6 @@
       <organization>Salesforce</organization>
     </developer>
   </developers>
-
-  <scm>
-    <connection>scm:git:https://github.com/salesforce/formula-engine.git</connection>
-    <developerConnection>scm:git:https://github.com/salesforce/formula-engine.git</developerConnection>
-    <url>https://github.com/salesforce/formula-engine</url>
-    <tag>v0.1.2</tag>
-  </scm>
 
   <dependencyManagement>
     <dependencies>
@@ -415,148 +406,21 @@
   <profiles>
     <!-- Include graaljs in the classpath on stock JDKs. -->
     <profile>
-      <id>graaljs</id>
-      <activation>
-        <file>
-          <!-- This may not be the best way to prove non-graal -->
-          <missing>${java.home}/../bin/gu</missing>
-        </file>
-      </activation>
-      <dependencies>
-        <!-- Reinclude these to get the transitive dependencies and compile
-          scope -->
-        <dependency>
-          <groupId>org.graalvm.sdk</groupId>
-          <artifactId>graal-sdk</artifactId>
-          <version>${graalvm.version}</version><!--$NO-MVN-MAN-VER$-->
-          <scope>compile</scope>
-        </dependency>
-        <dependency>
-          <groupId>org.graalvm.js</groupId>
-          <artifactId>js</artifactId>
-          <version>${graalvm.version}</version><!--$NO-MVN-MAN-VER$-->
-          <scope>compile</scope>
-        </dependency>
-        <dependency>
-          <groupId>org.graalvm.regex</groupId>
-          <artifactId>regex</artifactId>
-          <version>${graalvm.version}</version><!--$NO-MVN-MAN-VER$-->
-          <scope>compile</scope>
-        </dependency>
-        <dependency>
-          <groupId>org.graalvm.truffle</groupId>
-          <artifactId>truffle-api</artifactId>
-          <version>${graalvm.version}</version>
-          <scope>compile</scope>
-        </dependency>
-      </dependencies>
-    </profile>
-
-    <profile>
-      <id>sign-artifacts</id>
-      <distributionManagement>
-        <repository>
-          <id>sonatype-nexus-staging</id>
-          <url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-        </repository>
-        <snapshotRepository>
-          <id>sonatype-nexus-staging</id>
-          <url>https://s01.oss.sonatype.org/content/repositories/snapshots</url>
-        </snapshotRepository>
-      </distributionManagement>
-      <build>
-        <plugins>
-          <!-- Sign the artifacts -->
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-gpg-plugin</artifactId>
-            <version>1.6</version>
-            <configuration>
-              <!-- Prevent gpg from using pinentry programs -->
-              <gpgArguments>
-                <arg>--pinentry-mode</arg>
-                <arg>loopback</arg>
-              </gpgArguments>
-            </configuration>
-            <executions>
-              <execution>
-                <id>sign-artifacts</id>
-                <goals>
-                  <goal>sign</goal>
-                </goals>
-                <phase>verify</phase>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-
-    <profile>
-      <id>releases</id>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.sonatype.plugins</groupId>
-            <artifactId>nexus-staging-maven-plugin</artifactId>
-            <version>1.5.1</version>
-            <executions>
-              <execution>
-                <id>default-deploy</id>
-                <phase>deploy</phase>
-                <goals>
-                  <goal>deploy</goal>
-                </goals>
-              </execution>
-            </executions>
-            <configuration>
-              <serverId>sonatype-nexus-staging</serverId>
-              <nexusUrl>https://s01.oss.sonatype.org/</nexusUrl>
-              <autoReleaseAfterClose>true</autoReleaseAfterClose>
-              <stagingProgressTimeoutMinutes>15</stagingProgressTimeoutMinutes>
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-
-    <profile>
       <id>db-tests</id>
       <modules>
         <module>api</module>
         <module>impl</module>
         <module>test-utils</module>
-        <module>oracle-test</module>
         <!-- <module>mysql-test</module> -->
         <!-- MYSQL tests having issues in handling regular expressions, so excluding these tests from maven build process-->
         <!-- These tests can be executed by using the "mysql" profile e.g. `mvn -P mysql clean verify -B` -->
         <module>sqlserver-test</module>
-        <module>sqlite-test</module>
         <!-- <module>h2-test</module> -->
         <!-- Google spanner is having issues with connection in Jenkins, so excluding these tests from maven build process-->
         <!-- These tests can be executed by using the "google-spanner" profile e.g. `mvn -P google-spanner clean verify -B` -->
         <!-- <module>google-test</module> -->
         <!-- Running Presto is really slow, so comment it out as earlier -->
         <!-- <module>presto-test</module> -->
-        <module>docs/coverage</module>
-      </modules>
-    </profile>
-    <profile>
-      <id>presto</id>
-      <modules>
-        <module>presto-test</module>
-      </modules>
-    </profile>
-    <profile>
-      <id>google-spanner</id>
-      <modules>
-        <module>google-test</module>
-      </modules>
-    </profile>
-    <profile>
-      <id>mysql</id>
-      <modules>
-        <module>mysql-test</module>
       </modules>
     </profile>
   </profiles>
