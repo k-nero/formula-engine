@@ -135,7 +135,7 @@ public class FormulaTestCase extends FormulaTestBase {
     private String generateGoldFileContents(){
         StringBuilder sb = new StringBuilder();
         sb.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
-        sb.append("<testCase name=\"" + this.testCase.getTestName() + "\">\n");
+        sb.append("<testCase name=\"").append(this.testCase.getTestName()).append("\">\n");
         List<String> executionPaths = this.testCase.getExecutionPaths();
         Collections.sort(executionPaths);
         for(String executionPath: executionPaths){
@@ -162,8 +162,7 @@ public class FormulaTestCase extends FormulaTestBase {
         byte[] existingGoldFileContents = Files.asByteSource(existingGoldFile).read();
 
         if (!Arrays.equals(existingGoldFileContents, newGoldFileOutput)) {
-            testFailureMsg.append("\n\nTESTCASE: " + this.testCase.getTestName() +
-                    " Changes identified in generated SQL and Javascript.  Check gold file.\n");
+            testFailureMsg.append("\n\nTESTCASE: ").append(this.testCase.getTestName()).append(" Changes identified in generated SQL and Javascript.  Check gold file.\n");
             appendDiffSnippet(existingGoldFileContents, newGoldFileOutput, testFailureMsg);
             return false;
         } else {
